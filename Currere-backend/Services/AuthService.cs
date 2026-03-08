@@ -22,19 +22,22 @@ namespace Currere_backend.Services
 
         public async Task<string> RegisterAsync(RegisterDto request)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+            string cleanEmail = request.Email.Trim().ToLower();
+
+            if (await _context.Users.AnyAsync(u => u.Email == cleanEmail))
             {
                 throw new Exception("Bu email adresi zaten kullanýmda.");
             }
 
-            // hashing
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
             var user = new User
             {
-                Email = request.Email,
+                FirstName = request.FirstName.Trim(), 
+                LastName = request.LastName.Trim(),   
+                Email = cleanEmail,
                 PasswordHash = passwordHash,
-                Role = UserRole.User 
+                Role = UserRole.User
             };
 
             _context.Users.Add(user);
@@ -45,7 +48,9 @@ namespace Currere_backend.Services
 
         public async Task<string> LoginAsync(LoginDto request)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            string cleanEmail = request.Email.Trim().ToLower();
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == cleanEmail);
 
             if (user == null)
             {
@@ -57,9 +62,7 @@ namespace Currere_backend.Services
                 throw new Exception("Hatalý þifre.");
             }
 
-    
-            string token = CreateToken(user);
-            return token;
+            return CreateToken(user);
         }
 
         private string CreateToken(User user)
