@@ -9,5 +9,11 @@ namespace Currere_backend.Models
         public string PasswordHash { get; set; } = string.Empty; 
         public UserRole Role { get; set; } = UserRole.User;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+
+
+
+        // Mevcut User sýnýfýnýn içine, en alt satýra ekle:
+        public ICollection<Workspace> Workspaces { get; set; } = new List<Workspace>();
     }
 }
