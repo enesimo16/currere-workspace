@@ -1,0 +1,25 @@
+# .NET / C#
+bin/
+obj/
+.vs/
+*.user
+*.suo
+
+# Node.js / Next.js
+node_modules/
+.next/
+out/
+build/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+
+# İşletim Sistemi
+.DS_Store
+Thumbs.db
