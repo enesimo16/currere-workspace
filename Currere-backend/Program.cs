@@ -15,6 +15,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // DI's
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IWorkspaceService, WorkspaceService>();
+builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
 
 builder.Services.AddControllers();
 

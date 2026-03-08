@@ -3,6 +3,8 @@ using System.ComponentModel.DataAnnotations;
 namespace Currere_backend.DTOs
 {
 
+    // ENUM'S
+
     public enum WorkspaceFormat
     {
         Python = 1,     // .py
@@ -21,6 +23,9 @@ namespace Currere_backend.DTOs
         User = 2,     // user rquest
         AI = 3        // ai response
     }
+
+
+    // AUTH SYSTEM
 
 
     public class RegisterDto
@@ -51,6 +56,9 @@ namespace Currere_backend.DTOs
         public string Password { get; set; } = string.Empty;
     }
 
+
+    // WORKSPACE ROOM
+
     public class CreateWorkspaceDto
     {
         [Required(ErrorMessage = "Proje adý zorunludur.")]
@@ -76,5 +84,22 @@ namespace Currere_backend.DTOs
         public string CurrentState { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+    }
+
+
+    // DOCKERIZATION
+
+    public class ExecuteCodeDto
+    {
+        [Required(ErrorMessage = "Çalýþtýrýlacak kod boþ olamaz.")]
+        public string Code { get; set; } = string.Empty;
+    }
+
+    public class ExecutionResultDto
+    {
+        public string Output { get; set; } = string.Empty;   // Baþarýlý çýktýlar (print vb.)
+        public string Error { get; set; } = string.Empty;    // Hata mesajlarý (Syntax error vb.)
+        public bool IsSuccess { get; set; }                  // Kod hatasýz çalýþtý mý?
+        public long ExecutionTimeMs { get; set; }            // Kaç milisaniyede bitti?
     }
 }
