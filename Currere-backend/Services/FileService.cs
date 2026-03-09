@@ -1,0 +1,83 @@
+﻿using Currere_backend.Data;
+using Currere_backend.DTOs;
+using Currere_backend.Helpers;
+using Currere_backend.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace Currere_backend.Services
+{
+    public class FileService : IFileService
+    {
+        private readonly AppDbContext _context;
+        private readonly IWebHostEnvironment _env; // Sunucuu fiziki dosyalara erissin diye
+
+        public FileService(AppDbContext context, IWebHostEnvironment env)
+        {
+            _context = context;
+            _env = env;
+        }
+
+        public async Task<FileUploadResponseDto> UploadFileAsync(int workspaceId, int userId, IFormFile file)
+        {
+            // workspace == user mı?
+            var workspace = await _context.Workspaces
+                .FirstOrDefaultAsync(w => w.Id == workspaceId && w.UserId == userId);
+
+            if (workspace == null)
+                throw new Exception("Çalışma alanı bulunamadı veya bu alana dosya yükleme yetkiniz yok.");
+
+            // file security, validator
+            var validationResult = FileValidator.ValidateFile(file);
+            if (!validationResult.IsValid)
+                throw new Exception(validationResult.ErrorMessage);
+
+            // fiziksel klasor => wwwroot/workspaces/{workspaceId}
+            var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var workspaceFolderPath = Path.Combine(webRootPath, "workspaces", workspaceId.ToString());
+
+            if (!Directory.Exists(workspaceFolderPath))
+            {
+                Directory.CreateDirectory(workspaceFolderPath);
+            }
+
+            // cakismayi önlesin diye dosyanın önüne 8 haneli sayi
+            var uniqueFileName = $"{Guid.NewGuid().ToString("N").Substring(0, 8)}_{file.FileName}";
+            var fullPhysicalPath = Path.Combine(workspaceFolderPath, uniqueFileName);
+
+            // diske atıp rami koruyoruz
+            using (var stream = new FileStream(fullPhysicalPath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+
+            // TODO
+            // AI BAGLAM
+            // Ai ekledigimizde su kısmı aktive edebiliriz;
+            // await _aiContextService.ExtractAndSaveMetadataAsync(fullPhysicalPath, file.FileName);
+            // bunla birlikte metadata baglam olusturacagiz
+
+
+            // 4 hours expried
+            var workspaceFile = new WorkspaceFile
+            {
+                WorkspaceId = workspaceId,
+                FileName = file.FileName,       // 8 hanesiz original name
+                FilePath = fullPhysicalPath,    // fiziksel yol
+                UploadedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddHours(4) // user expire date görecek
+            };
+
+            _context.WorkspaceFiles.Add(workspaceFile);
+            await _context.SaveChangesAsync();
+
+            return new FileUploadResponseDto
+            {
+                FileId = workspaceFile.Id,
+                FileName = workspaceFile.FileName,
+                ExpiresAt = workspaceFile.ExpiresAt,
+                Message = "Dosya başarıyla yüklendi. Currere kuralları gereği 4 saat boyunca aktif kalacaktır."
+            };
+        }
+    }
+}

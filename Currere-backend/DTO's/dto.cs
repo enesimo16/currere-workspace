@@ -105,9 +105,20 @@ namespace Currere_backend.DTOs
 
     public class ExecutionResultDto
     {
-        public string Output { get; set; } = string.Empty;   // Baþarýlý çýktýlar (print vb.)
-        public string Error { get; set; } = string.Empty;    // Hata mesajlarý (Syntax error vb.)
-        public bool IsSuccess { get; set; }                  // Kod hatasýz çalýþtý mý?
-        public long ExecutionTimeMs { get; set; }            // Kaç milisaniyede bitti?
+        public string Output { get; set; } = string.Empty;   
+        public string Error { get; set; } = string.Empty;    
+        public bool IsSuccess { get; set; }                 
+        public long ExecutionTimeMs { get; set; }           
+    }
+
+
+    // FILE SERVICE
+
+    public class FileUploadResponseDto
+    {
+        public int FileId { get; set; }
+        public string FileName { get; set; } = string.Empty;
+        public DateTime ExpiresAt { get; set; } // usera dosya silinme süresini gsterme
+        public string Message { get; set; } = string.Empty;
     }
 }
