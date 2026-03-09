@@ -56,6 +56,14 @@ namespace Currere_backend.DTOs
         public string Password { get; set; } = string.Empty;
     }
 
+    // STUDENT PACK
+
+    public class LinkStudentEmailDto
+    {
+        [Required(ErrorMessage = "Öðrenci e-posta adresi zorunludur.")]
+        [EmailAddress(ErrorMessage = "Geçerli bir e-posta formatý giriniz.")]
+        public string StudentEmail { get; set; } = string.Empty;
+    }
 
     // WORKSPACE ROOM
 

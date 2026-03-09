@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Currere_backend.DTOs;
+﻿using Currere_backend.DTOs;
 using Currere_backend.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Currere_backend.Controllers
 {
@@ -41,6 +43,29 @@ namespace Currere_backend.Controllers
             catch (Exception ex)
             {
                 return Unauthorized(new { error = ex.Message });
+            }
+        }
+
+        [Authorize] // Sadece giris yapanlar student pack yapabilir
+        [HttpPost("link-student")]
+        public async Task<IActionResult> LinkStudentAccount([FromBody] LinkStudentEmailDto dto)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+                var success = await _authService.LinkStudentEmailAsync(userId, dto.StudentEmail);
+
+                if (success)
+                {
+                    return Ok(new { message = "Öğrenci hesabınız başarıyla bağlandı! Ayrıcalıklardan yararlanmak için lütfen tekrar giriş yapıp yeni Token alın." });
+                }
+
+                return BadRequest(new { message = "Kullanıcı bulunamadı." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
         }
     }

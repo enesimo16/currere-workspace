@@ -6,5 +6,7 @@ namespace Currere_backend.Services
     {
         Task<string> RegisterAsync(RegisterDto request);
         Task<string> LoginAsync(LoginDto request);
+
+        Task<bool> LinkStudentEmailAsync(int userId, string studentEmail); // student pack
     }
 }

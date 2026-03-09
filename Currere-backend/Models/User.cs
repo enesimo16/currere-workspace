@@ -10,6 +10,11 @@ namespace Currere_backend.Models
         public UserRole Role { get; set; } = UserRole.User;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        // student pack 2.mail
+
+        public string? StudentEmail { get; set; } // Örn: name@sakarya.edu.tr
+        public bool IsStudentEmailVerified { get; set; } = false; 
+
 
 
 

@@ -31,13 +31,20 @@ namespace Currere_backend.Services
 
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
+            UserRole assignedRole = UserRole.User; // varsayilan user
+
+            if (cleanEmail.EndsWith(".edu.tr") || cleanEmail.EndsWith(".edu"))
+            {
+                assignedRole = UserRole.Student; // edu olanlarý student
+            }
+
             var user = new User
             {
-                FirstName = request.FirstName.Trim(), 
-                LastName = request.LastName.Trim(),   
+                FirstName = request.FirstName.Trim(),
+                LastName = request.LastName.Trim(),
                 Email = cleanEmail,
                 PasswordHash = passwordHash,
-                Role = UserRole.User
+                Role = assignedRole // Dinamik role
             };
 
             _context.Users.Add(user);
@@ -89,6 +96,35 @@ namespace Currere_backend.Services
 
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
             return jwt;
+        }
+
+        // student pack
+
+        public async Task<bool> LinkStudentEmailAsync(int userId, string studentEmail)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return false;
+
+            if (user.Role == UserRole.Student)
+                throw new Exception("Hesabýnýz zaten Öðrenci (Student) statüsündedir.");
+
+            string emailLower = studentEmail.Trim().ToLower();
+            if (!(emailLower.EndsWith(".edu.tr") || emailLower.EndsWith(".edu")))
+            {
+                throw new Exception("Geçerli bir akademik e-posta adresi girmelisiniz (.edu veya .edu.tr).");
+            }
+
+            var isEmailTaken = await _context.Users.AnyAsync(u => u.StudentEmail == studentEmail || u.Email == studentEmail);
+            if (isEmailTaken)
+                throw new Exception("Bu öðrenci e-postasý zaten baþka bir hesapta kullanýlýyor.");
+
+            // Hesabý yükselt!
+            user.StudentEmail = studentEmail;
+            user.IsStudentEmailVerified = true; // otp/mail dogrulamasý koyulacak
+            user.Role = UserRole.Student;
+
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

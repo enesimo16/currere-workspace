@@ -4,6 +4,7 @@ namespace Currere_backend.Models
     {
         User = 1,
         Pro = 2,
-        Admin = 3
+        Admin = 3,
+        Student = 4 // student pack
     }
 }
