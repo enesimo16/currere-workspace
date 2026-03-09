@@ -4,6 +4,6 @@ namespace Currere_backend.Services
 {
     public interface ICodeExecutionService
     {
-        Task<ExecutionResultDto> ExecutePythonCodeAsync(string code);
+        Task<ExecutionResultDto> ExecutePythonCodeAsync(int workspaceId, string code);
     }
 }

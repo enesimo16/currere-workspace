@@ -17,10 +17,11 @@ namespace Currere_backend.Controllers
             _executionService = executionService;
         }
 
-        [HttpPost("run")]
-        public async Task<IActionResult> RunCode([FromBody] ExecuteCodeDto request)
+        [HttpPost("{workspaceId}/run")]
+        public async Task<IActionResult> RunCode(int workspaceId, [FromBody] ExecuteCodeDto request)
         {
-            var result = await _executionService.ExecutePythonCodeAsync(request.Code);
+            // workspaceId servise e gitti
+            var result = await _executionService.ExecutePythonCodeAsync(workspaceId, request.Code);
 
             // Eğer hata varsa 400 fakat format => ExecutionResultDto
             if (!result.IsSuccess)

@@ -1,50 +1,74 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Currere_backend.DTOs;
 using Docker.DotNet;
 using Docker.DotNet.Models;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Currere_backend.Services
 {
     public class CodeExecutionService : ICodeExecutionService
     {
         private readonly DockerClient _dockerClient;
+        private readonly IWebHostEnvironment _env;
 
-        public CodeExecutionService()
+        // Constructor: Başlangıç ayarları burada yapılıyor (Hataların sebebi buranın silinmesiydi)
+        public CodeExecutionService(IWebHostEnvironment env)
         {
-            // Windows, Mac veya Linux'a  Docker Daemon ile bağlanıyoruz
-            // bu kısımda da docker.dotnet nuget paketini kullanıyoruz
             _dockerClient = new DockerClientConfiguration().CreateClient();
+            _env = env;
         }
 
-        public async Task<ExecutionResultDto> ExecutePythonCodeAsync(string code)
+        public async Task<ExecutionResultDto> ExecutePythonCodeAsync(int workspaceId, string code)
         {
             var stopwatch = Stopwatch.StartNew();
             var containerId = string.Empty;
 
+            // FİZİKSEL KLASÖR YOLUNU BULMA
+            var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var hostWorkspacePath = Path.Combine(webRootPath, "workspaces", workspaceId.ToString());
+
+            if (!Directory.Exists(hostWorkspacePath))
+            {
+                Directory.CreateDirectory(hostWorkspacePath);
+            }
+
+            // DOCKER İÇİN PATH DÜZELTMESİ (Windows '\' karakterini '/' yapar)
+            var dockerBindPath = hostWorkspacePath.Replace("\\", "/");
+
             try
             {
-                // python:3.9-slim imaj kontrolü , var/yok
-                await _dockerClient.Images.CreateImageAsync(
-                    new ImagesCreateParameters { FromImage = "python", Tag = "3.9-slim" },
-                    null,
-                    new Progress<JSONMessage>());
+                // AKILLI İMAJ KONTROLÜ
+                var images = await _dockerClient.Images.ListImagesAsync(new ImagesListParameters());
+                bool imageExists = images.Any(i => i.RepoTags != null && i.RepoTags.Contains("python:3.9-slim"));
 
-                // kodu docker'a aktarabilmek için env.
+                if (!imageExists)
+                {
+                    await _dockerClient.Images.CreateImageAsync(
+                        new ImagesCreateParameters { FromImage = "python", Tag = "3.9-slim" },
+                        null,
+                        new Progress<JSONMessage>());
+                }
+
                 var envVars = new List<string> { $"CODE_TO_RUN={code}" };
 
-                // konteynerı oluşturuyoryuz fakat bu kısımda kısıtlamalar koyuyoruz
-                // ram kısıtlaması
-                // ve kullanıcının sisteme erişip overrisk komutlarını çalıştırmasını engelliyoruz
                 var response = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
                 {
                     Image = "python:3.9-slim",
                     Env = envVars,
                     Cmd = new List<string> { "/bin/sh", "-c", "echo \"$CODE_TO_RUN\" > script.py && python script.py" },
+                    WorkingDir = "/workspace",
                     HostConfig = new HostConfig
                     {
-                        Memory = 128 * 1024 * 1024, // max 128 mb ram ayırıyoruz
-                        NetworkMode = "none",       // aksi halde interneti kesme
-                        AutoRemove = false
+                        Memory = 128 * 1024 * 1024, // max 128 mb ram
+                        NetworkMode = "none",       // interneti kes
+                        AutoRemove = false,
+                        // SOLUCAN DELİĞİ: Klasörü içeri bağlıyoruz
+                        Binds = new List<string> { $"{dockerBindPath}:/workspace" }
                     }
                 });
 
@@ -63,8 +87,8 @@ namespace Currere_backend.Services
                     ShowStderr = true
                 });
 
-                // MultiplexedStream 
-                var (stdout, stderr) = await logsStream.ReadOutputToEndAsync(default);
+                // CS8130 HATASININ ÇÖZÜMÜ: Türleri açıkça (string) olarak belirttik
+                (string stdout, string stderr) = await logsStream.ReadOutputToEndAsync(default);
 
                 stopwatch.Stop();
 

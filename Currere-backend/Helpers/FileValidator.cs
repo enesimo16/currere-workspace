@@ -2,13 +2,13 @@
 {
     public static class FileValidator
     {
-        // 1. Kilo Sınırı: 50 MB (Bayt cinsinden)
+        // mb siniri
         private const int MaxFileSize = 50 * 1024 * 1024;
 
-        // 2. Beyaz Liste (Uzantılar)
+        // whitelist
         private static readonly string[] AllowedExtensions = { ".csv", ".xlsx", ".json", ".txt" };
 
-        // 3. MIME Tipi Kontrolü (Dosya adını değiştirip virüs sokmasınlar diye)
+        // MIME Tipi Kontrolu
         private static readonly string[] AllowedMimeTypes = {
             "text/csv",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // Excel
