@@ -23,3 +23,6 @@ env/
 # İşletim Sistemi
 .DS_Store
 Thumbs.db
+
+# User uploaded workspace files
+wwwroot/workspaces/
