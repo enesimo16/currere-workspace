@@ -2,6 +2,10 @@
 
 namespace Currere_backend.Services
 {
+
+    // GECİCİ OLARAK SERVERLESS HIZLI KULLANIM İCİN PY KODU C# A GOMULDU
+    // SUAN HALİ HAZIRDA CURRERE-EXTENSION KLASORUNDE data_profiller.py KLASORU VARDIR
+    // İLERİDE BURASI data_profiller.py'nin İMAJA DAHİL OLMASI İLE GELISTIRILECEK
     public class DatasetProfilerService : IDatasetProfilerService
     {
         private readonly ICodeExecutionService _executionService;

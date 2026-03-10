@@ -6,15 +6,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Currere_backend.Services
 {
+
+    // SUAN DOSYA YUKLENIR YUKLENMEZ ANALIZ EDILIYOR
+    // ILERIDE BURASINDA DA HANGIRE ILE DOCKERA PASLANARAK ZAMAN KAYBEDİLMEDEN YAPILACAK
     public class FileService : IFileService
     {
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env; // Sunucuu fiziki dosyalara erissin diye
+        private readonly IDatasetProfilerService _profilerService; // YENİ EKLENDİ: Röntgen Cihazımız
 
-        public FileService(AppDbContext context, IWebHostEnvironment env)
+        public FileService(AppDbContext context, IWebHostEnvironment env, IDatasetProfilerService profilerService)
         {
             _context = context;
             _env = env;
+            _profilerService = profilerService;
         }
 
         public async Task<FileUploadResponseDto> UploadFileAsync(int workspaceId, int userId, IFormFile file)
@@ -50,14 +55,6 @@ namespace Currere_backend.Services
                 await file.CopyToAsync(stream);
             }
 
-
-            // TODO
-            // AI BAGLAM
-            // Ai ekledigimizde su kısmı aktive edebiliriz;
-            // await _aiContextService.ExtractAndSaveMetadataAsync(fullPhysicalPath, file.FileName);
-            // bunla birlikte metadata baglam olusturacagiz
-
-
             // 4 hours expried
             var workspaceFile = new WorkspaceFile
             {
@@ -67,6 +64,26 @@ namespace Currere_backend.Services
                 UploadedAt = DateTime.UtcNow,
                 ExpiresAt = DateTime.UtcNow.AddHours(4) // user expire date görecek
             };
+
+            // TODO
+            // AI BAGLAM
+            // Ai ekledigimizde su kısmı aktive edebiliriz;
+            // await _aiContextService.ExtractAndSaveMetadataAsync(fullPhysicalPath, file.FileName);
+            // bunla birlikte metadata baglam olusturacagiz
+
+            // oto db kaydı - json to db
+            try
+            {
+                // Dockerdaki unique dosya adını yolluyoruz
+                var profileJson = await _profilerService.ProfileDatasetAsync(workspaceId, uniqueFileName);
+                workspaceFile.ProfileJson = profileJson; 
+            }
+            catch (Exception ex)
+            {
+                // Profilleme hatalı dahi olsa upload olsun
+                Console.WriteLine($"Profil çıkarılamadı: {ex.Message}");
+            }
+           
 
             _context.WorkspaceFiles.Add(workspaceFile);
             await _context.SaveChangesAsync();

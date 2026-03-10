@@ -9,6 +9,7 @@
         public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
         public DateTime ExpiresAt { get; set; } // Yüklenilen dosyasının expire vakti
 
+        public string? ProfileJson { get; set; } // py dan gelen jsonu db e kaydediyoruz
         public Workspace Workspace { get; set; } = null!;
     }
 }
