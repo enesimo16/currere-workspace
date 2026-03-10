@@ -74,7 +74,7 @@ builder.Services.AddHangfireServer();
 
 var app = builder.Build();
 
-// hangfire oto dosya silme
+// hangfire ile expire süresi dlanlarý sil
 RecurringJob.AddOrUpdate<FileCleanupService>(
     "expired-file-cleanup",
     service => service.CleanupExpiredFilesAsync(),
