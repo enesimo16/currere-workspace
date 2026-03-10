@@ -11,10 +11,14 @@ namespace Currere_backend.Controllers
     public class ExecutionController : ControllerBase
     {
         private readonly ICodeExecutionService _executionService;
+        private readonly IDatasetProfilerService _profilerService;
 
-        public ExecutionController(ICodeExecutionService executionService)
+        public ExecutionController(
+            ICodeExecutionService executionService,
+            IDatasetProfilerService profilerService)
         {
             _executionService = executionService;
+            _profilerService = profilerService; 
         }
 
         [HttpPost("{workspaceId}/run")]
@@ -30,6 +34,22 @@ namespace Currere_backend.Controllers
             }
 
             return Ok(result);
+        }
+
+        [HttpGet("{workspaceId}/profile/{fileName}")]
+        public async Task<IActionResult> GetDatasetProfile(int workspaceId, string fileName)
+        {
+            try
+            {
+                var jsonResult = await _profilerService.ProfileDatasetAsync(workspaceId, fileName);
+
+                // Gelen string zaten JSON formatında olduğu için doğrudan Content olarak dönüyoruz
+                return Content(jsonResult, "application/json");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
     }
 }

@@ -42,24 +42,28 @@ namespace Currere_backend.Services
             try
             {
                 // AKILLI İMAJ KONTROLÜ
+                // slim modunda numpy pandas yok ve biz interneti keserek sandbox kuruyoruz
+                // internet de olmayınca py kısmında numpy pandas indiremiyor
+                // her defasında indirirsek de sistem optimizasyonu bozulur
+                // kendimiz bir imaj olusturup numpy pandası onun icine atacagiz
                 var images = await _dockerClient.Images.ListImagesAsync(new ImagesListParameters());
-                bool imageExists = images.Any(i => i.RepoTags != null && i.RepoTags.Contains("python:3.9-slim"));
+                bool imageExists = images.Any(i => i.RepoTags != null && i.RepoTags.Contains("currere-sandbox:latest"));
 
                 if (!imageExists)
                 {
-                    await _dockerClient.Images.CreateImageAsync(
-                        new ImagesCreateParameters { FromImage = "python", Tag = "3.9-slim" },
-                        null,
-                        new Progress<JSONMessage>());
+                    // imajı artık dockerhubtan degil
+                    // kendimizden cekip hata yolluyoruz
+                    throw new Exception("Sistem Hatası: 'currere-sandbox:latest' imajı bulunamadı. Lütfen terminalden 'docker build -t currere-sandbox:latest .' komutu ile imajı inşa edin.");
                 }
 
                 var envVars = new List<string> { $"CODE_TO_RUN={code}" };
 
                 var response = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
                 {
-                    Image = "python:3.9-slim",
+                    Image = "currere-sandbox:latest",
                     Env = envVars,
-                    Cmd = new List<string> { "/bin/sh", "-c", "echo \"$CODE_TO_RUN\" > script.py && python script.py" },
+                    // veriyi algılayamıyor, temp e atıyoruz
+                    Cmd = new List<string> { "/bin/sh", "-c", "echo \"$CODE_TO_RUN\" > /tmp/script.py && python /tmp/script.py" },
                     WorkingDir = "/workspace",
                     HostConfig = new HostConfig
                     {

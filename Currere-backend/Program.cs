@@ -19,6 +19,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IWorkspaceService, WorkspaceService>();
 builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IDatasetProfilerService, DatasetProfilerService>(); // dataset okuyarak baglam kurma, cikarim yapma
 
 builder.Services.AddControllers();
 
@@ -75,11 +76,17 @@ builder.Services.AddHangfireServer();
 var app = builder.Build();
 
 // hangfire ile expire süresi dlanlarý sil
-RecurringJob.AddOrUpdate<FileCleanupService>(
-    "expired-file-cleanup",
-    service => service.CleanupExpiredFilesAsync(),
-    "*/10 * * * *"
-);
+// kapsam hatasý olustu scope kapsamýna ekledim
+using (var scope = app.Services.CreateScope())
+{
+    var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+
+    recurringJobManager.AddOrUpdate<FileCleanupService>(
+        "expired-file-cleanup",
+        service => service.CleanupExpiredFilesAsync(),
+        "*/10 * * * *"
+    );
+}
 
 // HTTP request pipeline.
 if (app.Environment.IsDevelopment())
