@@ -1,10 +1,12 @@
-using System.Text;
 using Currere_backend.Data;
 using Currere_backend.Services;
+using Hangfire;
+using Hangfire.MemoryStorage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,7 +68,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+// hangfire oto dosya silme
+builder.Services.AddHangfire(config => config.UseMemoryStorage());
+builder.Services.AddHangfireServer();
+
 var app = builder.Build();
+
+// hangfire oto dosya silme
+RecurringJob.AddOrUpdate<FileCleanupService>(
+    "expired-file-cleanup",
+    service => service.CleanupExpiredFilesAsync(),
+    "*/10 * * * *"
+);
 
 // HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -16,7 +16,6 @@ namespace Currere_backend.Services
         private readonly DockerClient _dockerClient;
         private readonly IWebHostEnvironment _env;
 
-        // Constructor: Başlangıç ayarları burada yapılıyor (Hataların sebebi buranın silinmesiydi)
         public CodeExecutionService(IWebHostEnvironment env)
         {
             _dockerClient = new DockerClientConfiguration().CreateClient();
@@ -67,8 +66,7 @@ namespace Currere_backend.Services
                         Memory = 128 * 1024 * 1024, // max 128 mb ram
                         NetworkMode = "none",       // interneti kes
                         AutoRemove = false,
-                        // SOLUCAN DELİĞİ: Klasörü içeri bağlıyoruz
-                        Binds = new List<string> { $"{dockerBindPath}:/workspace" }
+                        Binds = new List<string> { $"{dockerBindPath}:/workspace:ro" } // read only'e çevirdik
                     }
                 });
 
@@ -87,7 +85,6 @@ namespace Currere_backend.Services
                     ShowStderr = true
                 });
 
-                // CS8130 HATASININ ÇÖZÜMÜ: Türleri açıkça (string) olarak belirttik
                 (string stdout, string stderr) = await logsStream.ReadOutputToEndAsync(default);
 
                 stopwatch.Stop();
