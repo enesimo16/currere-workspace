@@ -1,5 +1,7 @@
 using Currere_backend.Data;
+using Currere_backend.Middlewares;
 using Currere_backend.Services;
+using FluentValidation;
 using Hangfire;
 using Hangfire.MemoryStorage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -20,6 +22,8 @@ builder.Services.AddScoped<IWorkspaceService, WorkspaceService>();
 builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IDatasetProfilerService, DatasetProfilerService>(); // dataset okuyarak baglam kurma, cikarim yapma
+builder.Services.AddValidatorsFromAssemblyContaining<Program>(); // validatr
+
 
 builder.Services.AddControllers();
 
@@ -96,7 +100,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization(); 
 

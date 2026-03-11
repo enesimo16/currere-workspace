@@ -1,5 +1,6 @@
 ﻿using Currere_backend.DTOs;
 using Currere_backend.Services;
+using FluentValidation; // YENİ: Kütüphaneyi ekledik
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,12 +19,23 @@ namespace Currere_backend.Controllers
             IDatasetProfilerService profilerService)
         {
             _executionService = executionService;
-            _profilerService = profilerService; 
+            _profilerService = profilerService;
         }
 
         [HttpPost("{workspaceId}/run")]
-        public async Task<IActionResult> RunCode(int workspaceId, [FromBody] ExecuteCodeDto request)
+        public async Task<IActionResult> RunCode(
+            int workspaceId,
+            [FromBody] ExecuteCodeDto request,
+            [FromServices] IValidator<ExecuteCodeDto> validator)
         {
+            // validator kural
+            var validationResult = await validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
             // workspaceId servise e gitti
             var result = await _executionService.ExecutePythonCodeAsync(workspaceId, request.Code);
 
