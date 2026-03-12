@@ -10,6 +10,8 @@
         public DateTime ExpiresAt { get; set; } // Yüklenilen dosyasının expire vakti
 
         public string? ProfileJson { get; set; } // py dan gelen jsonu db e kaydediyoruz
+
+        public string? DomainContext { get; set; } // AI raporu baglam
         public Workspace Workspace { get; set; } = null!;
     }
 }

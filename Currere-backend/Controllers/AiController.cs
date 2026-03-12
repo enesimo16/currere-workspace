@@ -152,6 +152,15 @@ Asla açıklama, selamlama veya yorum yapma, sadece çalıştırılabilir kod ya
             if (file == null || string.IsNullOrEmpty(file.ProfileJson))
                 return BadRequest(new { error = "Dosya bulunamadı veya profili henüz çıkarılmamış." });
 
+            // eger daha önce cıkarıldıysa direkt db den cek
+            if (!string.IsNullOrEmpty(file.DomainContext))
+            {
+                return Ok(new
+                {
+                    message = "Gizli bağlam veritabanından hızlıca getirildi.",
+                    insights = file.DomainContext
+                });
+            }
 
             string systemPrompt = @"Sen çok tecrübeli bir Veri Analisti ve İş Zekası (Business Intelligence) uzmanısın.
 Sana bir veri setinin istatistiksel özetini (JSON formatında) vereceğim. Senden ASLA kod yazmanı İSTEMİYORUM.
@@ -166,12 +175,14 @@ Raporun okunaklı, profesyonel ve analitik olmalıdır.";
             try
             {
                 var businessContext = await _aiService.ChatAsync(userPrompt, systemPrompt);
-                
-                // veritabanına kaydedilecek
+
+                // db saving
+                file.DomainContext = businessContext;
+                await _context.SaveChangesAsync();
 
                 return Ok(new
                 {
-                    message = "Gizli bağlam ve iş zekası raporu başarıyla çıkarıldı.",
+                    message = "Gizli bağlam AI tarafından üretildi ve veritabanına kaydedildi.",
                     insights = businessContext
                 });
             }
