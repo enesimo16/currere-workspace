@@ -18,9 +18,37 @@ namespace Currere_backend.Services
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
         }
 
-        public Task<string> ChatAsync(string message, string? systemContext = null)
+        public async Task<string> ChatAsync(string message, string? systemContext = null)
         {
-            throw new NotImplementedException();
+            var systemMessage = systemContext ?? "Sen Currere platformunun yapay zeka asistanısın. Kullanıcıya Türkçe, kibar ve yardımcı olacak şekilde yanıt ver.";
+
+            var requestBody = new
+            {
+                model = "llama-3.3-70b-versatile",
+                messages = new[]
+                {
+                    new { role = "system", content = systemMessage },
+                    new { role = "user", content = message }
+                },
+                temperature = 0.5 
+            };
+
+            var content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("https://api.groq.com/openai/v1/chat/completions", content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new Exception($"AI Sohbet Motoru Çöktü: {error}");
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(jsonResponse);
+
+            var aiMessage = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
+
+            return aiMessage ?? "AI yanıt üretemedi.";
         }
 
         public async Task<string> GeneratePythonCodeAsync(string userPrompt, string datasetProfileJson, string fileName)
@@ -43,7 +71,7 @@ Kurallar:
 
             var requestBody = new
             {
-                model = "llama-3.3-70b-versatile", 
+                model = "llama-3.3-70b-versatile",
                 messages = new[]
                 {
             new { role = "system", content = systemMessage },
@@ -69,5 +97,50 @@ Kurallar:
 
             return aiMessage ?? "AI yanıt üretemedi.";
         }
+
+        public async Task<string> DetermineIntentAsync(string userMessage)
+        {
+            string systemMessage = @"Sen bir 'Niyet Okuyucu' (Intent Classifier) yapay zekasın. 
+Görevin, kullanıcının mesajını analiz edip ne istediğini bulmaktır.
+KURALLAR:
+1. Eğer kullanıcı Python kodu istiyorsa, veri ön işleme, model eğitimi, grafik çizimi, eksik veri doldurma gibi veri bilimi işlemleri talep ediyorsa SADECE VE SADECE 'KOD' yaz.
+2. Eğer kullanıcı genel bir soru soruyorsa (örn: 'Korelasyon nedir?', 'Naber?', 'Nasılsın?'), SADECE VE SADECE 'SOHBET' yaz.
+Asla açıklama yapma. Yanıtın tek bir kelime olmalı: KOD veya SOHBET.";
+
+            try
+            {
+                var requestBody = new
+                {
+                    model = "llama-3.3-70b-versatile",
+                    messages = new[]
+                    {
+                        new { role = "system", content = systemMessage },
+                        new { role = "user", content = userMessage }
+                    },
+                    temperature = 0.1
+                };
+
+                var content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync("https://api.groq.com/openai/v1/chat/completions", content);
+
+                if (!response.IsSuccessStatusCode) return "KOD"; // varsayım olarak kod
+
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(jsonResponse);
+                var aiMessage = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString()?.Trim().ToUpper();
+
+                // sohbetse kodsa
+                if (aiMessage != null && aiMessage.Contains("SOHBET"))
+                    return "SOHBET";
+
+                return "KOD";
+            }
+            catch
+            {
+                return "KOD"; // çökerse koda dön
+            }
+        }
+
+
     }
 }
