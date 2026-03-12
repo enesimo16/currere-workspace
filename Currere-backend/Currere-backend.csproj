@@ -1,10 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Currere_backend</RootNamespace>
+    <UserSecretsId>3f25372b-f710-4e2b-9248-421bbebf1e21</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

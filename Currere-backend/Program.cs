@@ -23,7 +23,7 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IDatasetProfilerService, DatasetProfilerService>(); // dataset okuyarak baglam kurma, cikarim yapma
 builder.Services.AddValidatorsFromAssemblyContaining<Program>(); // validatr
-
+builder.Services.AddHttpClient<IAiService, GroqAiService>(); // groq
 
 builder.Services.AddControllers();
 

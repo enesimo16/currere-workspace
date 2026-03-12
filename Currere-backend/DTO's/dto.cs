@@ -121,4 +121,13 @@ namespace Currere_backend.DTOs
         public DateTime ExpiresAt { get; set; } // usera dosya silinme süresini gsterme
         public string Message { get; set; } = string.Empty;
     }
+
+    // AI INTEGRATION
+
+    public class GenerateCodeRequestDto
+    {
+        public int FileId { get; set; }
+
+        public string Prompt { get; set; } = string.Empty;
+    }
 }
