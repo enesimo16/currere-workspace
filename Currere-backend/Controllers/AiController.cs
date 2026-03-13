@@ -14,13 +14,17 @@ namespace Currere_backend.Controllers
     {
         private readonly IAiService _aiService;
         private readonly AppDbContext _context;
-        private readonly IDatasetProfilerService _profilerService; 
+        private readonly IDatasetProfilerService _profilerService;
+        private readonly INotebookConverterService _notebookConverterService;
+        private readonly ICodeExecutionService _executionService;
 
-        public AiController(IAiService aiService, AppDbContext context, IDatasetProfilerService profilerService)
+        public AiController(IAiService aiService, AppDbContext context, IDatasetProfilerService profilerService, INotebookConverterService notebookConverterService, ICodeExecutionService executionService)
         {
             _aiService = aiService;
             _context = context;
             _profilerService = profilerService;
+            _notebookConverterService = notebookConverterService;
+            _executionService = executionService;
         }
 
         [HttpPost("generate-code")]
@@ -189,6 +193,87 @@ Raporun okunaklı, profesyonel ve analitik olmalıdır.";
             catch (Exception ex)
             {
                 return StatusCode(500, new { error = $"AI Motoru Hatası: {ex.Message}" });
+            }
+        }
+
+        // converting
+        [HttpPost("convert-ipynb-to-py")]
+        public async Task<IActionResult> ConvertIpynbToPy(int workspaceId, [FromBody] GenerateCodeRequestDto request)
+        {
+            var file = await _context.WorkspaceFiles
+                .FirstOrDefaultAsync(f => f.Id == request.FileId && f.WorkspaceId == workspaceId);
+
+            if (file == null)
+                return NotFound(new { error = "Dosya bulunamadı." });
+
+            try
+            {
+                string ipynbContent = await System.IO.File.ReadAllTextAsync(file.FilePath);
+                string rawPythonCode = await _notebookConverterService.ExtractRawPythonFromNotebookAsync(ipynbContent);
+
+                int maxRetries = 3;
+                string currentPyCode = "";
+                string lastError = "";
+                bool isExecutionSuccessful = false;
+
+                // oto self healing dönü
+                for (int attempt = 1; attempt <= maxRetries; attempt++)
+                {
+                    if (attempt == 1)
+                    {
+                        currentPyCode = await _notebookConverterService.CleanAndOptimizePythonCodeAsync(rawPythonCode);
+                    }
+                    else
+                    {
+                        string repairPrompt = $@"Az önce yazdığın Python kodunu Docker ortamında çalıştırdığımda şu hatayı aldım:
+HATA LOGU: {lastError}
+
+Lütfen bu hatayı analiz et, kodu düzelt ve baştan sona çalışacak şekilde tekrar yaz.
+SADECE düzeltilmiş Python kodunu (markdown içinde) ver. Açıklama yapma.";
+
+                        currentPyCode = await _aiService.ChatAsync(repairPrompt, "Sen bir Kıdemli Python Hata Ayıklayıcısın (Debugger).");
+
+                        // Markdown temizliği
+                        if (currentPyCode.StartsWith("```python"))
+                            currentPyCode = currentPyCode.Replace("```python", "").Replace("```", "").Trim();
+                    }
+
+                    // dry run sandbox test etme
+                    var executionResult = await _executionService.ExecutePythonCodeAsync(workspaceId, currentPyCode);
+
+                    if (executionResult.IsSuccess)
+                    {
+                        isExecutionSuccessful = true;
+                        return Ok(new
+                        {
+                            message = $"Başarılı! Kod {attempt}. denemede hatasız çalıştı ve dönüştürüldü.",
+                            code = currentPyCode,
+                            executionOutput = executionResult.Output 
+                        });
+                    }
+                    else
+                    {
+                        // döngü
+                        lastError = executionResult.Error;
+                    }
+                }
+
+                // 3 deneme ardından pes
+                if (!isExecutionSuccessful)
+                {
+                    return Ok(new
+                    {
+                        message = "Uyarı: Yapay zeka kodu 3 kez düzeltmeye çalıştı ancak bazı hatalar devam ediyor. Lütfen kodu manuel kontrol edin.",
+                        code = currentPyCode,
+                        finalError = lastError
+                    });
+                }
+
+                return BadRequest();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Dönüşüm Motoru Hatası: {ex.Message}" });
             }
         }
     }

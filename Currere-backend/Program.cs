@@ -24,6 +24,7 @@ builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IDatasetProfilerService, DatasetProfilerService>(); // dataset okuyarak baglam kurma, cikarim yapma
 builder.Services.AddValidatorsFromAssemblyContaining<Program>(); // validatr
 builder.Services.AddHttpClient<IAiService, GroqAiService>(); // groq
+builder.Services.AddScoped<INotebookConverterService, NotebookConverterService>(); // ipynb to py
 
 builder.Services.AddControllers();
 

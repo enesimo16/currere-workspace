@@ -39,6 +39,9 @@ namespace Currere_backend.Services
             // DOCKER İÇİN PATH DÜZELTMESİ (Windows '\' karakterini '/' yapar)
             var dockerBindPath = hostWorkspacePath.Replace("\\", "/");
 
+            // timeout için 10 saniye
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
             try
             {
                 // AKILLI İMAJ KONTROLÜ
@@ -80,7 +83,7 @@ namespace Currere_backend.Services
                 await _dockerClient.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
 
                 // arkada gelen promot/kodun compile olmasını bekliyoruz
-                var waitResponse = await _dockerClient.Containers.WaitContainerAsync(containerId, default);
+                var waitResponse = await _dockerClient.Containers.WaitContainerAsync(containerId, cts.Token);
 
                 // logları okuma
                 using var logsStream = await _dockerClient.Containers.GetContainerLogsAsync(containerId, false, new ContainerLogsParameters
@@ -107,7 +110,8 @@ namespace Currere_backend.Services
                 return new ExecutionResultDto
                 {
                     Output = "",
-                    Error = $"Sistem Hatası: {ex.Message}",
+                    // ipynb to py için kod döngüsü esnasında hata olursa onu detaylı bildirebilmesi için
+                    Error = "Sistem Hatası: Kodun çalışma süresi 10 saniyelik limiti aştı. Kodda sonsuz döngü (infinite loop), çok uzun sleep() komutları veya çok ağır bir işlem var. Lütfen kodu optimize et ve bekleme sürelerini kısalt.",
                     IsSuccess = false,
                     ExecutionTimeMs = stopwatch.ElapsedMilliseconds
                 };

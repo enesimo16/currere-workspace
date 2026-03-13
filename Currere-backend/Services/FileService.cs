@@ -13,7 +13,7 @@ namespace Currere_backend.Services
     {
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env; // Sunucuu fiziki dosyalara erissin diye
-        private readonly IDatasetProfilerService _profilerService; // YENİ EKLENDİ: Röntgen Cihazımız
+        private readonly IDatasetProfilerService _profilerService;
 
         public FileService(AppDbContext context, IWebHostEnvironment env, IDatasetProfilerService profilerService)
         {
@@ -72,18 +72,22 @@ namespace Currere_backend.Services
             // bunla birlikte metadata baglam olusturacagiz
 
             // oto db kaydı - json to db
-            try
+            // YENİ EKLENEN KISIM: Sadece Veri dosyaları ise profil çıkar!
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (extension == ".csv" || extension == ".xlsx" || extension == ".json")
             {
-                // Dockerdaki unique dosya adını yolluyoruz
-                var profileJson = await _profilerService.ProfileDatasetAsync(workspaceId, uniqueFileName);
-                workspaceFile.ProfileJson = profileJson; 
+                try
+                {
+                    // Dockerdaki unique dosya adını yolluyoruz
+                    var profileJson = await _profilerService.ProfileDatasetAsync(workspaceId, uniqueFileName);
+                    workspaceFile.ProfileJson = profileJson;
+                }
+                catch (Exception ex)
+                {
+                    // Profilleme hatalı dahi olsa upload olsun
+                    Console.WriteLine($"Profil çıkarılamadı: {ex.Message}");
+                }
             }
-            catch (Exception ex)
-            {
-                // Profilleme hatalı dahi olsa upload olsun
-                Console.WriteLine($"Profil çıkarılamadı: {ex.Message}");
-            }
-           
 
             _context.WorkspaceFiles.Add(workspaceFile);
             await _context.SaveChangesAsync();
