@@ -1,6 +1,6 @@
 ﻿using Currere_backend.DTOs;
 using Currere_backend.Services;
-using FluentValidation; // YENİ: Kütüphaneyi ekledik
+using FluentValidation; 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

@@ -208,6 +208,7 @@ Raporun okunaklı, profesyonel ve analitik olmalıdır.";
 
             try
             {
+                // kodu dosyadan alıyoruz
                 string ipynbContent = await System.IO.File.ReadAllTextAsync(file.FilePath);
                 string rawPythonCode = await _notebookConverterService.ExtractRawPythonFromNotebookAsync(ipynbContent);
 
@@ -216,7 +217,7 @@ Raporun okunaklı, profesyonel ve analitik olmalıdır.";
                 string lastError = "";
                 bool isExecutionSuccessful = false;
 
-                // oto self healing dönü
+                // oto self heal tamir
                 for (int attempt = 1; attempt <= maxRetries; attempt++)
                 {
                     if (attempt == 1)
@@ -225,20 +226,23 @@ Raporun okunaklı, profesyonel ve analitik olmalıdır.";
                     }
                     else
                     {
-                        string repairPrompt = $@"Az önce yazdığın Python kodunu Docker ortamında çalıştırdığımda şu hatayı aldım:
+                        string repairPrompt = $@"Yazdığın kod Docker'da şu hatayı verdi:
 HATA LOGU: {lastError}
+ 
+DÜZELTME KURALLARI:
+1. Sadece yazım (syntax), girinti (indentation) veya kütüphane hatalarını düzelt.
+2. ASLA veri okuma (pd.read_csv vs.) mantığını silme veya yerine sahte işlemler/sleep yazma. Dosya yoksa bile kodu orijinal mantığıyla bırak!
+3. Dosya okuma işlemlerini ASLA try-except bloğu içine alma! Bırak kod hata fırlatsın, çevre hatalarını biz sistemde yöneteceğiz.
+4. Çıktı SADECE ```python ... ``` bloğu içinde olmalı.
+ 
+HATALARI OLAN KOD:
+{currentPyCode}";
 
-Lütfen bu hatayı analiz et, kodu düzelt ve baştan sona çalışacak şekilde tekrar yaz.
-SADECE düzeltilmiş Python kodunu (markdown içinde) ver. Açıklama yapma.";
-
-                        currentPyCode = await _aiService.ChatAsync(repairPrompt, "Sen bir Kıdemli Python Hata Ayıklayıcısın (Debugger).");
-
-                        // Markdown temizliği
-                        if (currentPyCode.StartsWith("```python"))
-                            currentPyCode = currentPyCode.Replace("```python", "").Replace("```", "").Trim();
+                        var rawResponse = await _aiService.ChatAsync(repairPrompt, "Sen katı kurallara uyan bir Python Hata Ayıklayıcısısın.");
+                        currentPyCode = NotebookConverterService.StripMarkdownFences(rawResponse);
                     }
 
-                    // dry run sandbox test etme
+                    // docker ile kodun calisip calismadigi testi
                     var executionResult = await _executionService.ExecutePythonCodeAsync(workspaceId, currentPyCode);
 
                     if (executionResult.IsSuccess)
@@ -246,24 +250,36 @@ SADECE düzeltilmiş Python kodunu (markdown içinde) ver. Açıklama yapma.";
                         isExecutionSuccessful = true;
                         return Ok(new
                         {
-                            message = $"Başarılı! Kod {attempt}. denemede hatasız çalıştı ve dönüştürüldü.",
-                            code = currentPyCode,
-                            executionOutput = executionResult.Output 
+                            message = "Başarılı! Kod hatasız çalıştı ve dönüştürüldü.",
+                            code = currentPyCode
                         });
                     }
                     else
                     {
-                        // döngü
                         lastError = executionResult.Error;
+
+                        // dosya/kütüphame yoksa ai ' ya yollamıyoruz
+                        if (executionResult.ErrorType == "FileNotFoundError" ||
+                            executionResult.ErrorType == "ModuleNotFoundError")
+                        {
+                            return Ok(new
+                            {
+                                message = "Kod başarıyla dönüştürüldü. (Not: Kodun içinde dışarıdan okunan bir dosya/kütüphane olduğu için tam test edilemedi ancak yazım kuralları doğru görünüyor.)",
+                                code = currentPyCode,
+                                warning = "Test Sırasında Alınan Çevre Hatası: " + executionResult.Error
+                            });
+                        }
+
+                        // SyntaxError veya IndentationError ise döngü devam eder ve AI düzeltir
                     }
                 }
 
-                // 3 deneme ardından pes
+                // 3 denemede de düzelmeyen hata varsa kodu yine de dön, kullanıcı görsün
                 if (!isExecutionSuccessful)
                 {
                     return Ok(new
                     {
-                        message = "Uyarı: Yapay zeka kodu 3 kez düzeltmeye çalıştı ancak bazı hatalar devam ediyor. Lütfen kodu manuel kontrol edin.",
+                        message = "Kod dönüştürüldü ancak bazı sözdizimi hataları olabilir. Lütfen kontrol edin.",
                         code = currentPyCode,
                         finalError = lastError
                     });

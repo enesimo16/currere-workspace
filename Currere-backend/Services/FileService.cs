@@ -72,7 +72,6 @@ namespace Currere_backend.Services
             // bunla birlikte metadata baglam olusturacagiz
 
             // oto db kaydı - json to db
-            // YENİ EKLENEN KISIM: Sadece Veri dosyaları ise profil çıkar!
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
             if (extension == ".csv" || extension == ".xlsx" || extension == ".json")
             {
