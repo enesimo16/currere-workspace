@@ -41,7 +41,6 @@ namespace Currere_backend.Services
             // DOCKER İÇİN PATH DÜZELTMESİ (Windows '\' karakterini '/' yapar)
             var dockerBindPath = hostWorkspacePath.Replace("\\", "/");
 
-
             try
             {
                 // AKILLI İMAJ KONTROLÜ
@@ -63,51 +62,20 @@ namespace Currere_backend.Services
                 // Kullanıcı kodundaki tırnak ve boşlukların bash/python'u patlatmaması için base64 ile şifreliyoruz
                 var base64Code = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(code));
 
-                string wrappedCode = $@"
-import sys, json, io, traceback, base64
-
-old_stdout = sys.stdout
-redirected_output = io.StringIO()
-sys.stdout = redirected_output
-
-try:
-    # Kodu Base64'ten çöz ve çalıştır
-    user_code = base64.b64decode('{base64Code}').decode('utf-8')
-    exec(user_code, globals())
-    
-    sys.stdout = old_stdout
-    user_output = redirected_output.getvalue()
-    
-    print(json.dumps({{
-        'success': True,
-        'error_type': None,
-        'message': user_output.strip()
-    }}))
-except Exception as e:
-    sys.stdout = old_stdout
-    error_type = type(e).__name__
-    error_msg = str(e)
-    
-    print(json.dumps({{
-        'success': False,
-        'error_type': error_type,
-        'message': error_msg
-    }}))
-";
-
-                var envVars = new List<string> { $"CODE_TO_RUN={wrappedCode}" };
+                // Artık Python kodunu C# içinde yollamıyoruz, sadece Base64 metnini değişkene veriyoruz
+                var envVars = new List<string> { $"CODE_TO_RUN={base64Code}" };
 
                 var response = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
                 {
                     Image = "currere-sandbox:latest",
                     Env = envVars,
                     // veriyi algılayamıyor, temp e atıyoruz 
-                    // printenv komutu
-                    Cmd = new List<string> { "/bin/sh", "-c", "printenv CODE_TO_RUN > /tmp/script.py && python /tmp/script.py" },
+                    // printenv komutu (Artık imajın içine gömdüğümüz runner.py dosyasını çalıştırıyoruz)
+                    Cmd = new List<string> { "python", "/app/runner.py" },
                     WorkingDir = "/workspace",
                     HostConfig = new HostConfig
                     {
-                        Memory = 1024 * 1024 * 1024, // 512 mb ram'e yükselttik çünkü kütüphaneleri karsilayamiyor
+                        Memory = 1024L * 1024L * 1024L, // 512 mb ram'e yükselttik çünkü kütüphaneleri karsilayamiyor
                         // hala yetmiyor 1gb yaptık
                         NetworkMode = "none",       // interneti kes
                         AutoRemove = false,
@@ -179,7 +147,7 @@ except Exception as e:
                 return new ExecutionResultDto
                 {
                     Output = "",
-                    Error = "Sistem Hatası: Kodun çalışma süresi 30 saniyelik limiti aştı. Kodda sonsuz döngü (infinite loop) veya çok ağır bir işlem var.",
+                    Error = "Sistem Hatası: Kodun çalışma süresi 120 saniyelik limiti aştı. Kodda sonsuz döngü (infinite loop) veya çok ağır bir işlem var.",
                     ErrorType = "TimeoutError",
                     IsSuccess = false,
                     ExecutionTimeMs = stopwatch.ElapsedMilliseconds
