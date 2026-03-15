@@ -3,6 +3,7 @@ using Currere_backend.DTOs;
 using Currere_backend.Helpers;
 using Currere_backend.Models;
 using Microsoft.EntityFrameworkCore;
+using Hangfire;
 
 namespace Currere_backend.Services
 {
@@ -62,7 +63,8 @@ namespace Currere_backend.Services
                 FileName = file.FileName,       // 8 hanesiz original name
                 FilePath = fullPhysicalPath,    // fiziksel yol
                 UploadedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddHours(4) // user expire date görecek
+                ExpiresAt = DateTime.UtcNow.AddHours(4), // user expire date görecek
+                ProfileJson = null // Profil henüz yok, arka planda dolacak!
             };
 
             // TODO
@@ -71,32 +73,25 @@ namespace Currere_backend.Services
             // await _aiContextService.ExtractAndSaveMetadataAsync(fullPhysicalPath, file.FileName);
             // bunla birlikte metadata baglam olusturacagiz
 
-            // oto db kaydı - json to db
+            // Dosyayı veritabanına hemen kaydediyoruz ki Id'si oluşsun ve arka plan işçisi dosyayı bulabilsin
+            _context.WorkspaceFiles.Add(workspaceFile);
+            await _context.SaveChangesAsync();
+
+            // oto db kaydı - json to db (HANGFIRE İLE ARKA PLANA ATILDI)
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
             if (extension == ".csv" || extension == ".xlsx" || extension == ".json")
             {
-                try
-                {
-                    // Dockerdaki unique dosya adını yolluyoruz
-                    var profileJson = await _profilerService.ProfileDatasetAsync(workspaceId, uniqueFileName);
-                    workspaceFile.ProfileJson = profileJson;
-                }
-                catch (Exception ex)
-                {
-                    // Profilleme hatalı dahi olsa upload olsun
-                    Console.WriteLine($"Profil çıkarılamadı: {ex.Message}");
-                }
+                // Kullanıcıyı hiç bekletmeden, işi Hangfire kuyruğuna atıyoruz
+                BackgroundJob.Enqueue<IProfileJobService>(job =>
+                    job.GenerateAndSaveProfileAsync(workspaceId, uniqueFileName, workspaceFile.Id));
             }
-
-            _context.WorkspaceFiles.Add(workspaceFile);
-            await _context.SaveChangesAsync();
 
             return new FileUploadResponseDto
             {
                 FileId = workspaceFile.Id,
                 FileName = workspaceFile.FileName,
                 ExpiresAt = workspaceFile.ExpiresAt,
-                Message = "Dosya başarıyla yüklendi. Currere kuralları gereği 4 saat boyunca aktif kalacaktır."
+                Message = "Dosya başarıyla yüklendi (Veri profili arka planda çıkarılıyor). Currere kuralları gereği 4 saat boyunca aktif kalacaktır."
             };
         }
     }
