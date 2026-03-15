@@ -9,102 +9,161 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using Serilog;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
-var builder = WebApplication.CreateBuilder(args);
+// serilog
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console()
+    .WriteTo.File("logs/currere-log-.txt", rollingInterval: RollingInterval.Day) // Her gün yeni txt
+    .CreateLogger();
 
-// Db
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// DI's
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IWorkspaceService, WorkspaceService>();
-builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
-builder.Services.AddScoped<IFileService, FileService>();
-builder.Services.AddScoped<IDatasetProfilerService, DatasetProfilerService>(); // dataset okuyarak baglam kurma, cikarim yapma
-builder.Services.AddValidatorsFromAssemblyContaining<Program>(); // validatr
-builder.Services.AddHttpClient<IAiService, GroqAiService>(); // groq
-builder.Services.AddScoped<INotebookConverterService, NotebookConverterService>(); // ipynb to py
-
-builder.Services.AddControllers();
-
-// Swagger JWT
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+try
 {
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "JWT Token'ýnýzý buraya yapýþtýrýn. Örnek: Bearer {token}",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = "Bearer"
-    });
+    Log.Information("Currere API ayaða kalkýyor...");
+    var builder = WebApplication.CreateBuilder(args);
 
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    // varsayýlan log
+    builder.Host.UseSerilog();
+
+    // Db
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+    // DI's
+    builder.Services.AddScoped<IAuthService, AuthService>();
+    builder.Services.AddScoped<IWorkspaceService, WorkspaceService>();
+    builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
+    builder.Services.AddScoped<IFileService, FileService>();
+    builder.Services.AddScoped<IDatasetProfilerService, DatasetProfilerService>(); // dataset okuyarak baglam kurma, cikarim yapma
+    builder.Services.AddValidatorsFromAssemblyContaining<Program>(); // validatr
+    builder.Services.AddHttpClient<IAiService, GroqAiService>(); // groq
+    builder.Services.AddScoped<INotebookConverterService, NotebookConverterService>(); // ipynb to py
+
+    builder.Services.AddControllers();
+
+    // RAate limiting
+    builder.Services.AddRateLimiter(options =>
     {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
+        // ip tabanlý rate limiting dakkada 60 istek
+        options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                factory: partition => new FixedWindowRateLimiterOptions
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] {}
-        }
-    });
-});
+                    AutoReplenishment = true,
+                    PermitLimit = 60,
+                    QueueLimit = 2,
+                    Window = TimeSpan.FromMinutes(1)
+                }));
 
-// JWT Doðrulama
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
+        // Sadece AI Endpointleri için çok katý limit , dakikada 5 istek
+        options.AddFixedWindowLimiter("AiStrictLimit", opt =>
         {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                builder.Configuration.GetSection("JwtSettings:Secret").Value!)),
-            ValidateIssuer = true,
-            ValidIssuer = builder.Configuration.GetSection("JwtSettings:Issuer").Value,
-            ValidateAudience = true,
-            ValidAudience = builder.Configuration.GetSection("JwtSettings:Audience").Value,
-            ValidateLifetime = true
-        };
+            opt.PermitLimit = 5;
+            opt.Window = TimeSpan.FromMinutes(1);
+            opt.QueueLimit = 0;
+        });
+
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests; // aþýlýrsa -> 429
     });
 
-// hangfire oto dosya silme
-builder.Services.AddHangfire(config => config.UseMemoryStorage());
-builder.Services.AddHangfireServer();
+    // Swagger JWT
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(options =>
+    {
+        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "JWT Token'ýnýzý buraya yapýþtýrýn. Örnek: Bearer {token}",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = "Bearer"
+        });
 
-var app = builder.Build();
+        options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                new string[] {}
+            }
+        });
 
-// hangfire ile expire süresi dlanlarý sil
-// kapsam hatasý olustu scope kapsamýna ekledim
-using (var scope = app.Services.CreateScope())
-{
-    var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+        // documentation
+        var xmlFilename = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+    });
 
-    recurringJobManager.AddOrUpdate<FileCleanupService>(
-        "expired-file-cleanup",
-        service => service.CleanupExpiredFilesAsync(),
-        "*/10 * * * *"
-    );
+    // JWT Doðrulama
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                    builder.Configuration.GetSection("JwtSettings:Secret").Value!)),
+                ValidateIssuer = true,
+                ValidIssuer = builder.Configuration.GetSection("JwtSettings:Issuer").Value,
+                ValidateAudience = true,
+                ValidAudience = builder.Configuration.GetSection("JwtSettings:Audience").Value,
+                ValidateLifetime = true
+            };
+        });
+
+    // hangfire oto dosya silme
+    builder.Services.AddHangfire(config => config.UseMemoryStorage());
+    builder.Services.AddHangfireServer();
+
+    var app = builder.Build();
+
+    // hangfire ile expire süresi dlanlarý sil
+    // kapsam hatasý olustu scope kapsamýna ekledim
+    using (var scope = app.Services.CreateScope())
+    {
+        var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+
+        recurringJobManager.AddOrUpdate<FileCleanupService>(
+            "expired-file-cleanup",
+            service => service.CleanupExpiredFilesAsync(),
+            "*/10 * * * *"
+        );
+    }
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseHttpsRedirection();
+
+    // ratelimiter before auth
+    app.UseRateLimiter();
+
+    app.UseMiddleware<ExceptionMiddleware>();
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.MapControllers();
+
+    app.Run();
 }
-
-// HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+catch (Exception ex)
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    // çökerse
+    Log.Fatal(ex, "API baþlatýlamadý, kritik bir çökme yaþandý!");
 }
-
-app.UseHttpsRedirection();
-app.UseMiddleware<ExceptionMiddleware>();
-app.UseAuthentication();
-app.UseAuthorization(); 
-
-app.MapControllers();
-
-app.Run();
+finally
+{
+    Log.CloseAndFlush();
+}

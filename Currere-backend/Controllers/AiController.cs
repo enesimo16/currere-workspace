@@ -3,11 +3,13 @@ using Currere_backend.DTOs;
 using Currere_backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace Currere_backend.Controllers
 {
     [Authorize]
+    [EnableRateLimiting("AiStrictLimit")] // rate limiting
     [Route("api/workspace/{workspaceId}/[controller]")]
     [ApiController]
     public class AiController : ControllerBase

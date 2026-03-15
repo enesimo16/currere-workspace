@@ -1,0 +1,55 @@
+2026-03-15 03:56:32.715 +03:00 [INF] Currere API ayağa kalkıyor...
+2026-03-15 03:56:33.470 +03:00 [INF] User profile is available. Using 'C:\Users\enes yel\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-03-15 03:56:33.674 +03:00 [INF] Now listening on: http://localhost:5279
+2026-03-15 03:56:33.680 +03:00 [INF] Starting Hangfire Server using job storage: 'Hangfire.MemoryStorage.MemoryStorage'
+2026-03-15 03:56:33.683 +03:00 [INF] Using the following options for Hangfire Server:
+    Worker count: 20
+    Listening queues: 'default'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+2026-03-15 03:56:33.693 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-03-15 03:56:33.694 +03:00 [INF] Hosting environment: Development
+2026-03-15 03:56:33.696 +03:00 [INF] Content root path: C:\Users\enes yel\Desktop\Currere\Currere-backend
+2026-03-15 03:56:33.701 +03:00 [INF] Server desktop-rukajg8:25628:184f2ca4 successfully announced in 5,9665 ms
+2026-03-15 03:56:33.704 +03:00 [INF] Server desktop-rukajg8:25628:184f2ca4 is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, ExpirationManager, CountersAggregator, Worker, DelayedJobScheduler, RecurringJobScheduler...
+2026-03-15 03:56:33.709 +03:00 [INF] Server desktop-rukajg8:25628:184f2ca4 all the dispatchers started
+2026-03-15 03:56:44.628 +03:00 [INF] Server desktop-rukajg8:25628:184f2ca4 caught stopping signal...
+2026-03-15 03:56:44.630 +03:00 [INF] Application is shutting down...
+2026-03-15 03:56:44.632 +03:00 [INF] Server desktop-rukajg8:25628:184f2ca4 All dispatchers stopped
+2026-03-15 03:56:44.634 +03:00 [INF] Server desktop-rukajg8:25628:184f2ca4 successfully reported itself as stopped in 0,2946 ms
+2026-03-15 03:56:44.636 +03:00 [INF] Server desktop-rukajg8:25628:184f2ca4 has been stopped in total 6,1322 ms
+2026-03-15 04:00:57.680 +03:00 [INF] Currere API ayağa kalkıyor...
+2026-03-15 04:01:00.405 +03:00 [INF] User profile is available. Using 'C:\Users\enes yel\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-03-15 04:01:00.701 +03:00 [INF] Now listening on: https://localhost:7077
+2026-03-15 04:01:00.703 +03:00 [INF] Now listening on: http://localhost:5279
+2026-03-15 04:01:00.770 +03:00 [INF] Starting Hangfire Server using job storage: 'Hangfire.MemoryStorage.MemoryStorage'
+2026-03-15 04:01:00.771 +03:00 [INF] Using the following options for Hangfire Server:
+    Worker count: 20
+    Listening queues: 'default'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+2026-03-15 04:01:00.803 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-03-15 04:01:00.805 +03:00 [INF] Hosting environment: Development
+2026-03-15 04:01:00.806 +03:00 [INF] Content root path: C:\Users\enes yel\Desktop\Currere\Currere-backend
+2026-03-15 04:01:00.811 +03:00 [INF] Server desktop-rukajg8:8264:def3bb99 successfully announced in 7,4653 ms
+2026-03-15 04:01:00.818 +03:00 [INF] Server desktop-rukajg8:8264:def3bb99 is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, ExpirationManager, CountersAggregator, Worker, DelayedJobScheduler, RecurringJobScheduler...
+2026-03-15 04:01:00.952 +03:00 [INF] Server desktop-rukajg8:8264:def3bb99 all the dispatchers started
+2026-03-15 04:01:02.160 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7077/swagger - null null
+2026-03-15 04:01:02.784 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7077/swagger - 301 0 null 684.7616ms
+2026-03-15 04:01:02.796 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7077/swagger/index.html - null null
+2026-03-15 04:01:02.944 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7077/swagger/index.html - 200 null text/html;charset=utf-8 147.9906ms
+2026-03-15 04:01:03.066 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7077/swagger/swagger-ui.css - null null
+2026-03-15 04:01:03.074 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7077/swagger/swagger-ui-bundle.js - null null
+2026-03-15 04:01:03.075 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7077/swagger/swagger-ui-standalone-preset.js - null null
+2026-03-15 04:01:03.141 +03:00 [INF] Sending file. Request path: '/swagger-ui.css'. Physical path: 'N/A'
+2026-03-15 04:01:03.142 +03:00 [INF] Sending file. Request path: '/swagger-ui-standalone-preset.js'. Physical path: 'N/A'
+2026-03-15 04:01:03.149 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7077/swagger/swagger-ui-standalone-preset.js - 200 230280 text/javascript 73.8164ms
+2026-03-15 04:01:03.149 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7077/swagger/swagger-ui.css - 200 152034 text/css 82.3796ms
+2026-03-15 04:01:03.164 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7077/_framework/aspnetcore-browser-refresh.js - null null
+2026-03-15 04:01:03.167 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7077/_vs/browserLink - null null
+2026-03-15 04:01:03.217 +03:00 [INF] Sending file. Request path: '/swagger-ui-bundle.js'. Physical path: 'N/A'
+2026-03-15 04:01:03.217 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7077/_framework/aspnetcore-browser-refresh.js - 200 16515 application/javascript; charset=utf-8 52.9359ms
+2026-03-15 04:01:03.221 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7077/swagger/swagger-ui-bundle.js - 200 1456926 text/javascript 146.6092ms
+2026-03-15 04:01:03.320 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7077/_vs/browserLink - 200 null text/javascript; charset=UTF-8 152.476ms
+2026-03-15 04:01:05.842 +03:00 [INF] Request starting HTTP/2 GET https://localhost:7077/swagger/v1/swagger.json - null null
+2026-03-15 04:01:05.866 +03:00 [INF] Request finished HTTP/2 GET https://localhost:7077/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 23.8627ms
