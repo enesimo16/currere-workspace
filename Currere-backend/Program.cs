@@ -158,7 +158,7 @@ try
 
     app.Run();
 }
-catch (Exception ex)
+catch (Exception ex) when (ex.GetType().Name is not "HostAbortedException" and not "StopTheHostException")
 {
     // çökerse
     Log.Fatal(ex, "API baþlatýlamadý, kritik bir çökme yaþandý!");

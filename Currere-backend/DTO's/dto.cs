@@ -132,4 +132,11 @@ namespace Currere_backend.DTOs
 
         public string Prompt { get; set; } = string.Empty;
     }
+
+    // api integration
+    public class KaggleIntegrationDto
+    {
+        public string Username { get; set; } = string.Empty;
+        public string ApiKey { get; set; } = string.Empty;
+    }
 }

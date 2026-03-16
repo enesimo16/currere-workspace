@@ -13,10 +13,11 @@ namespace Currere_backend.Models
         // student pack 2.mail
 
         public string? StudentEmail { get; set; } // Örn: name@sakarya.edu.tr
-        public bool IsStudentEmailVerified { get; set; } = false; 
+        public bool IsStudentEmailVerified { get; set; } = false;
 
 
-
+        // integration 
+        public UserIntegration? Integration { get; set; }
 
         // Mevcut User sýnýfýnýn içine, en alt satýra ekle:
         public ICollection<Workspace> Workspaces { get; set; } = new List<Workspace>();
