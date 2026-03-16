@@ -146,4 +146,12 @@ namespace Currere_backend.DTOs
     {
         public string DatasetRef { get; set; } = string.Empty; // Kaggle formatý (kullanýcý/dataset-adý)
     }
+
+    // github
+
+    public class GithubPushRequest
+    {
+        public string RepoName { get; set; } = string.Empty;
+        public string? CommitMessage { get; set; }
+    }
 }

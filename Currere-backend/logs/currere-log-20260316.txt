@@ -121,3 +121,43 @@ WHERE [u].[Email] = @__cleanEmail_0
 2026-03-16 23:42:54.646 +03:00 [INF] Server desktop-rukajg8:22308:5fca4802 All dispatchers stopped
 2026-03-16 23:42:54.649 +03:00 [INF] Server desktop-rukajg8:22308:5fca4802 successfully reported itself as stopped in 0,2443 ms
 2026-03-16 23:42:54.650 +03:00 [INF] Server desktop-rukajg8:22308:5fca4802 has been stopped in total 5,2221 ms
+2026-03-16 23:45:27.844 +03:00 [INF] Currere API ayağa kalkıyor...
+2026-03-16 23:45:28.273 +03:00 [INF] User profile is available. Using 'C:\Users\enes yel\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-03-16 23:45:28.323 +03:00 [INF] Now listening on: http://localhost:5279
+2026-03-16 23:45:28.328 +03:00 [INF] Starting Hangfire Server using job storage: 'Hangfire.MemoryStorage.MemoryStorage'
+2026-03-16 23:45:28.330 +03:00 [INF] Using the following options for Hangfire Server:
+    Worker count: 20
+    Listening queues: 'default'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+2026-03-16 23:45:28.338 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-03-16 23:45:28.339 +03:00 [INF] Hosting environment: Development
+2026-03-16 23:45:28.341 +03:00 [INF] Content root path: C:\Users\enes yel\Desktop\Currere\Currere-backend
+2026-03-16 23:45:28.346 +03:00 [INF] Server desktop-rukajg8:3664:7832daa2 successfully announced in 6,4388 ms
+2026-03-16 23:45:28.349 +03:00 [INF] Server desktop-rukajg8:3664:7832daa2 is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, ExpirationManager, CountersAggregator, Worker, DelayedJobScheduler, RecurringJobScheduler...
+2026-03-16 23:45:28.354 +03:00 [INF] Server desktop-rukajg8:3664:7832daa2 all the dispatchers started
+2026-03-16 23:45:37.525 +03:00 [INF] Server desktop-rukajg8:3664:7832daa2 caught stopping signal...
+2026-03-16 23:45:37.527 +03:00 [INF] Application is shutting down...
+2026-03-16 23:45:37.529 +03:00 [INF] Server desktop-rukajg8:3664:7832daa2 All dispatchers stopped
+2026-03-16 23:45:37.531 +03:00 [INF] Server desktop-rukajg8:3664:7832daa2 successfully reported itself as stopped in 0,3531 ms
+2026-03-16 23:45:37.532 +03:00 [INF] Server desktop-rukajg8:3664:7832daa2 has been stopped in total 5,495 ms
+2026-03-16 23:51:03.980 +03:00 [INF] Currere API ayağa kalkıyor...
+2026-03-16 23:51:04.359 +03:00 [INF] User profile is available. Using 'C:\Users\enes yel\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-03-16 23:51:04.422 +03:00 [INF] Now listening on: http://localhost:5279
+2026-03-16 23:51:04.428 +03:00 [INF] Starting Hangfire Server using job storage: 'Hangfire.MemoryStorage.MemoryStorage'
+2026-03-16 23:51:04.430 +03:00 [INF] Using the following options for Hangfire Server:
+    Worker count: 20
+    Listening queues: 'default'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+2026-03-16 23:51:04.440 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-03-16 23:51:04.441 +03:00 [INF] Hosting environment: Development
+2026-03-16 23:51:04.443 +03:00 [INF] Content root path: C:\Users\enes yel\Desktop\Currere\Currere-backend
+2026-03-16 23:51:04.449 +03:00 [INF] Server desktop-rukajg8:17916:0666bc9f successfully announced in 6,632 ms
+2026-03-16 23:51:04.452 +03:00 [INF] Server desktop-rukajg8:17916:0666bc9f is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, ExpirationManager, CountersAggregator, Worker, DelayedJobScheduler, RecurringJobScheduler...
+2026-03-16 23:51:04.458 +03:00 [INF] Server desktop-rukajg8:17916:0666bc9f all the dispatchers started
+2026-03-16 23:51:07.991 +03:00 [INF] Server desktop-rukajg8:17916:0666bc9f caught stopping signal...
+2026-03-16 23:51:07.993 +03:00 [INF] Application is shutting down...
+2026-03-16 23:51:07.995 +03:00 [INF] Server desktop-rukajg8:17916:0666bc9f All dispatchers stopped
+2026-03-16 23:51:07.997 +03:00 [INF] Server desktop-rukajg8:17916:0666bc9f successfully reported itself as stopped in 0,2895 ms
+2026-03-16 23:51:07.998 +03:00 [INF] Server desktop-rukajg8:17916:0666bc9f has been stopped in total 5,1003 ms

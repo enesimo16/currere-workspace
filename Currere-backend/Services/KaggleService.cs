@@ -2,6 +2,8 @@
 using System.Net.Http.Headers;
 using System.Text;
 using Currere_backend.Data;
+using Currere_backend.Models;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 
 namespace Currere_backend.Services
@@ -12,13 +14,20 @@ namespace Currere_backend.Services
         private readonly IEncryptionService _encryptionService;
         private readonly HttpClient _httpClient;
         private readonly IWebHostEnvironment _env;
+        private readonly IBackgroundJobClient _backgroundJobClient;
 
-        public KaggleService(AppDbContext context, IEncryptionService encryptionService, HttpClient httpClient, IWebHostEnvironment env)
+        public KaggleService(
+            AppDbContext context,
+            IEncryptionService encryptionService,
+            HttpClient httpClient,
+            IWebHostEnvironment env,
+            IBackgroundJobClient backgroundJobClient)
         {
             _context = context;
             _encryptionService = encryptionService;
             _httpClient = httpClient;
             _env = env;
+            _backgroundJobClient = backgroundJobClient;
         }
 
         // Kaggle API'sine yetki ekleme
@@ -46,7 +55,7 @@ namespace Currere_backend.Services
             if (!response.IsSuccessStatusCode)
                 throw new Exception($"Kaggle araması başarısız: {response.ReasonPhrase}");
 
-            return await response.Content.ReadAsStringAsync(); // JSON formatında dataset listesi döner
+            return await response.Content.ReadAsStringAsync(); 
         }
 
         public async Task<List<string>> DownloadDatasetAsync(int userId, int workspaceId, string datasetRef)
@@ -81,12 +90,32 @@ namespace Currere_backend.Services
             Directory.CreateDirectory(extractPath);
             ZipFile.ExtractToDirectory(tempZipPath, extractPath, overwriteFiles: true);
 
-            // Zip içindeki dosyaların yollarını listeye ekleme
+            // Zip içindeki dosyaların yollarını listeye ekleme ve OTOMATİK PROFİLLEME
             foreach (var file in Directory.GetFiles(extractPath))
             {
-                extractedFiles.Add(Path.GetFileName(file));
+                var fileName = Path.GetFileName(file);
+                extractedFiles.Add(fileName);
 
-                // TODO çıkarılan csvleri profilleyeceğiz
+                // belirli dataprofilleme
+                var extension = Path.GetExtension(fileName).ToLower();
+                if (extension == ".csv" || extension == ".xlsx" || extension == ".json")
+                {
+                    var workspaceFile = new WorkspaceFile
+                    {
+                        WorkspaceId = workspaceId,
+                        FileName = fileName,
+                        FilePath = file,
+                        // ...
+                    };
+
+                    _context.WorkspaceFiles.Add(workspaceFile);
+                    await _context.SaveChangesAsync(); // kaydedip id olusturma
+
+                    // oto profilleme
+                    _backgroundJobClient.Enqueue<IDatasetProfilerService>(
+                         profiler => profiler.ProfileDatasetAsync(workspaceFile.Id, fileName)
+                     );
+                }
             }
 
             // zip sil
