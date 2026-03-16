@@ -41,6 +41,8 @@ try
     builder.Services.AddValidatorsFromAssemblyContaining<Program>(); // validatr
     builder.Services.AddHttpClient<IAiService, GroqAiService>(); // groq
     builder.Services.AddScoped<INotebookConverterService, NotebookConverterService>(); // ipynb to py
+    builder.Services.AddSingleton<IEncryptionService, EncryptionService>(); // api kriptotalama
+    builder.Services.AddHttpClient<IKaggleService, KaggleService>(); // kaggle
 
     builder.Services.AddControllers();
 

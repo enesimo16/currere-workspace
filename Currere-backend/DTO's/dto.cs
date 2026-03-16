@@ -139,4 +139,11 @@ namespace Currere_backend.DTOs
         public string Username { get; set; } = string.Empty;
         public string ApiKey { get; set; } = string.Empty;
     }
+
+    // kaggle 
+
+    public class KaggleDownloadRequest
+    {
+        public string DatasetRef { get; set; } = string.Empty; // Kaggle formatý (kullanýcý/dataset-adý)
+    }
 }
