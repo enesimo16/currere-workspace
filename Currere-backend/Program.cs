@@ -45,6 +45,7 @@ try
     builder.Services.AddHttpClient<IKaggleService, KaggleService>(); // kaggle
     builder.Services.AddScoped<IWorkspaceSnapshotService, WorkspaceSnapshotService>(); // snapschot
     builder.Services.AddScoped<ISyntheticDataService, SyntheticDataService>(); // syntetic data dataset
+    builder.Services.AddHttpClient<IHuggingFaceService, HuggingFaceService>(); // huggingface model
 
     builder.Services.AddControllers();
 
