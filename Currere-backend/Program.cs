@@ -43,6 +43,7 @@ try
     builder.Services.AddScoped<INotebookConverterService, NotebookConverterService>(); // ipynb to py
     builder.Services.AddSingleton<IEncryptionService, EncryptionService>(); // api kriptotalama
     builder.Services.AddHttpClient<IKaggleService, KaggleService>(); // kaggle
+    builder.Services.AddScoped<IWorkspaceSnapshotService, WorkspaceSnapshotService>(); // snapschot
 
     builder.Services.AddControllers();
 

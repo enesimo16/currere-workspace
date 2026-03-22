@@ -154,4 +154,11 @@ namespace Currere_backend.DTOs
         public string RepoName { get; set; } = string.Empty;
         public string? CommitMessage { get; set; }
     }
+
+    // snapshot
+
+    public class CreateSnapshotRequest
+    {
+        public string Description { get; set; } = string.Empty;
+    }
 }

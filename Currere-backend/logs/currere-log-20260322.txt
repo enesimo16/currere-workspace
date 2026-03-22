@@ -1,0 +1,22 @@
+2026-03-22 11:31:02.008 +03:00 [INF] Currere API ayağa kalkıyor...
+2026-03-22 11:31:07.906 +03:00 [INF] Currere API ayağa kalkıyor...
+2026-03-22 11:36:21.072 +03:00 [INF] Currere API ayağa kalkıyor...
+2026-03-22 11:36:21.678 +03:00 [INF] User profile is available. Using 'C:\Users\enes yel\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-03-22 11:36:21.843 +03:00 [INF] Now listening on: http://localhost:5279
+2026-03-22 11:36:21.848 +03:00 [INF] Starting Hangfire Server using job storage: 'Hangfire.MemoryStorage.MemoryStorage'
+2026-03-22 11:36:21.851 +03:00 [INF] Using the following options for Hangfire Server:
+    Worker count: 20
+    Listening queues: 'default'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+2026-03-22 11:36:21.859 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-03-22 11:36:21.860 +03:00 [INF] Hosting environment: Development
+2026-03-22 11:36:21.861 +03:00 [INF] Content root path: C:\Users\enes yel\Desktop\Currere\Currere-backend
+2026-03-22 11:36:21.866 +03:00 [INF] Server desktop-rukajg8:22888:783c8538 successfully announced in 5,8069 ms
+2026-03-22 11:36:21.869 +03:00 [INF] Server desktop-rukajg8:22888:783c8538 is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, ExpirationManager, CountersAggregator, Worker, DelayedJobScheduler, RecurringJobScheduler...
+2026-03-22 11:36:21.873 +03:00 [INF] Server desktop-rukajg8:22888:783c8538 all the dispatchers started
+2026-03-22 11:36:57.885 +03:00 [INF] Server desktop-rukajg8:22888:783c8538 caught stopping signal...
+2026-03-22 11:36:57.886 +03:00 [INF] Application is shutting down...
+2026-03-22 11:36:57.888 +03:00 [INF] Server desktop-rukajg8:22888:783c8538 All dispatchers stopped
+2026-03-22 11:36:57.891 +03:00 [INF] Server desktop-rukajg8:22888:783c8538 successfully reported itself as stopped in 0,2284 ms
+2026-03-22 11:36:57.891 +03:00 [INF] Server desktop-rukajg8:22888:783c8538 has been stopped in total 5,1411 ms
