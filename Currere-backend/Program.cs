@@ -1,16 +1,17 @@
 using Currere_backend.Data;
+using Currere_backend.Hubs;
 using Currere_backend.Middlewares;
 using Currere_backend.Services;
 using FluentValidation;
 using Hangfire;
 using Hangfire.MemoryStorage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
 using Serilog;
-using Microsoft.AspNetCore.RateLimiting;
+using System.Text;
 using System.Threading.RateLimiting;
 
 // serilog
@@ -47,6 +48,9 @@ try
     builder.Services.AddScoped<ISyntheticDataService, SyntheticDataService>(); // syntetic data dataset
     builder.Services.AddHttpClient<IHuggingFaceService, HuggingFaceService>(); // huggingface model
 
+
+
+    builder.Services.AddSignalR(); // frontend signalR
     builder.Services.AddControllers();
 
     // RAate limiting
@@ -160,6 +164,8 @@ try
     app.UseAuthorization();
 
     app.MapControllers();
+
+    app.MapHub<TerminalHub>("/terminalHub"); // frontend signalR
 
     app.Run();
 }

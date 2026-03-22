@@ -7,9 +7,11 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Currere_backend.DTOs;
+using Currere_backend.Hubs; 
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.SignalR; 
 
 namespace Currere_backend.Services
 {
@@ -17,11 +19,14 @@ namespace Currere_backend.Services
     {
         private readonly DockerClient _dockerClient;
         private readonly IWebHostEnvironment _env;
+        private readonly IHubContext<TerminalHub> _hubContext; // hubı aldık
 
-        public CodeExecutionService(IWebHostEnvironment env)
+        // Constructor güncellendi
+        public CodeExecutionService(IWebHostEnvironment env, IHubContext<TerminalHub> hubContext)
         {
             _dockerClient = new DockerClientConfiguration().CreateClient();
             _env = env;
+            _hubContext = hubContext;
         }
 
         public async Task<ExecutionResultDto> ExecutePythonCodeAsync(int workspaceId, string code)
@@ -71,12 +76,12 @@ namespace Currere_backend.Services
                     Env = envVars,
                     // veriyi algılayamıyor, temp e atıyoruz 
                     // printenv komutu (Artık imajın içine gömdüğümüz runner.py dosyasını çalıştırıyoruz)
-                    Cmd = new List<string> { "python", "/app/runner.py" },
+                    // bloklar halinde dönmemesi icin
+                    Cmd = new List<string> { "python", "-u", "/app/runner.py" },
                     WorkingDir = "/workspace",
                     HostConfig = new HostConfig
                     {
-                        Memory = 1024L * 1024L * 1024L, // 512 mb ram'e yükselttik çünkü kütüphaneleri karsilayamiyor
-                        // hala yetmiyor 1gb yaptık
+                        Memory = 1024L * 1024L * 1024L, // hala yetmiyor 1gb yaptık
                         NetworkMode = "none",       // interneti kes
                         AutoRemove = false,
                         Binds = new List<string> { $"{dockerBindPath}:/workspace:ro" } // read only'e çevirdik
@@ -88,22 +93,54 @@ namespace Currere_backend.Services
                 // konteynerı başlatma
                 await _dockerClient.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
 
-                // timeout için 10 saniye
-                // 10 saniye yetersiz kaldı 30 saniye test
+                // timeout için 10 saniye yetersiz kaldı 30 saniye test
                 // bunu üstten alıp alta taşıdık  timeojt yememesi için cünkü diğer türlü dockerın başlamasından itibaren alıyordu
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+
+                // logları okuma
+                // akısı saglamak icin follow true
+                using var logsStream = await _dockerClient.Containers.GetContainerLogsAsync(containerId, false, new ContainerLogsParameters
+                {
+                    ShowStdout = true,
+                    ShowStderr = true,
+                    Follow = true
+                });
+
+                var stdoutBuilder = new System.Text.StringBuilder();
+                var stderrBuilder = new System.Text.StringBuilder();
+
+                // signalr ile 
+                // loglama akışı
+                // kullanıcı epochları beklerken bir şey yapmadığımızı sanmasın diye
+                // cünkü sandbox yavs calisabiliyor
+                var logTask = Task.Run(async () =>
+                {
+                    var buffer = new byte[4096];
+                    while (true)
+                    {
+                        var result = await logsStream.ReadOutputAsync(buffer, 0, buffer.Length, cts.Token);
+                        if (result.EOF) break;
+
+                        string chunk = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
+
+                        if (result.Target == MultiplexedStream.TargetStream.StandardError)
+                            stderrBuilder.Append(chunk);
+                        else
+                            stdoutBuilder.Append(chunk);
+
+                        // signalr akış
+                        await _hubContext.Clients.Group(workspaceId.ToString()).SendAsync("ReceiveLog", chunk);
+                    }
+                }, cts.Token);
 
                 // arkada gelen promot/kodun compile olmasını bekliyoruz
                 var waitResponse = await _dockerClient.Containers.WaitContainerAsync(containerId, cts.Token);
 
-                // logları okuma
-                using var logsStream = await _dockerClient.Containers.GetContainerLogsAsync(containerId, false, new ContainerLogsParameters
-                {
-                    ShowStdout = true,
-                    ShowStderr = true
-                });
+                // Log okuma işleminin de bitmesini garantiye alıyoruz
+                await logTask;
 
-                (string stdout, string stderr) = await logsStream.ReadOutputToEndAsync(default);
+                string stdout = stdoutBuilder.ToString();
+                string stderr = stderrBuilder.ToString();
                 stopwatch.Stop();
 
                 // json cozumleme
