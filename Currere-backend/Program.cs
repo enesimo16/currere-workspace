@@ -44,6 +44,7 @@ try
     builder.Services.AddSingleton<IEncryptionService, EncryptionService>(); // api kriptotalama
     builder.Services.AddHttpClient<IKaggleService, KaggleService>(); // kaggle
     builder.Services.AddScoped<IWorkspaceSnapshotService, WorkspaceSnapshotService>(); // snapschot
+    builder.Services.AddScoped<ISyntheticDataService, SyntheticDataService>(); // syntetic data dataset
 
     builder.Services.AddControllers();
 

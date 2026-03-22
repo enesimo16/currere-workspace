@@ -24,6 +24,13 @@ namespace Currere_backend.DTOs
         AI = 3        // ai response
     }
 
+    public enum GenerationMode
+    {
+        FastAndFake = 1,
+        ZeroShotRealistic = 2,
+        DigitalTwin = 3
+    }
+
 
     // AUTH SYSTEM
 
@@ -160,5 +167,19 @@ namespace Currere_backend.DTOs
     public class CreateSnapshotRequest
     {
         public string Description { get; set; } = string.Empty;
+    }
+
+    // dataset
+
+    public class SyntheticDataRequest
+    {
+        public string Prompt { get; set; } = string.Empty; 
+        public string Columns { get; set; } = string.Empty; 
+        public int RowCount { get; set; } = 1000;
+        public string FileName { get; set; } = "synthetic_data.csv"; // isimlendirme
+        public GenerationMode Mode { get; set; } = GenerationMode.FastAndFake;
+
+        // Sadece DigitalTwin için hangi dosyanýn kopyalanacagý
+        public int? SourceFileId { get; set; }
     }
 }
