@@ -94,6 +94,11 @@ namespace Currere_backend.Services
             {
                 var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
                 var artifactsPath = Path.Combine(webRootPath, "artifacts");
+                var workspacesPath = Path.Combine(webRootPath, "workspaces");
+
+                // Beklenmedik DirectoryNotFound hatalarını önlemek için proaktif kontrol
+                if (!Directory.Exists(artifactsPath)) Directory.CreateDirectory(artifactsPath);
+                if (!Directory.Exists(workspacesPath)) Directory.CreateDirectory(workspacesPath);
 
                 if (Directory.Exists(artifactsPath))
                 {

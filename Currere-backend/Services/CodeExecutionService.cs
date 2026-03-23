@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -97,6 +97,7 @@ namespace Currere_backend.Services
                     var installerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
                     {
                         Image = "currere-sandbox:latest",
+                        Name = $"currere-install-{job.JobId}", // JobId tabanlı benzersiz isim
                         Cmd = installCmd,
                         WorkingDir = "/workspace",
                         HostConfig = new HostConfig
@@ -143,7 +144,8 @@ namespace Currere_backend.Services
                 // DATASET MAPPING
                 if (!string.IsNullOrWhiteSpace(job.DatasetFileName))
                 {
-                    var datasetHostPath = Path.Combine(hostWorkspacePath, "datasets", job.DatasetFileName);
+                    // FileService dosyaları workspace {id} root dizinine kaydediyor
+                    var datasetHostPath = Path.Combine(hostWorkspacePath, job.DatasetFileName);
                     if (File.Exists(datasetHostPath))
                     {
                         var dockerDatasetBind = datasetHostPath.Replace("\\", "/");
@@ -166,6 +168,7 @@ namespace Currere_backend.Services
                 var response = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
                 {
                     Image = "currere-sandbox:latest",
+                    Name = $"currere-run-{job.JobId}", // JobId tabanlı benzersiz isim
                     Env = envVars,
                     Cmd = new List<string> { "python", "-u", "/app/runner.py" },
                     WorkingDir = "/workspace",

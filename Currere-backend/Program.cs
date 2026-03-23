@@ -1,4 +1,4 @@
-﻿using Currere_backend.Data;
+using Currere_backend.Data;
 using Currere_backend.Hubs;
 using Currere_backend.Middlewares;
 using Currere_backend.Services;
@@ -57,6 +57,17 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
 
     builder.Services.AddSignalR(); // frontend signalR
     builder.Services.AddControllers();
+
+    // CORS Configuration (Frontend & Extension Webview Support)
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAll",
+            corsBuilder => corsBuilder
+                .SetIsOriginAllowed(origin => true) // SignalR with AllowCredentials requires this instead of AllowAnyOrigin
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials());
+    });
 
     // RAate limiting
     builder.Services.AddRateLimiter(options =>
@@ -160,6 +171,9 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
     }
 
     app.UseHttpsRedirection();
+    
+    // CORS'u UseRouting veya RateLimiter'dan hemen önce kullanıyoruz.
+    app.UseCors("AllowAll");
 
     // ratelimiter before auth
     app.UseRateLimiter();
