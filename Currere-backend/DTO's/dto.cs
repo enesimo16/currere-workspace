@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+ï»¿using System.ComponentModel.DataAnnotations;
 
 namespace Currere_backend.DTOs
 {
@@ -14,12 +14,12 @@ namespace Currere_backend.DTOs
     public enum RuntimeType
     {
         CPU = 1,
-        GPU = 2       // suan sadece cpu kýsmý var ama gpu eklentisine hazýr olmalýyýz
+        GPU = 2       // suan sadece cpu kï¿½smï¿½ var ama gpu eklentisine hazï¿½r olmalï¿½yï¿½z
     }
 
     public enum MessageRole
     {
-        System = 1,   // ai'ya iþlenecek backend claims
+        System = 1,   // ai'ya iï¿½lenecek backend claims
         User = 2,     // user rquest
         AI = 3        // ai response
     }
@@ -37,29 +37,29 @@ namespace Currere_backend.DTOs
 
     public class RegisterDto
     {
-        [Required(ErrorMessage = "Ad alaný zorunludur.")]
-        [MinLength(2, ErrorMessage = "Ad en az 2 karakter olmalýdýr.")]
+        [Required(ErrorMessage = "Ad alanï¿½ zorunludur.")]
+        [MinLength(2, ErrorMessage = "Ad en az 2 karakter olmalï¿½dï¿½r.")]
         public string FirstName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Soyad alaný zorunludur.")]
+        [Required(ErrorMessage = "Soyad alanï¿½ zorunludur.")]
         public string LastName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Email alaný zorunludur.")]
-        [EmailAddress(ErrorMessage = "Geçerli bir email adresi giriniz.")]
+        [Required(ErrorMessage = "Email alanï¿½ zorunludur.")]
+        [EmailAddress(ErrorMessage = "Geï¿½erli bir email adresi giriniz.")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Þifre alaný zorunludur.")]
-        [MinLength(6, ErrorMessage = "Þifre en az 6 karakter olmalýdýr.")]
+        [Required(ErrorMessage = "ï¿½ifre alanï¿½ zorunludur.")]
+        [MinLength(6, ErrorMessage = "ï¿½ifre en az 6 karakter olmalï¿½dï¿½r.")]
         public string Password { get; set; } = string.Empty;
     }
 
     public class LoginDto
     {
-        [Required(ErrorMessage = "Email alaný zorunludur.")]
-        [EmailAddress(ErrorMessage = "Geçerli bir email adresi giriniz.")]
+        [Required(ErrorMessage = "Email alanï¿½ zorunludur.")]
+        [EmailAddress(ErrorMessage = "Geï¿½erli bir email adresi giriniz.")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Þifre zorunludur.")]
+        [Required(ErrorMessage = "ï¿½ifre zorunludur.")]
         public string Password { get; set; } = string.Empty;
     }
 
@@ -67,8 +67,8 @@ namespace Currere_backend.DTOs
 
     public class LinkStudentEmailDto
     {
-        [Required(ErrorMessage = "Öðrenci e-posta adresi zorunludur.")]
-        [EmailAddress(ErrorMessage = "Geçerli bir e-posta formatý giriniz.")]
+        [Required(ErrorMessage = "ï¿½ï¿½renci e-posta adresi zorunludur.")]
+        [EmailAddress(ErrorMessage = "Geï¿½erli bir e-posta formatï¿½ giriniz.")]
         public string StudentEmail { get; set; } = string.Empty;
     }
 
@@ -76,8 +76,8 @@ namespace Currere_backend.DTOs
 
     public class CreateWorkspaceDto
     {
-        [Required(ErrorMessage = "Proje adý zorunludur.")]
-        [MaxLength(100, ErrorMessage = "Proje adý çok uzun.")]
+        [Required(ErrorMessage = "Proje adï¿½ zorunludur.")]
+        [MaxLength(100, ErrorMessage = "Proje adï¿½ ï¿½ok uzun.")]
         public string Title { get; set; } = "Untitled Workspace";
 
         public WorkspaceFormat Format { get; set; } = WorkspaceFormat.Python;
@@ -106,8 +106,9 @@ namespace Currere_backend.DTOs
 
     public class ExecuteCodeDto
     {
-        [Required(ErrorMessage = "Çalýþtýrýlacak kod boþ olamaz.")]
-        public string Code { get; set; } = string.Empty;
+        [Required(ErrorMessage = "ï¿½alï¿½ï¿½tï¿½rï¿½lacak kod boï¿½ olamaz.")]
+        public string Code { get; set; }
+        public string? DatasetFileName { get; set; } = string.Empty;
     }
 
     public class ExecutionResultDto
@@ -116,6 +117,7 @@ namespace Currere_backend.DTOs
         public string Error { get; set; } = string.Empty;    
         public bool IsSuccess { get; set; }                 
         public long ExecutionTimeMs { get; set; }
+        public List<string> ArtifactUrls { get; set; } = new List<string>();
 
         public string ErrorType { get; set; } = string.Empty; // runnerdan error kodu almak cini
     }
@@ -127,7 +129,7 @@ namespace Currere_backend.DTOs
     {
         public int FileId { get; set; }
         public string FileName { get; set; } = string.Empty;
-        public DateTime ExpiresAt { get; set; } // usera dosya silinme süresini gsterme
+        public DateTime ExpiresAt { get; set; } // usera dosya silinme sï¿½resini gsterme
         public string Message { get; set; } = string.Empty;
     }
 
@@ -151,7 +153,7 @@ namespace Currere_backend.DTOs
 
     public class KaggleDownloadRequest
     {
-        public string DatasetRef { get; set; } = string.Empty; // Kaggle formatý (kullanýcý/dataset-adý)
+        public string DatasetRef { get; set; } = string.Empty; // Kaggle formatï¿½ (kullanï¿½cï¿½/dataset-adï¿½)
     }
 
     // github
@@ -179,7 +181,7 @@ namespace Currere_backend.DTOs
         public string FileName { get; set; } = "synthetic_data.csv"; // isimlendirme
         public GenerationMode Mode { get; set; } = GenerationMode.FastAndFake;
 
-        // Sadece DigitalTwin için hangi dosyanýn kopyalanacagý
+        // Sadece DigitalTwin iï¿½in hangi dosyanï¿½n kopyalanacagï¿½
         public int? SourceFileId { get; set; }
     }
 }

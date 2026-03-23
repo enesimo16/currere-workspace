@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Currere_backend.Models;
 using Currere_backend.DTOs;
 using Currere_backend.Hubs; 
 using Docker.DotNet;
@@ -20,18 +21,42 @@ namespace Currere_backend.Services
         private readonly DockerClient _dockerClient;
         private readonly IWebHostEnvironment _env;
         private readonly IHubContext<TerminalHub> _hubContext; // hubı aldık
+        private readonly ICodePreProcessorService _codePreProcessorService;
 
         // Constructor güncellendi
-        public CodeExecutionService(IWebHostEnvironment env, IHubContext<TerminalHub> hubContext)
+        public CodeExecutionService(IWebHostEnvironment env, IHubContext<TerminalHub> hubContext, ICodePreProcessorService codePreProcessorService)
         {
             _dockerClient = new DockerClientConfiguration().CreateClient();
             _env = env;
             _hubContext = hubContext;
+            _codePreProcessorService = codePreProcessorService;
         }
 
-        public async Task<ExecutionResultDto> ExecutePythonCodeAsync(int workspaceId, string code)
+        public async Task<ExecutionResultDto> ExecutePythonCodeAsync(ExecutionJob job)
         {
             var stopwatch = Stopwatch.StartNew();
+            int workspaceId = job.WorkspaceId;
+            string code = job.Code;
+            CodePreProcessResultDto preProcessResult;
+            try
+            {
+                // STATİK AST GÜVENLİK TARAMASI VE IPYNB PARSER
+                preProcessResult = await _codePreProcessorService.ProcessCodeAsync(code);
+                code = preProcessResult.Code;
+            }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                return new ExecutionResultDto
+                {
+                    Output = "",
+                    Error = ex.Message,
+                    ErrorType = "SecurityOrSyntaxError",
+                    IsSuccess = false,
+                    ExecutionTimeMs = stopwatch.ElapsedMilliseconds
+                };
+            }
+
             var containerId = string.Empty;
 
             // FİZİKSEL KLASÖR YOLUNU BULMA
@@ -63,28 +88,93 @@ namespace Currere_backend.Services
                     throw new Exception("Sistem Hatası: 'currere-sandbox:latest' imajı bulunamadı. Lütfen terminalden 'docker build -t currere-sandbox:latest .' komutu ile imajı inşa edin.");
                 }
 
+                // DİNAMİK BAĞIMLILIK KURULUMU (Ön Kurulum Konteyneri)
+                if (preProcessResult.Dependencies != null && preProcessResult.Dependencies.Any())
+                {
+                    var installCmd = new List<string> { "pip", "install", "-t", "/workspace/site-packages" };
+                    installCmd.AddRange(preProcessResult.Dependencies);
+                    
+                    var installerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
+                    {
+                        Image = "currere-sandbox:latest",
+                        Cmd = installCmd,
+                        WorkingDir = "/workspace",
+                        HostConfig = new HostConfig
+                        {
+                            NetworkMode = "bridge", // İnternet açık
+                            Binds = new List<string> { $"{dockerBindPath}:/workspace" } // Kurulum için okuma/yazma açık
+                        }
+                    });
+
+                    await _dockerClient.Containers.StartContainerAsync(installerResponse.ID, new ContainerStartParameters());
+                    
+                    // Kurulumun bitmesini bekle (maksimum 45 saniye)
+                    using var installCts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+                    await _dockerClient.Containers.WaitContainerAsync(installerResponse.ID, installCts.Token);
+                    
+                    // Temizlik (geçici kurucu konteyner)
+                    await _dockerClient.Containers.RemoveContainerAsync(installerResponse.ID, new ContainerRemoveParameters { Force = true });
+                }
+
                 // py wrapper ve base64 korumasi
                 // Kullanıcı kodundaki tırnak ve boşlukların bash/python'u patlatmaması için base64 ile şifreliyoruz
                 var base64Code = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(code));
 
                 // Artık Python kodunu C# içinde yollamıyoruz, sadece Base64 metnini değişkene veriyoruz
-                var envVars = new List<string> { $"CODE_TO_RUN={base64Code}" };
+                // Yeni: Ön kurulum yapılan site-packages klasörünü PYTHONPATH'e ekliyoruz
+                var envVars = new List<string> { 
+                    $"CODE_TO_RUN={base64Code}",
+                    "PYTHONPATH=/workspace/site-packages"
+                };
+
+                // ARTIFACT OUTPUT MAPPING
+                var hostOutputPath = Path.Combine(webRootPath, "artifacts", job.JobId);
+                if (!Directory.Exists(hostOutputPath))
+                {
+                    Directory.CreateDirectory(hostOutputPath);
+                }
+                var dockerOutputBind = hostOutputPath.Replace("\\", "/");
+
+                var bindsList = new List<string> { 
+                    $"{dockerBindPath}:/workspace:ro",  // Workspace Root RO
+                    $"{dockerOutputBind}:/workspace/output:rw" // Artifact Output RW
+                };
+
+                // DATASET MAPPING
+                if (!string.IsNullOrWhiteSpace(job.DatasetFileName))
+                {
+                    var datasetHostPath = Path.Combine(hostWorkspacePath, "datasets", job.DatasetFileName);
+                    if (File.Exists(datasetHostPath))
+                    {
+                        var dockerDatasetBind = datasetHostPath.Replace("\\", "/");
+                        bindsList.Add($"{dockerDatasetBind}:/workspace/data/{job.DatasetFileName}:ro");
+                    }
+                    else
+                    {
+                        stopwatch.Stop();
+                        return new ExecutionResultDto
+                        {
+                            Output = "",
+                            Error = $"Sistem Hatası: Belirtilen veri seti bulunamadı: {job.DatasetFileName}. Lütfen klasörü kontrol edin.",
+                            ErrorType = "DatasetNotFoundError",
+                            IsSuccess = false,
+                            ExecutionTimeMs = stopwatch.ElapsedMilliseconds
+                        };
+                    }
+                }
 
                 var response = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
                 {
                     Image = "currere-sandbox:latest",
                     Env = envVars,
-                    // veriyi algılayamıyor, temp e atıyoruz 
-                    // printenv komutu (Artık imajın içine gömdüğümüz runner.py dosyasını çalıştırıyoruz)
-                    // bloklar halinde dönmemesi icin
                     Cmd = new List<string> { "python", "-u", "/app/runner.py" },
                     WorkingDir = "/workspace",
                     HostConfig = new HostConfig
                     {
-                        Memory = 1024L * 1024L * 1024L, // hala yetmiyor 1gb yaptık
+                        Memory = 512L * 1024L * 1024L, // 512MB RAM Limiti (Güvenlik Odaklı)
                         NetworkMode = "none",       // interneti kes
                         AutoRemove = false,
-                        Binds = new List<string> { $"{dockerBindPath}:/workspace:ro" } // read only'e çevirdik
+                        Binds = bindsList
                     }
                 });
 
@@ -93,9 +183,8 @@ namespace Currere_backend.Services
                 // konteynerı başlatma
                 await _dockerClient.Containers.StartContainerAsync(containerId, new ContainerStartParameters());
 
-                // timeout için 10 saniye yetersiz kaldı 30 saniye test
-                // bunu üstten alıp alta taşıdık  timeojt yememesi için cünkü diğer türlü dockerın başlamasından itibaren alıyordu
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+                // timeout için 15 saniye zorunlu kılındı
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 
                 // logları okuma
                 // akısı saglamak icin follow true
@@ -138,6 +227,21 @@ namespace Currere_backend.Services
 
                 // Log okuma işleminin de bitmesini garantiye alıyoruz
                 await logTask;
+                
+                // OOM (Out of Memory) Kontrolü
+                var containerInfo = await _dockerClient.Containers.InspectContainerAsync(containerId);
+                if (containerInfo.State.OOMKilled)
+                {
+                    stopwatch.Stop();
+                    return new ExecutionResultDto
+                    {
+                        Output = "",
+                        Error = "Out of Memory: İşlem çok fazla bellek tüketti (512MB Sınırı).",
+                        ErrorType = "OutOfMemoryError",
+                        IsSuccess = false,
+                        ExecutionTimeMs = stopwatch.ElapsedMilliseconds
+                    };
+                }
 
                 string stdout = stdoutBuilder.ToString();
                 string stderr = stderrBuilder.ToString();
@@ -158,6 +262,10 @@ namespace Currere_backend.Services
                     if (!isSuccess)
                     {
                         errorType = jsonResult.GetProperty("error_type").GetString() ?? "UnknownError";
+                        if (finalOutput.Contains("Traceback (most recent call last)") || finalOutput.Contains("File \""))
+                        {
+                            finalOutput = ParsePythonTraceback(finalOutput, ref errorType);
+                        }
                     }
                 }
                 catch
@@ -166,6 +274,23 @@ namespace Currere_backend.Services
                     isSuccess = false;
                     finalOutput = rawOutput + "\n" + (stderr?.Trim() ?? "");
                     errorType = "SystemCrashError";
+
+                    if (finalOutput.Contains("Traceback (most recent call last)") || finalOutput.Contains("File \""))
+                    {
+                        finalOutput = ParsePythonTraceback(finalOutput, ref errorType);
+                    }
+                }
+
+                // ARTIFACT URL COLLECTION
+                var artifactUrls = new List<string>();
+                if (Directory.Exists(hostOutputPath))
+                {
+                    var files = Directory.GetFiles(hostOutputPath);
+                    foreach (var file in files)
+                    {
+                        var fileName = Path.GetFileName(file);
+                        artifactUrls.Add($"/artifacts/{job.JobId}/{fileName}");
+                    }
                 }
 
                 return new ExecutionResultDto
@@ -174,7 +299,8 @@ namespace Currere_backend.Services
                     Error = !isSuccess ? finalOutput : "",
                     ErrorType = errorType,
                     IsSuccess = isSuccess,
-                    ExecutionTimeMs = stopwatch.ElapsedMilliseconds
+                    ExecutionTimeMs = stopwatch.ElapsedMilliseconds,
+                    ArtifactUrls = artifactUrls
                 };
             }
             catch (Exception ex) when (ex is TaskCanceledException || ex is OperationCanceledException || ex is TimeoutException || ex.Message.Contains("timed out"))
@@ -184,7 +310,7 @@ namespace Currere_backend.Services
                 return new ExecutionResultDto
                 {
                     Output = "",
-                    Error = "Sistem Hatası: Kodun çalışma süresi 120 saniyelik limiti aştı. Kodda sonsuz döngü (infinite loop) veya çok ağır bir işlem var.",
+                    Error = "Time-out: Kod 15 saniyeden uzun sürdü ve durduruldu.",
                     ErrorType = "TimeoutError",
                     IsSuccess = false,
                     ExecutionTimeMs = stopwatch.ElapsedMilliseconds
@@ -215,6 +341,40 @@ namespace Currere_backend.Services
                     catch { /* Temizlik sırasında hata olursa yut */ }
                 }
             }
+        }
+
+        private string ParsePythonTraceback(string rawError, ref string errorType)
+        {
+            if (string.IsNullOrWhiteSpace(rawError)) return rawError;
+
+            // Satır tespiti
+            int lineNumber = 0;
+            var lineMatches = System.Text.RegularExpressions.Regex.Matches(rawError, @"line\s+(\d+)");
+            if (lineMatches.Count > 0)
+            {
+                int.TryParse(lineMatches[lineMatches.Count - 1].Groups[1].Value, out lineNumber);
+            }
+
+            // Hata mesajı genelde son satırdadır
+            var lines = rawError.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            string lastLine = lines.LastOrDefault()?.Trim() ?? "";
+
+            string errorMessage = lastLine;
+            var errorMatch = System.Text.RegularExpressions.Regex.Match(lastLine, @"^([\w\.]+Error|Exception|Warning|SyntaxError):\s*(.*)$");
+            if (errorMatch.Success)
+            {
+                errorType = errorMatch.Groups[1].Value;
+                errorMessage = errorMatch.Groups[2].Value;
+            }
+
+            var smartObj = new
+            {
+                ErrorType = errorType,
+                LineNumber = lineNumber,
+                ErrorMessage = errorMessage
+            };
+
+            return JsonSerializer.Serialize(smartObj);
         }
     }
 }

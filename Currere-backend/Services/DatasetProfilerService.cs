@@ -1,4 +1,5 @@
 ﻿using Currere_backend.DTOs;
+using Currere_backend.Models;
 
 namespace Currere_backend.Services
 {
@@ -88,7 +89,7 @@ namespace Currere_backend.Services
             // dinamik python adi
             pythonCode += $"\n\nprofile_dataset('/workspace/{fileName}')";
 
-            var result = await _executionService.ExecutePythonCodeAsync(workspaceId, pythonCode);
+            var result = await _executionService.ExecutePythonCodeAsync(new ExecutionJob { WorkspaceId = workspaceId, Code = pythonCode });
 
             if (!result.IsSuccess)
             {

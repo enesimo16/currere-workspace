@@ -1,6 +1,7 @@
 ﻿using Currere_backend.Data;
 using Currere_backend.DTOs;
 using Currere_backend.Services;
+using Currere_backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -245,7 +246,7 @@ HATALARI OLAN KOD:
                     }
 
                     // docker ile kodun calisip calismadigi testi
-                    var executionResult = await _executionService.ExecutePythonCodeAsync(workspaceId, currentPyCode);
+                    var executionResult = await _executionService.ExecutePythonCodeAsync(new ExecutionJob { WorkspaceId = workspaceId, Code = currentPyCode });
 
                     if (executionResult.IsSuccess)
                     {

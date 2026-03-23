@@ -48,4 +48,4 @@ namespace Currere_backend.Controllers
         public string SpaceName { get; set; } = string.Empty; // Örn: Currere-enes-detector
         public string ModelFileName { get; set; } = string.Empty; // Örn: model.pkl
     }
-}S
+}

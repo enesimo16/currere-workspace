@@ -40,3 +40,232 @@
 2026-03-22 13:21:47.398 +03:00 [INF] Server desktop-rukajg8:14536:e95737c4 All dispatchers stopped
 2026-03-22 13:21:47.401 +03:00 [INF] Server desktop-rukajg8:14536:e95737c4 successfully reported itself as stopped in 0,3893 ms
 2026-03-22 13:21:47.402 +03:00 [INF] Server desktop-rukajg8:14536:e95737c4 has been stopped in total 5,5218 ms
+2026-03-22 13:43:29.857 +03:00 [INF] Currere API ayağa kalkıyor...
+2026-03-22 13:43:30.191 +03:00 [INF] User profile is available. Using 'C:\Users\enes yel\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-03-22 13:43:30.246 +03:00 [INF] Now listening on: http://localhost:5279
+2026-03-22 13:43:30.252 +03:00 [INF] Starting Hangfire Server using job storage: 'Hangfire.MemoryStorage.MemoryStorage'
+2026-03-22 13:43:30.254 +03:00 [INF] Using the following options for Hangfire Server:
+    Worker count: 20
+    Listening queues: 'default'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+2026-03-22 13:43:30.262 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-03-22 13:43:30.264 +03:00 [INF] Hosting environment: Development
+2026-03-22 13:43:30.265 +03:00 [INF] Content root path: C:\Users\enes yel\Desktop\Currere\Currere-backend
+2026-03-22 13:43:30.272 +03:00 [INF] Server desktop-rukajg8:8212:0bddb7f0 successfully announced in 7,1481 ms
+2026-03-22 13:43:30.276 +03:00 [INF] Server desktop-rukajg8:8212:0bddb7f0 is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, ExpirationManager, CountersAggregator, Worker, DelayedJobScheduler, RecurringJobScheduler...
+2026-03-22 13:43:30.281 +03:00 [INF] Server desktop-rukajg8:8212:0bddb7f0 all the dispatchers started
+2026-03-22 13:43:32.479 +03:00 [INF] Server desktop-rukajg8:8212:0bddb7f0 caught stopping signal...
+2026-03-22 13:43:32.481 +03:00 [INF] Application is shutting down...
+2026-03-22 13:43:32.483 +03:00 [INF] Server desktop-rukajg8:8212:0bddb7f0 All dispatchers stopped
+2026-03-22 13:43:32.485 +03:00 [INF] Server desktop-rukajg8:8212:0bddb7f0 successfully reported itself as stopped in 0,3128 ms
+2026-03-22 13:43:32.486 +03:00 [INF] Server desktop-rukajg8:8212:0bddb7f0 has been stopped in total 4,9826 ms
+2026-03-22 14:21:12.135 +03:00 [INF] Currere API aya�a kalk�yor...
+2026-03-22 14:21:13.517 +03:00 [INF] User profile is available. Using 'C:\Users\enes yel\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-03-22 14:21:13.843 +03:00 [INF] Now listening on: http://localhost:5279
+2026-03-22 14:21:13.850 +03:00 [INF] Starting Hangfire Server using job storage: 'Hangfire.MemoryStorage.MemoryStorage'
+2026-03-22 14:21:13.853 +03:00 [INF] Using the following options for Hangfire Server:
+    Worker count: 20
+    Listening queues: 'default'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+2026-03-22 14:21:13.874 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-03-22 14:21:13.876 +03:00 [INF] Hosting environment: Development
+2026-03-22 14:21:13.877 +03:00 [INF] Content root path: C:\Users\enes yel\Desktop\Currere\Currere-backend
+2026-03-22 14:21:13.887 +03:00 [INF] Server desktop-rukajg8:24656:fda9aedd successfully announced in 9,0062 ms
+2026-03-22 14:21:13.891 +03:00 [INF] Server desktop-rukajg8:24656:fda9aedd is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, ExpirationManager, CountersAggregator, Worker, DelayedJobScheduler, RecurringJobScheduler...
+2026-03-22 14:21:13.899 +03:00 [INF] Server desktop-rukajg8:24656:fda9aedd all the dispatchers started
+2026-03-22 14:21:14.950 +03:00 [INF] Server desktop-rukajg8:24656:fda9aedd caught stopping signal...
+2026-03-22 14:21:14.951 +03:00 [INF] Application is shutting down...
+2026-03-22 14:21:14.953 +03:00 [INF] Server desktop-rukajg8:24656:fda9aedd All dispatchers stopped
+2026-03-22 14:21:14.955 +03:00 [INF] Server desktop-rukajg8:24656:fda9aedd successfully reported itself as stopped in 0,2865 ms
+2026-03-22 14:21:14.955 +03:00 [INF] Server desktop-rukajg8:24656:fda9aedd has been stopped in total 4,5752 ms
+2026-03-22 14:32:45.820 +03:00 [INF] Currere API aya�a kalk�yor...
+2026-03-22 14:32:46.165 +03:00 [INF] User profile is available. Using 'C:\Users\enes yel\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-03-22 14:32:46.180 +03:00 [INF] Execution Worker arka planda calismaya basladi.
+2026-03-22 14:32:46.221 +03:00 [INF] Now listening on: http://localhost:5279
+2026-03-22 14:32:46.226 +03:00 [INF] Starting Hangfire Server using job storage: 'Hangfire.MemoryStorage.MemoryStorage'
+2026-03-22 14:32:46.227 +03:00 [INF] Using the following options for Hangfire Server:
+    Worker count: 20
+    Listening queues: 'default'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+2026-03-22 14:32:46.234 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-03-22 14:32:46.235 +03:00 [INF] Hosting environment: Development
+2026-03-22 14:32:46.236 +03:00 [INF] Content root path: C:\Users\enes yel\Desktop\Currere\Currere-backend
+2026-03-22 14:32:46.242 +03:00 [INF] Server desktop-rukajg8:24584:6fda4ab3 successfully announced in 4,6015 ms
+2026-03-22 14:32:46.245 +03:00 [INF] Server desktop-rukajg8:24584:6fda4ab3 is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, ExpirationManager, CountersAggregator, Worker, DelayedJobScheduler, RecurringJobScheduler...
+2026-03-22 14:32:46.249 +03:00 [INF] Server desktop-rukajg8:24584:6fda4ab3 all the dispatchers started
+2026-03-22 14:32:47.680 +03:00 [INF] Server desktop-rukajg8:24584:6fda4ab3 caught stopping signal...
+2026-03-22 14:32:47.681 +03:00 [INF] Application is shutting down...
+2026-03-22 14:32:47.682 +03:00 [INF] Server desktop-rukajg8:24584:6fda4ab3 All dispatchers stopped
+2026-03-22 14:32:47.684 +03:00 [INF] Server desktop-rukajg8:24584:6fda4ab3 successfully reported itself as stopped in 0,318 ms
+2026-03-22 14:32:47.685 +03:00 [INF] Server desktop-rukajg8:24584:6fda4ab3 has been stopped in total 3,6807 ms
+2026-03-22 14:46:32.407 +03:00 [INF] Currere API aya�a kalk�yor...
+2026-03-22 14:46:38.409 +03:00 [INF] Currere API aya�a kalk�yor...
+2026-03-22 14:47:10.927 +03:00 [INF] Currere API aya�a kalk�yor...
+2026-03-22 14:47:11.273 +03:00 [INF] User profile is available. Using 'C:\Users\enes yel\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-03-22 14:47:11.286 +03:00 [INF] Execution Worker arka planda calismaya basladi.
+2026-03-22 14:47:11.328 +03:00 [INF] Now listening on: http://localhost:5279
+2026-03-22 14:47:11.333 +03:00 [INF] Starting Hangfire Server using job storage: 'Hangfire.MemoryStorage.MemoryStorage'
+2026-03-22 14:47:11.335 +03:00 [INF] Using the following options for Hangfire Server:
+    Worker count: 20
+    Listening queues: 'default'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+2026-03-22 14:47:11.343 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-03-22 14:47:11.344 +03:00 [INF] Hosting environment: Development
+2026-03-22 14:47:11.344 +03:00 [INF] Content root path: C:\Users\enes yel\Desktop\Currere\Currere-backend
+2026-03-22 14:47:11.351 +03:00 [INF] Server desktop-rukajg8:14528:8865a4c1 successfully announced in 4,6316 ms
+2026-03-22 14:47:11.353 +03:00 [INF] Server desktop-rukajg8:14528:8865a4c1 is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, ExpirationManager, CountersAggregator, Worker, DelayedJobScheduler, RecurringJobScheduler...
+2026-03-22 14:47:11.358 +03:00 [INF] Server desktop-rukajg8:14528:8865a4c1 all the dispatchers started
+2026-03-22 14:47:11.857 +03:00 [INF] Server desktop-rukajg8:14528:8865a4c1 caught stopping signal...
+2026-03-22 14:47:11.859 +03:00 [INF] Application is shutting down...
+2026-03-22 14:47:11.860 +03:00 [INF] Server desktop-rukajg8:14528:8865a4c1 All dispatchers stopped
+2026-03-22 14:47:11.862 +03:00 [INF] Server desktop-rukajg8:14528:8865a4c1 successfully reported itself as stopped in 0,283 ms
+2026-03-22 14:47:11.862 +03:00 [INF] Server desktop-rukajg8:14528:8865a4c1 has been stopped in total 3,7244 ms
+2026-03-22 15:10:38.209 +03:00 [INF] Currere API aya?a kalk?yor...
+2026-03-22 15:10:38.549 +03:00 [INF] User profile is available. Using 'C:\Users\enes yel\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-03-22 15:10:38.562 +03:00 [INF] Execution Worker arka planda calismaya basladi.
+2026-03-22 15:10:38.562 +03:00 [INF] SystemMaintenanceWorker başlatıldı...
+2026-03-22 15:10:38.564 +03:00 [INF] Sistem temizliği başlatılıyor (Docker Prune, Files, DB)...
+2026-03-22 15:10:38.605 +03:00 [INF] Now listening on: http://localhost:5279
+2026-03-22 15:10:38.610 +03:00 [INF] Starting Hangfire Server using job storage: 'Hangfire.MemoryStorage.MemoryStorage'
+2026-03-22 15:10:38.612 +03:00 [INF] Using the following options for Hangfire Server:
+    Worker count: 20
+    Listening queues: 'default'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+2026-03-22 15:10:38.621 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-03-22 15:10:38.623 +03:00 [INF] Hosting environment: Development
+2026-03-22 15:10:38.624 +03:00 [INF] Content root path: C:\Users\enes yel\Desktop\Currere\Currere-backend
+2026-03-22 15:10:38.630 +03:00 [INF] Server desktop-rukajg8:26520:1097f0b5 successfully announced in 6,5664 ms
+2026-03-22 15:10:38.633 +03:00 [INF] Server desktop-rukajg8:26520:1097f0b5 is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, ExpirationManager, CountersAggregator, Worker, DelayedJobScheduler, RecurringJobScheduler...
+2026-03-22 15:10:38.639 +03:00 [INF] Server desktop-rukajg8:26520:1097f0b5 all the dispatchers started
+2026-03-22 15:10:38.764 +03:00 [INF] Docker System Prune başarıyla tamamlandı. Disk alanı açıldı.
+2026-03-22 15:10:39.457 +03:00 [ERR] Failed executing DbCommand (26ms) [Parameters=[@__thirtyDaysAgo_0='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT [e].[Id], [e].[ArtifactUrls], [e].[CodeContent], [e].[CodeHash], [e].[CreatedAt], [e].[DatasetReference], [e].[ExecutionDurationMs], [e].[IsSuccess], [e].[OutputMetrics]
+FROM [ExperimentLogs] AS [e]
+WHERE [e].[CreatedAt] < @__thirtyDaysAgo_0
+2026-03-22 15:10:39.476 +03:00 [ERR] An exception occurred while iterating over the results of a query for context type 'Currere_backend.Data.AppDbContext'.
+Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid column name 'ArtifactUrls'.
+   at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at Microsoft.Data.SqlClient.SqlDataReader.get_MetaData()
+   at Microsoft.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean isAsync, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReader(RelationalCommandParameterObject parameterObject)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.InitializeReader(Enumerator enumerator)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.<>c.<MoveNext>b__21_0(DbContext _, Enumerator enumerator)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.Execute[TState,TResult](TState state, Func`3 operation, Func`3 verifySucceeded)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.MoveNext()
+ClientConnectionId:33d33fa8-f2fb-49ea-9e50-c219b0ff56d6
+Error Number:207,State:1,Class:16
+Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid column name 'ArtifactUrls'.
+   at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at Microsoft.Data.SqlClient.SqlDataReader.get_MetaData()
+   at Microsoft.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean isAsync, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReader(RelationalCommandParameterObject parameterObject)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.InitializeReader(Enumerator enumerator)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.<>c.<MoveNext>b__21_0(DbContext _, Enumerator enumerator)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.Execute[TState,TResult](TState state, Func`3 operation, Func`3 verifySucceeded)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.MoveNext()
+ClientConnectionId:33d33fa8-f2fb-49ea-9e50-c219b0ff56d6
+Error Number:207,State:1,Class:16
+2026-03-22 15:10:39.483 +03:00 [ERR] Veritabanı arşivleme veya temizleme sırasında hata oluştu.
+Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid column name 'ArtifactUrls'.
+   at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at Microsoft.Data.SqlClient.SqlDataReader.get_MetaData()
+   at Microsoft.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean isAsync, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteDbDataReader(CommandBehavior behavior)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReader(RelationalCommandParameterObject parameterObject)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.InitializeReader(Enumerator enumerator)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.<>c.<MoveNext>b__21_0(DbContext _, Enumerator enumerator)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.Execute[TState,TResult](TState state, Func`3 operation, Func`3 verifySucceeded)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.Enumerator.MoveNext()
+   at System.Collections.Generic.List`1..ctor(IEnumerable`1 collection)
+   at System.Linq.Enumerable.ToList[TSource](IEnumerable`1 source)
+   at Currere_backend.Services.SystemMaintenanceWorker.PerformMaintenanceAsync(CancellationToken stoppingToken) in C:\Users\enes yel\Desktop\Currere\Currere-backend\Services\SystemMaintenanceWorker.cs:line 124
+ClientConnectionId:33d33fa8-f2fb-49ea-9e50-c219b0ff56d6
+Error Number:207,State:1,Class:16
+2026-03-22 15:10:39.497 +03:00 [INF] Bir sonraki temizlik için bekleniyor... Süre: 11,8 saat.
+2026-03-22 15:10:43.201 +03:00 [INF] Server desktop-rukajg8:26520:1097f0b5 caught stopping signal...
+2026-03-22 15:10:43.203 +03:00 [INF] Application is shutting down...
+2026-03-22 15:10:43.204 +03:00 [INF] Server desktop-rukajg8:26520:1097f0b5 All dispatchers stopped
+2026-03-22 15:10:43.205 +03:00 [INF] Server desktop-rukajg8:26520:1097f0b5 successfully reported itself as stopped in 0,294 ms
+2026-03-22 15:10:43.206 +03:00 [INF] Server desktop-rukajg8:26520:1097f0b5 has been stopped in total 3,2694 ms
+2026-03-22 15:11:50.126 +03:00 [INF] Currere API aya?a kalk?yor...
+2026-03-22 15:12:01.750 +03:00 [INF] Currere API aya?a kalk?yor...
+2026-03-22 15:12:14.859 +03:00 [INF] Currere API aya?a kalk?yor...
+2026-03-22 15:12:24.503 +03:00 [INF] Currere API aya?a kalk?yor...
+2026-03-22 15:12:24.831 +03:00 [INF] User profile is available. Using 'C:\Users\enes yel\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-03-22 15:12:24.844 +03:00 [INF] SystemMaintenanceWorker başlatıldı...
+2026-03-22 15:12:24.844 +03:00 [INF] Execution Worker arka planda calismaya basladi.
+2026-03-22 15:12:24.846 +03:00 [INF] Sistem temizliği başlatılıyor (Docker Prune, Files, DB)...
+2026-03-22 15:12:24.888 +03:00 [INF] Now listening on: http://localhost:5279
+2026-03-22 15:12:24.894 +03:00 [INF] Starting Hangfire Server using job storage: 'Hangfire.MemoryStorage.MemoryStorage'
+2026-03-22 15:12:24.895 +03:00 [INF] Using the following options for Hangfire Server:
+    Worker count: 20
+    Listening queues: 'default'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+2026-03-22 15:12:24.902 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-03-22 15:12:24.904 +03:00 [INF] Hosting environment: Development
+2026-03-22 15:12:24.904 +03:00 [INF] Content root path: C:\Users\enes yel\Desktop\Currere\Currere-backend
+2026-03-22 15:12:24.910 +03:00 [INF] Server desktop-rukajg8:17604:fcb6a04b successfully announced in 4,8725 ms
+2026-03-22 15:12:24.912 +03:00 [INF] Server desktop-rukajg8:17604:fcb6a04b is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, ExpirationManager, CountersAggregator, Worker, DelayedJobScheduler, RecurringJobScheduler...
+2026-03-22 15:12:24.917 +03:00 [INF] Server desktop-rukajg8:17604:fcb6a04b all the dispatchers started
+2026-03-22 15:12:25.009 +03:00 [INF] Docker System Prune başarıyla tamamlandı. Disk alanı açıldı.
+2026-03-22 15:12:25.688 +03:00 [INF] Executed DbCommand (19ms) [Parameters=[@__thirtyDaysAgo_0='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT [e].[Id], [e].[ArtifactUrls], [e].[CodeContent], [e].[CodeHash], [e].[CreatedAt], [e].[DatasetReference], [e].[ExecutionDurationMs], [e].[IsSuccess], [e].[OutputMetrics]
+FROM [ExperimentLogs] AS [e]
+WHERE [e].[CreatedAt] < @__thirtyDaysAgo_0
+2026-03-22 15:12:25.704 +03:00 [INF] Bir sonraki temizlik için bekleniyor... Süre: 11,8 saat.
+2026-03-22 15:15:24.249 +03:00 [INF] Currere API aya?a kalk?yor...
+2026-03-22 15:15:24.973 +03:00 [INF] User profile is available. Using 'C:\Users\enes yel\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-03-22 15:15:24.987 +03:00 [INF] SystemMaintenanceWorker başlatıldı...
+2026-03-22 15:15:24.987 +03:00 [INF] Execution Worker arka planda calismaya basladi.
+2026-03-22 15:15:24.989 +03:00 [INF] Sistem temizliği başlatılıyor (Docker Prune, Files, DB)...
+2026-03-22 15:15:25.034 +03:00 [INF] Now listening on: http://localhost:5279
+2026-03-22 15:15:25.039 +03:00 [INF] Starting Hangfire Server using job storage: 'Hangfire.MemoryStorage.MemoryStorage'
+2026-03-22 15:15:25.041 +03:00 [INF] Using the following options for Hangfire Server:
+    Worker count: 20
+    Listening queues: 'default'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+2026-03-22 15:15:25.049 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-03-22 15:15:25.050 +03:00 [INF] Hosting environment: Development
+2026-03-22 15:15:25.051 +03:00 [INF] Content root path: C:\Users\enes yel\Desktop\Currere\Currere-backend
+2026-03-22 15:15:25.058 +03:00 [INF] Server desktop-rukajg8:15432:b026d3ad successfully announced in 5,4984 ms
+2026-03-22 15:15:25.061 +03:00 [INF] Server desktop-rukajg8:15432:b026d3ad is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, ExpirationManager, CountersAggregator, Worker, DelayedJobScheduler, RecurringJobScheduler...
+2026-03-22 15:15:25.066 +03:00 [INF] Server desktop-rukajg8:15432:b026d3ad all the dispatchers started
+2026-03-22 15:15:25.151 +03:00 [INF] Docker System Prune başarıyla tamamlandı. Disk alanı açıldı.
+2026-03-22 15:15:25.900 +03:00 [INF] Executed DbCommand (25ms) [Parameters=[@__thirtyDaysAgo_0='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT [e].[Id], [e].[ArtifactUrls], [e].[CodeContent], [e].[CodeHash], [e].[CreatedAt], [e].[DatasetReference], [e].[ExecutionDurationMs], [e].[IsSuccess], [e].[OutputMetrics]
+FROM [ExperimentLogs] AS [e]
+WHERE [e].[CreatedAt] < @__thirtyDaysAgo_0
+2026-03-22 15:15:25.913 +03:00 [INF] Bir sonraki temizlik için bekleniyor... Süre: 11,7 saat.

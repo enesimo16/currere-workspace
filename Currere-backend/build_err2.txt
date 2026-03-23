@@ -1,0 +1,21 @@
+﻿  Geri y├╝klenecek projeler belirleniyor...
+  Geri y├╝kleme i├ğin t├╝m projeler g├╝ncel.
+C:\Users\enes yel\Desktop\Currere\Currere-backend\DTO's\dto.cs(110,23): warning CS8618: Null atanamaz ├Âzellik 'Code', olu┼şturucudan ├ğ─▒k─▒┼ş yaparken null olmayan bir de─şer i├ğermelidir. 'Gerekli' de─şi┼ştiricisini ekleyin veya ├Âzellik de─şerini null atanabilir olarak bildirmeyi g├Âz ├Ân├╝nde bulundurun. [C:\Users\enes yel\Desktop\Currere\Currere-backend\Currere-backend.csproj]
+C:\Users\enes yel\Desktop\Currere\Currere-backend\Services\DatasetProfilerService.cs(91,50): error CS1501: 'ExecutePythonCodeAsync' y├Ântemi i├ğin hi├ğbir tekrar y├╝kleme 2 ba─ş─▒ms─▒z de─şi┼şken almaz [C:\Users\enes yel\Desktop\Currere\Currere-backend\Currere-backend.csproj]
+C:\Users\enes yel\Desktop\Currere\Currere-backend\Controllers\AiController.cs(248,67): error CS1501: 'ExecutePythonCodeAsync' y├Ântemi i├ğin hi├ğbir tekrar y├╝kleme 2 ba─ş─▒ms─▒z de─şi┼şken almaz [C:\Users\enes yel\Desktop\Currere\Currere-backend\Currere-backend.csproj]
+C:\Users\enes yel\Desktop\Currere\Currere-backend\Services\SyntheticDataService.cs(72,63): error CS1501: 'ExecutePythonCodeAsync' y├Ântemi i├ğin hi├ğbir tekrar y├╝kleme 2 ba─ş─▒ms─▒z de─şi┼şken almaz [C:\Users\enes yel\Desktop\Currere\Currere-backend\Currere-backend.csproj]
+C:\Users\enes yel\Desktop\Currere\Currere-backend\Services\ExecutionWorker.cs(55,48): warning CS8600: Null sabit de─şeri veya olas─▒ null de─şeri, bo┼ş de─şer atanamaz t├╝re d├Ân├╝┼şt├╝r├╝l├╝yor. [C:\Users\enes yel\Desktop\Currere\Currere-backend\Currere-backend.csproj]
+C:\Users\enes yel\Desktop\Currere\Currere-backend\Services\ExecutionWorker.cs(58,45): warning CS8600: Null sabit de─şeri veya olas─▒ null de─şeri, bo┼ş de─şer atanamaz t├╝re d├Ân├╝┼şt├╝r├╝l├╝yor. [C:\Users\enes yel\Desktop\Currere\Currere-backend\Currere-backend.csproj]
+
+Olu┼şturma BA┼ŞARISIZ OLDU.
+
+C:\Users\enes yel\Desktop\Currere\Currere-backend\DTO's\dto.cs(110,23): warning CS8618: Null atanamaz ├Âzellik 'Code', olu┼şturucudan ├ğ─▒k─▒┼ş yaparken null olmayan bir de─şer i├ğermelidir. 'Gerekli' de─şi┼ştiricisini ekleyin veya ├Âzellik de─şerini null atanabilir olarak bildirmeyi g├Âz ├Ân├╝nde bulundurun. [C:\Users\enes yel\Desktop\Currere\Currere-backend\Currere-backend.csproj]
+C:\Users\enes yel\Desktop\Currere\Currere-backend\Services\ExecutionWorker.cs(55,48): warning CS8600: Null sabit de─şeri veya olas─▒ null de─şeri, bo┼ş de─şer atanamaz t├╝re d├Ân├╝┼şt├╝r├╝l├╝yor. [C:\Users\enes yel\Desktop\Currere\Currere-backend\Currere-backend.csproj]
+C:\Users\enes yel\Desktop\Currere\Currere-backend\Services\ExecutionWorker.cs(58,45): warning CS8600: Null sabit de─şeri veya olas─▒ null de─şeri, bo┼ş de─şer atanamaz t├╝re d├Ân├╝┼şt├╝r├╝l├╝yor. [C:\Users\enes yel\Desktop\Currere\Currere-backend\Currere-backend.csproj]
+C:\Users\enes yel\Desktop\Currere\Currere-backend\Services\DatasetProfilerService.cs(91,50): error CS1501: 'ExecutePythonCodeAsync' y├Ântemi i├ğin hi├ğbir tekrar y├╝kleme 2 ba─ş─▒ms─▒z de─şi┼şken almaz [C:\Users\enes yel\Desktop\Currere\Currere-backend\Currere-backend.csproj]
+C:\Users\enes yel\Desktop\Currere\Currere-backend\Controllers\AiController.cs(248,67): error CS1501: 'ExecutePythonCodeAsync' y├Ântemi i├ğin hi├ğbir tekrar y├╝kleme 2 ba─ş─▒ms─▒z de─şi┼şken almaz [C:\Users\enes yel\Desktop\Currere\Currere-backend\Currere-backend.csproj]
+C:\Users\enes yel\Desktop\Currere\Currere-backend\Services\SyntheticDataService.cs(72,63): error CS1501: 'ExecutePythonCodeAsync' y├Ântemi i├ğin hi├ğbir tekrar y├╝kleme 2 ba─ş─▒ms─▒z de─şi┼şken almaz [C:\Users\enes yel\Desktop\Currere\Currere-backend\Currere-backend.csproj]
+    3 Uyar─▒
+    3 Hata
+
+Ge├ğen S├╝re 00:00:01.56

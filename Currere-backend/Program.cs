@@ -1,4 +1,4 @@
-using Currere_backend.Data;
+ï»¿using Currere_backend.Data;
 using Currere_backend.Hubs;
 using Currere_backend.Middlewares;
 using Currere_backend.Services;
@@ -14,19 +14,20 @@ using Serilog;
 using System.Text;
 using System.Threading.RateLimiting;
 
+Console.OutputEncoding = Encoding.UTF8;
 // serilog
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .WriteTo.Console()
-    .WriteTo.File("logs/currere-log-.txt", rollingInterval: RollingInterval.Day) // Her gün yeni txt
+    .WriteTo.File("logs/currere-log-.txt", rollingInterval: RollingInterval.Day) // Her g?n yeni txt
     .CreateLogger();
 
 try
 {
-    Log.Information("Currere API ayaða kalkýyor...");
+    Log.Information("Currere API aya?a kalk?yor...");
     var builder = WebApplication.CreateBuilder(args);
 
-    // varsayýlan log
+    // varsay?lan log
     builder.Host.UseSerilog();
 
     // Db
@@ -36,7 +37,11 @@ try
     // DI's
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<IWorkspaceService, WorkspaceService>();
-    builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
+    builder.Services.AddSingleton<IExecutionQueueService, ExecutionQueueService>();
+builder.Services.AddHostedService<ExecutionWorker>();
+builder.Services.AddHostedService<SystemMaintenanceWorker>();
+builder.Services.AddScoped<ICodePreProcessorService, CodePreProcessorService>();
+builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
     builder.Services.AddScoped<IFileService, FileService>();
     builder.Services.AddScoped<IDatasetProfilerService, DatasetProfilerService>(); // dataset okuyarak baglam kurma, cikarim yapma
     builder.Services.AddValidatorsFromAssemblyContaining<Program>(); // validatr
@@ -56,7 +61,7 @@ try
     // RAate limiting
     builder.Services.AddRateLimiter(options =>
     {
-        // ip tabanlý rate limiting dakkada 60 istek
+        // ip tabanl? rate limiting dakkada 60 istek
         options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
                 partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -68,7 +73,7 @@ try
                     Window = TimeSpan.FromMinutes(1)
                 }));
 
-        // Sadece AI Endpointleri için çok katý limit , dakikada 5 istek
+        // Sadece AI Endpointleri i?in ?ok kat? limit , dakikada 5 istek
         options.AddFixedWindowLimiter("AiStrictLimit", opt =>
         {
             opt.PermitLimit = 5;
@@ -76,7 +81,7 @@ try
             opt.QueueLimit = 0;
         });
 
-        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests; // aþýlýrsa -> 429
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests; // a??l?rsa -> 429
     });
 
     // Swagger JWT
@@ -85,7 +90,7 @@ try
     {
         options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
-            Description = "JWT Token'ýnýzý buraya yapýþtýrýn. Örnek: Bearer {token}",
+            Description = "JWT Token'?n?z? buraya yap??t?r?n. ?rnek: Bearer {token}",
             Name = "Authorization",
             In = ParameterLocation.Header,
             Type = SecuritySchemeType.Http,
@@ -112,7 +117,7 @@ try
         options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
     });
 
-    // JWT Doðrulama
+    // JWT Do?rulama
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
@@ -135,8 +140,8 @@ try
 
     var app = builder.Build();
 
-    // hangfire ile expire süresi dlanlarý sil
-    // kapsam hatasý olustu scope kapsamýna ekledim
+    // hangfire ile expire s?resi dlanlar? sil
+    // kapsam hatas? olustu scope kapsam?na ekledim
     using (var scope = app.Services.CreateScope())
     {
         var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
@@ -171,8 +176,8 @@ try
 }
 catch (Exception ex) when (ex.GetType().Name is not "HostAbortedException" and not "StopTheHostException")
 {
-    // çökerse
-    Log.Fatal(ex, "API baþlatýlamadý, kritik bir çökme yaþandý!");
+    // ??kerse
+    Log.Fatal(ex, "API ba?lat?lamad?, kritik bir ??kme ya?and?!");
 }
 finally
 {

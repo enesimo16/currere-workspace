@@ -1,4 +1,5 @@
 ﻿using Currere_backend.DTOs;
+using Currere_backend.Models;
 using Currere_backend.Services;
 using FluentValidation; 
 using Microsoft.AspNetCore.Authorization;
@@ -13,13 +14,16 @@ namespace Currere_backend.Controllers
     {
         private readonly ICodeExecutionService _executionService;
         private readonly IDatasetProfilerService _profilerService;
+        private readonly IExecutionQueueService _queueService;
 
         public ExecutionController(
             ICodeExecutionService executionService,
-            IDatasetProfilerService profilerService)
+            IDatasetProfilerService profilerService,
+            IExecutionQueueService queueService)
         {
             _executionService = executionService;
             _profilerService = profilerService;
+            _queueService = queueService;
         }
 
         [HttpPost("{workspaceId}/run")]
@@ -36,16 +40,36 @@ namespace Currere_backend.Controllers
                 return BadRequest(validationResult.Errors);
             }
 
-            // workspaceId servise e gitti
-            var result = await _executionService.ExecutePythonCodeAsync(workspaceId, request.Code);
-
-            // Eğer hata varsa 400 fakat format => ExecutionResultDto
-            if (!result.IsSuccess)
+            // Asenkron iş kuyruğuna atama işlemi
+            var job = new ExecutionJob
             {
-                return BadRequest(result);
+                WorkspaceId = workspaceId,
+                Code = request.Code,
+                DatasetFileName = request.DatasetFileName
+            };
+
+            await _queueService.EnqueueJobAsync(job);
+
+            return Accepted(new { jobId = job.JobId, status = job.Status });
+        }
+
+        [AllowAnonymous] // Varsa yetki ayarlarına göre değişir, şimdilik böyle. Global [Authorize] varsa bunu korur.
+        [HttpGet("status/{jobId}")]
+        public IActionResult GetJobStatus(string jobId)
+        {
+            var job = _queueService.GetJobStatus(jobId);
+            if (job == null) return NotFound(new { error = "Sistem Hatası: Belirtilen JobId bulunamadı." });
+
+            if (job.Status == "Processing") 
+                return Ok(new { jobId = job.JobId, status = job.Status });
+
+            if (job.Status == "Failed")
+            {
+                // Result null ise internal failed olmuştur
+                return BadRequest(job.Result ?? new ExecutionResultDto { IsSuccess = false, Error = "Kuyruk hatası." });
             }
 
-            return Ok(result);
+            return Ok(job.Result);
         }
 
         [HttpGet("{workspaceId}/profile/{fileName}")]

@@ -16,6 +16,7 @@ namespace Currere_backend.Data
         public DbSet<WorkspaceFile> WorkspaceFiles { get; set; }
         public DbSet<WorkspaceSnapshot> WorkspaceSnapshots { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<ExperimentLog> ExperimentLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

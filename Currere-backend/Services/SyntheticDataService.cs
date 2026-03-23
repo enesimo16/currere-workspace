@@ -69,7 +69,7 @@ namespace Currere_backend.Services
             var cleanCode = aiResponse.Replace("```python", "").Replace("```", "").Trim();
 
             // sandbox'ta calıstırıyoruz
-            var executionResult = await _codeExecutionService.ExecutePythonCodeAsync(workspaceId, cleanCode);
+            var executionResult = await _codeExecutionService.ExecutePythonCodeAsync(new ExecutionJob { WorkspaceId = workspaceId, Code = cleanCode });
 
             if (!executionResult.IsSuccess)
                 throw new Exception($"Yapay zeka veriyi üretirken bir hata oluştu: {executionResult.Error}");

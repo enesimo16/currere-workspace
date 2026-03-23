@@ -1,0 +1,28 @@
+{
+  "dependencies": {
+    "@microsoft/signalr": "^10.0.0",
+    "axios": "^1.13.6"
+  },
+  "contributes": {
+    "configuration": {
+      "title": "Currere",
+      "properties": {
+        "currere.apiUrl": {
+          "type": "string",
+          "default": "https://localhost:5001",
+          "description": "Currere Backend URL (Örn: https://localhost:5001)"
+        },
+        "currere.jwtToken": {
+          "type": "string",
+          "default": "",
+          "description": "Kullanıcının JWT Yetki Token'ı"
+        },
+        "currere.workspaceId": {
+          "type": "number",
+          "default": 1,
+          "description": "Dinlenecek Çalışma Alanı (Workspace) ID'si"
+        }
+      }
+    }
+  }
+}
