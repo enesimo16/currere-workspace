@@ -26,7 +26,7 @@ namespace Currere_backend.Services
 
             if (await _context.Users.AnyAsync(u => u.Email == cleanEmail))
             {
-                throw new Exception("Bu email adresi zaten kullanýmda.");
+                throw new Exception("Bu email adresi zaten kullanÄ±mda.");
             }
 
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
@@ -35,7 +35,7 @@ namespace Currere_backend.Services
 
             if (cleanEmail.EndsWith(".edu.tr") || cleanEmail.EndsWith(".edu"))
             {
-                assignedRole = UserRole.Student; // edu olanlarý student
+                assignedRole = UserRole.Student; // edu olanlarÄ± student
             }
 
             var user = new User
@@ -50,7 +50,21 @@ namespace Currere_backend.Services
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return "Kayýt baþarýlý!";
+            // Auto-Init Default Workspace
+            var defaultWorkspace = new Workspace
+            {
+                UserId = user.Id,
+                Title = "Default Workspace",
+                Format = WorkspaceFormat.Python,
+                Runtime = RuntimeType.CPU,
+                CurrentState = "",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            _context.Workspaces.Add(defaultWorkspace);
+            await _context.SaveChangesAsync();
+
+            return "KayÄ±t baÅŸarÄ±lÄ±!";
         }
 
         public async Task<string> LoginAsync(LoginDto request)
@@ -61,12 +75,12 @@ namespace Currere_backend.Services
 
             if (user == null)
             {
-                throw new Exception("Kullanýcý bulunamadý.");
+                throw new Exception("KullanÄ±cÄ± bulunamadÄ±.");
             }
 
             if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
-                throw new Exception("Hatalý þifre.");
+                throw new Exception("HatalÄ± ÅŸifre.");
             }
 
             return CreateToken(user);
@@ -106,21 +120,21 @@ namespace Currere_backend.Services
             if (user == null) return false;
 
             if (user.Role == UserRole.Student)
-                throw new Exception("Hesabýnýz zaten Öðrenci (Student) statüsündedir.");
+                throw new Exception("HesabÄ±nÄ±z zaten Ã–ÄŸrenci (Student) statÃ¼sÃ¼ndedir.");
 
             string emailLower = studentEmail.Trim().ToLower();
             if (!(emailLower.EndsWith(".edu.tr") || emailLower.EndsWith(".edu")))
             {
-                throw new Exception("Geçerli bir akademik e-posta adresi girmelisiniz (.edu veya .edu.tr).");
+                throw new Exception("GeÃ§erli bir akademik e-posta adresi girmelisiniz (.edu veya .edu.tr).");
             }
 
             var isEmailTaken = await _context.Users.AnyAsync(u => u.StudentEmail == studentEmail || u.Email == studentEmail);
             if (isEmailTaken)
-                throw new Exception("Bu öðrenci e-postasý zaten baþka bir hesapta kullanýlýyor.");
+                throw new Exception("Bu Ã¶ÄŸrenci e-postasÄ± zaten baÅŸka bir hesapta kullanÄ±lÄ±yor.");
 
-            // Hesabý yükselt!
+            // HesabÄ± yÃ¼kselt!
             user.StudentEmail = studentEmail;
-            user.IsStudentEmailVerified = true; // otp/mail dogrulamasý koyulacak
+            user.IsStudentEmailVerified = true; // otp/mail dogrulamasÄ± koyulacak
             user.Role = UserRole.Student;
 
             await _context.SaveChangesAsync();

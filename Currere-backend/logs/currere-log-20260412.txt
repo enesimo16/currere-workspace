@@ -1,0 +1,132 @@
+2026-04-12 23:22:56.937 +03:00 [INF] Currere API aya?a kalk?yor...
+2026-04-12 23:23:02.723 +03:00 [INF] Currere API aya?a kalk?yor...
+2026-04-12 23:23:24.069 +03:00 [INF] Currere API aya?a kalk?yor...
+2026-04-12 23:23:47.501 +03:00 [INF] Currere API aya?a kalk?yor...
+2026-04-12 23:24:38.872 +03:00 [INF] Currere API aya?a kalk?yor...
+2026-04-12 23:47:51.517 +03:00 [INF] Currere API aya?a kalk?yor...
+2026-04-12 23:47:52.731 +03:00 [INF] User profile is available. Using 'C:\Users\enes yel\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-04-12 23:47:52.747 +03:00 [INF] SystemMaintenanceWorker başlatıldı...
+2026-04-12 23:47:52.747 +03:00 [INF] Execution Worker arka planda calismaya basladi.
+2026-04-12 23:47:52.748 +03:00 [INF] Sistem temizliği başlatılıyor (Docker Prune, Files, DB)...
+2026-04-12 23:47:52.927 +03:00 [INF] Creating key {87498634-9934-47c9-964f-e0140fc543cd} with creation date 2026-04-12 20:47:52Z, activation date 2026-04-14 09:16:17Z, and expiration date 2026-07-11 20:47:52Z.
+2026-04-12 23:47:52.941 +03:00 [INF] Writing data to file 'C:\Users\enes yel\AppData\Local\ASP.NET\DataProtection-Keys\key-87498634-9934-47c9-964f-e0140fc543cd.xml'.
+2026-04-12 23:47:53.023 +03:00 [INF] Now listening on: http://localhost:5279
+2026-04-12 23:47:53.029 +03:00 [INF] Starting Hangfire Server using job storage: 'Hangfire.MemoryStorage.MemoryStorage'
+2026-04-12 23:47:53.031 +03:00 [INF] Using the following options for Hangfire Server:
+    Worker count: 20
+    Listening queues: 'default'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+2026-04-12 23:47:53.048 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-04-12 23:47:53.049 +03:00 [INF] Hosting environment: Development
+2026-04-12 23:47:53.050 +03:00 [INF] Content root path: C:\Users\enes yel\Desktop\Currere\Currere-backend
+2026-04-12 23:47:53.053 +03:00 [INF] Server desktop-rukajg8:8984:da5b2480 successfully announced in 6,2338 ms
+2026-04-12 23:47:53.056 +03:00 [INF] Server desktop-rukajg8:8984:da5b2480 is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, ExpirationManager, CountersAggregator, Worker, DelayedJobScheduler, RecurringJobScheduler...
+2026-04-12 23:47:53.062 +03:00 [INF] Server desktop-rukajg8:8984:da5b2480 all the dispatchers started
+2026-04-12 23:47:53.098 +03:00 [INF] Docker System Prune başarıyla tamamlandı. Disk alanı açıldı.
+2026-04-12 23:47:53.971 +03:00 [INF] Executed DbCommand (29ms) [Parameters=[@__thirtyDaysAgo_0='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT [e].[Id], [e].[ArtifactUrls], [e].[CodeContent], [e].[CodeHash], [e].[CreatedAt], [e].[DatasetReference], [e].[ExecutionDurationMs], [e].[IsSuccess], [e].[OutputMetrics], [e].[WorkspaceId]
+FROM [ExperimentLogs] AS [e]
+WHERE [e].[CreatedAt] < @__thirtyDaysAgo_0
+2026-04-12 23:47:53.983 +03:00 [INF] Bir sonraki temizlik için bekleniyor... Süre: 3,2 saat.
+2026-04-12 23:50:08.216 +03:00 [INF] Executed DbCommand (12ms) [Parameters=[@__now_0='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[DomainContext], [w].[ExpiresAt], [w].[FileName], [w].[FilePath], [w].[ProfileJson], [w].[UploadedAt], [w].[WorkspaceId]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[ExpiresAt] <= @__now_0
+2026-04-12 23:50:08.332 +03:00 [INF] Executed DbCommand (5ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SET NOCOUNT ON;
+DELETE FROM [WorkspaceFiles]
+OUTPUT 1
+WHERE [Id] = @p0;
+DELETE FROM [WorkspaceFiles]
+OUTPUT 1
+WHERE [Id] = @p1;
+2026-04-12 23:52:00.214 +03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5279/api/auth/register - application/json 104
+2026-04-12 23:52:00.252 +03:00 [WRN] Failed to determine the https port for redirect.
+2026-04-12 23:52:00.282 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.AuthController.Register (Currere-backend)'
+2026-04-12 23:52:00.293 +03:00 [INF] Route matched with {action = "Register", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Register(Currere_backend.DTOs.RegisterDto) on controller Currere_backend.Controllers.AuthController (Currere-backend).
+2026-04-12 23:52:00.426 +03:00 [INF] Executed DbCommand (7ms) [Parameters=[@__cleanEmail_0='?' (Size = 4000)], CommandType='"Text"', CommandTimeout='30']
+SELECT CASE
+    WHEN EXISTS (
+        SELECT 1
+        FROM [Users] AS [u]
+        WHERE [u].[Email] = @__cleanEmail_0) THEN CAST(1 AS bit)
+    ELSE CAST(0 AS bit)
+END
+2026-04-12 23:52:00.726 +03:00 [INF] Executed DbCommand (6ms) [Parameters=[@p0='?' (DbType = DateTime2), @p1='?' (Size = 4000), @p2='?' (Size = 4000), @p3='?' (DbType = Boolean), @p4='?' (Size = 4000), @p5='?' (Size = 4000), @p6='?' (DbType = Int32), @p7='?' (Size = 4000)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [Users] ([CreatedAt], [Email], [FirstName], [IsStudentEmailVerified], [LastName], [PasswordHash], [Role], [StudentEmail])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7);
+2026-04-12 23:52:00.766 +03:00 [INF] Executed DbCommand (4ms) [Parameters=[@p0='?' (DbType = DateTime2), @p1='?' (Size = 4000), @p2='?' (DbType = Int32), @p3='?' (DbType = Int32), @p4='?' (Size = 4000), @p5='?' (DbType = DateTime2), @p6='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [Workspaces] ([CreatedAt], [CurrentState], [Format], [Runtime], [Title], [UpdatedAt], [UserId])
+OUTPUT INSERTED.[Id]
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
+2026-04-12 23:52:00.774 +03:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType7`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-12 23:52:00.793 +03:00 [INF] Executed action Currere_backend.Controllers.AuthController.Register (Currere-backend) in 496.1282ms
+2026-04-12 23:52:00.794 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.AuthController.Register (Currere-backend)'
+2026-04-12 23:52:00.796 +03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5279/api/auth/register - 200 null application/json; charset=utf-8 582.4531ms
+2026-04-12 23:52:00.799 +03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5279/api/auth/login - application/json 63
+2026-04-12 23:52:00.803 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.AuthController.Login (Currere-backend)'
+2026-04-12 23:52:00.806 +03:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(Currere_backend.DTOs.LoginDto) on controller Currere_backend.Controllers.AuthController (Currere-backend).
+2026-04-12 23:52:00.819 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__cleanEmail_0='?' (Size = 4000)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[CreatedAt], [u].[Email], [u].[FirstName], [u].[IsStudentEmailVerified], [u].[LastName], [u].[PasswordHash], [u].[Role], [u].[StudentEmail]
+FROM [Users] AS [u]
+WHERE [u].[Email] = @__cleanEmail_0
+2026-04-12 23:52:01.085 +03:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType8`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-12 23:52:01.087 +03:00 [INF] Executed action Currere_backend.Controllers.AuthController.Login (Currere-backend) in 279.876ms
+2026-04-12 23:52:01.088 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.AuthController.Login (Currere-backend)'
+2026-04-12 23:52:01.089 +03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5279/api/auth/login - 200 null application/json; charset=utf-8 289.7817ms
+2026-04-12 23:52:01.091 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace - application/json null
+2026-04-12 23:52:01.121 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.WorkspaceController.GetMyWorkspaces (Currere-backend)'
+2026-04-12 23:52:01.124 +03:00 [INF] Route matched with {action = "GetMyWorkspaces", controller = "Workspace"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetMyWorkspaces() on controller Currere_backend.Controllers.WorkspaceController (Currere-backend).
+2026-04-12 23:52:01.143 +03:00 [INF] Executed DbCommand (4ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[UserId] = @__userId_0
+ORDER BY [w].[UpdatedAt] DESC
+2026-04-12 23:52:01.146 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceResponseDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-12 23:52:01.155 +03:00 [INF] Executed action Currere_backend.Controllers.WorkspaceController.GetMyWorkspaces (Currere-backend) in 28.6994ms
+2026-04-12 23:52:01.155 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.WorkspaceController.GetMyWorkspaces (Currere-backend)'
+2026-04-12 23:52:01.156 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace - 200 null application/json; charset=utf-8 65.24ms
+2026-04-12 23:52:01.158 +03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5279/api/execution/3/run - application/json 65
+2026-04-12 23:52:01.161 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.ExecutionController.RunCode (Currere-backend)'
+2026-04-12 23:52:01.164 +03:00 [INF] Route matched with {action = "RunCode", controller = "Execution"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] RunCode(Int32, Currere_backend.DTOs.ExecuteCodeDto, FluentValidation.IValidator`1[Currere_backend.DTOs.ExecuteCodeDto]) on controller Currere_backend.Controllers.ExecutionController (Currere-backend).
+2026-04-12 23:52:01.193 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-12 23:52:01.196 +03:00 [INF] Executing AcceptedResult, writing value of type '<>f__AnonymousType9`2[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-12 23:52:01.198 +03:00 [INF] Executed action Currere_backend.Controllers.ExecutionController.RunCode (Currere-backend) in 32.5863ms
+2026-04-12 23:52:01.199 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.ExecutionController.RunCode (Currere-backend)'
+2026-04-12 23:52:01.200 +03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5279/api/execution/3/run - 202 null application/json; charset=utf-8 41.3868ms
+2026-04-12 23:52:01.203 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/execution/status/ab730009-e865-4739-86e3-63083ab3ac71 - application/json null
+2026-04-12 23:52:01.206 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.ExecutionController.GetJobStatus (Currere-backend)'
+2026-04-12 23:52:01.209 +03:00 [INF] Route matched with {action = "GetJobStatus", controller = "Execution"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobStatus(System.String) on controller Currere_backend.Controllers.ExecutionController (Currere-backend).
+2026-04-12 23:52:01.219 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-12 23:52:01.220 +03:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType9`2[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-12 23:52:01.221 +03:00 [INF] Executed action Currere_backend.Controllers.ExecutionController.GetJobStatus (Currere-backend) in 11.0014ms
+2026-04-12 23:52:01.222 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.ExecutionController.GetJobStatus (Currere-backend)'
+2026-04-12 23:52:01.223 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/execution/status/ab730009-e865-4739-86e3-63083ab3ac71 - 200 null application/json; charset=utf-8 20.8557ms
+2026-04-12 23:52:01.298 +03:00 [INF] Executed DbCommand (4ms) [Parameters=[@p0='?' (DbType = Guid), @p1='?' (Size = 4000), @p2='?' (Size = 4000), @p3='?' (Size = 4000), @p4='?' (DbType = DateTime2), @p5='?' (Size = 4000), @p6='?' (DbType = Int64), @p7='?' (DbType = Boolean), @p8='?' (Size = 4000), @p9='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [ExperimentLogs] ([Id], [ArtifactUrls], [CodeContent], [CodeHash], [CreatedAt], [DatasetReference], [ExecutionDurationMs], [IsSuccess], [OutputMetrics], [WorkspaceId])
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9);
+2026-04-12 23:52:03.226 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/execution/status/ab730009-e865-4739-86e3-63083ab3ac71 - application/json null
+2026-04-12 23:52:03.230 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.ExecutionController.GetJobStatus (Currere-backend)'
+2026-04-12 23:52:03.231 +03:00 [INF] Route matched with {action = "GetJobStatus", controller = "Execution"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetJobStatus(System.String) on controller Currere_backend.Controllers.ExecutionController (Currere-backend).
+2026-04-12 23:52:03.234 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-12 23:52:03.236 +03:00 [INF] Executing BadRequestObjectResult, writing value of type 'Currere_backend.DTOs.ExecutionResultDto'.
+2026-04-12 23:52:03.242 +03:00 [INF] Executed action Currere_backend.Controllers.ExecutionController.GetJobStatus (Currere-backend) in 10.6754ms
+2026-04-12 23:52:03.243 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.ExecutionController.GetJobStatus (Currere-backend)'
+2026-04-12 23:52:03.244 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/execution/status/ab730009-e865-4739-86e3-63083ab3ac71 - 400 null application/json; charset=utf-8 17.702ms

@@ -1,17 +1,21 @@
-﻿using Currere_backend.Data;
+using Currere_backend.Data;
 using Currere_backend.DTOs;
 using Currere_backend.Models;
+using Currere_backend.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Hosting; // added for environment
 
 namespace Currere_backend.Services
 {
     public class WorkspaceService : IWorkspaceService
     {
         private readonly AppDbContext _context;
+        private readonly IWebHostEnvironment _env;
 
-        public WorkspaceService(AppDbContext context)
+        public WorkspaceService(AppDbContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
 
         public async Task<WorkspaceResponseDto> CreateWorkspaceAsync(int userId, CreateWorkspaceDto dto)
@@ -79,6 +83,23 @@ namespace Currere_backend.Services
 
             _context.Workspaces.Remove(workspace);
             await _context.SaveChangesAsync();
+
+            // Fiziksel dosyaları temizleyerek zombi dosyaların oluşumunu önle
+            try
+            {
+                var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                var workspaceFolderPath = Path.Combine(webRootPath, "workspaces", workspaceId.ToString());
+                
+                if (Directory.Exists(workspaceFolderPath))
+                {
+                    Directory.Delete(workspaceFolderPath, true);
+                }
+            }
+            catch (Exception)
+            {
+                // Silinme hatası database state'i bozmamalı. 
+            }
+
             return true;
         }
 

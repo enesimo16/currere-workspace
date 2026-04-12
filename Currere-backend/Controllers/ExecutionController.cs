@@ -1,9 +1,10 @@
-﻿using Currere_backend.DTOs;
+using Currere_backend.DTOs;
 using Currere_backend.Models;
 using Currere_backend.Services;
 using FluentValidation; 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Currere_backend.Controllers
 {
@@ -15,15 +16,18 @@ namespace Currere_backend.Controllers
         private readonly ICodeExecutionService _executionService;
         private readonly IDatasetProfilerService _profilerService;
         private readonly IExecutionQueueService _queueService;
+        private readonly IWorkspaceService _workspaceService;
 
         public ExecutionController(
             ICodeExecutionService executionService,
             IDatasetProfilerService profilerService,
-            IExecutionQueueService queueService)
+            IExecutionQueueService queueService,
+            IWorkspaceService workspaceService)
         {
             _executionService = executionService;
             _profilerService = profilerService;
             _queueService = queueService;
+            _workspaceService = workspaceService;
         }
 
         [HttpPost("{workspaceId}/run")]
@@ -40,6 +44,13 @@ namespace Currere_backend.Controllers
                 return BadRequest(validationResult.Errors);
             }
 
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var workspace = await _workspaceService.GetWorkspaceByIdAsync(workspaceId, userId);
+            if (workspace == null)
+            {
+                return NotFound(new { error = "Çalışma alanı bulunamadı veya erişim yetkiniz yok." });
+            }
+
             // Asenkron iş kuyruğuna atama işlemi
             var job = new ExecutionJob
             {
@@ -53,12 +64,16 @@ namespace Currere_backend.Controllers
             return Accepted(new { jobId = job.JobId, status = job.Status });
         }
 
-        [AllowAnonymous] // Varsa yetki ayarlarına göre değişir, şimdilik böyle. Global [Authorize] varsa bunu korur.
         [HttpGet("status/{jobId}")]
-        public IActionResult GetJobStatus(string jobId)
+        public async Task<IActionResult> GetJobStatus(string jobId)
         {
             var job = _queueService.GetJobStatus(jobId);
             if (job == null) return NotFound(new { error = "Sistem Hatası: Belirtilen JobId bulunamadı." });
+
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var workspace = await _workspaceService.GetWorkspaceByIdAsync(job.WorkspaceId, userId);
+            if (workspace == null)
+                return NotFound(new { error = "Çalışma alanı bulunamadı veya erişim yetkiniz yok." });
 
             if (job.Status == "Processing") 
                 return Ok(new { jobId = job.JobId, status = job.Status });
@@ -77,6 +92,11 @@ namespace Currere_backend.Controllers
         {
             try
             {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var workspace = await _workspaceService.GetWorkspaceByIdAsync(workspaceId, userId);
+                if (workspace == null)
+                    return NotFound(new { error = "Çalışma alanı bulunamadı veya erişim yetkiniz yok." });
+
                 var jsonResult = await _profilerService.ProfileDatasetAsync(workspaceId, fileName);
 
                 // Gelen string zaten JSON formatında olduğu için doğrudan Content olarak dönüyoruz

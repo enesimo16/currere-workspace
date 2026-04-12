@@ -1,9 +1,10 @@
-﻿using Currere_backend.Data;
+using Currere_backend.Data;
 using Currere_backend.DTOs;
 using Currere_backend.Services;
 using Currere_backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,9 +31,19 @@ namespace Currere_backend.Controllers
             _executionService = executionService;
         }
 
+        private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        private async Task<bool> IsWorkspaceOwnerAsync(int workspaceId)
+        {
+            var userId = GetUserId();
+            return await _context.Workspaces.AnyAsync(w => w.Id == workspaceId && w.UserId == userId);
+        }
+
         [HttpPost("generate-code")]
         public async Task<IActionResult> GenerateCode(int workspaceId, [FromBody] GenerateCodeRequestDto request)
         {
+            if (!await IsWorkspaceOwnerAsync(workspaceId)) return NotFound(new { error = "Çalışma alanı bulunamadı veya erişim yetkiniz yok." });
+
             var file = await _context.WorkspaceFiles
                 .FirstOrDefaultAsync(f => f.Id == request.FileId && f.WorkspaceId == workspaceId);
 
@@ -77,6 +88,8 @@ namespace Currere_backend.Controllers
         [HttpPost("auto-preprocess")]
         public async Task<IActionResult> AutoPreprocess(int workspaceId, [FromBody] GenerateCodeRequestDto request)
         {
+            if (!await IsWorkspaceOwnerAsync(workspaceId)) return NotFound(new { error = "Çalışma alanı bulunamadı veya erişim yetkiniz yok." });
+
             // dosya ve profil kontrolü
             var file = await _context.WorkspaceFiles
                 .FirstOrDefaultAsync(f => f.Id == request.FileId && f.WorkspaceId == workspaceId);
@@ -117,6 +130,8 @@ Asla açıklama, selamlama veya yorum yapma, sadece çalıştırılabilir kod ya
         [HttpPost("smart-chat")] // tek adres
         public async Task<IActionResult> SmartChat(int workspaceId, [FromBody] GenerateCodeRequestDto request)
         {
+            if (!await IsWorkspaceOwnerAsync(workspaceId)) return NotFound(new { error = "Çalışma alanı bulunamadı veya erişim yetkiniz yok." });
+
             var file = await _context.WorkspaceFiles
                 .FirstOrDefaultAsync(f => f.Id == request.FileId && f.WorkspaceId == workspaceId);
 
@@ -153,6 +168,8 @@ Asla açıklama, selamlama veya yorum yapma, sadece çalıştırılabilir kod ya
         [HttpPost("extract-context")]
         public async Task<IActionResult> ExtractHiddenContext(int workspaceId, [FromBody] GenerateCodeRequestDto request)
         {
+            if (!await IsWorkspaceOwnerAsync(workspaceId)) return NotFound(new { error = "Çalışma alanı bulunamadı veya erişim yetkiniz yok." });
+
             var file = await _context.WorkspaceFiles
                 .FirstOrDefaultAsync(f => f.Id == request.FileId && f.WorkspaceId == workspaceId);
 
@@ -203,6 +220,8 @@ Raporun okunaklı, profesyonel ve analitik olmalıdır.";
         [HttpPost("convert-ipynb-to-py")]
         public async Task<IActionResult> ConvertIpynbToPy(int workspaceId, [FromBody] GenerateCodeRequestDto request)
         {
+            if (!await IsWorkspaceOwnerAsync(workspaceId)) return NotFound(new { error = "Çalışma alanı bulunamadı veya erişim yetkiniz yok." });
+
             var file = await _context.WorkspaceFiles
                 .FirstOrDefaultAsync(f => f.Id == request.FileId && f.WorkspaceId == workspaceId);
 

@@ -13,5 +13,9 @@ namespace Currere_backend.Models
         public string? ArtifactUrls { get; set; }
         public bool IsSuccess { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // Foreign Key
+        public int WorkspaceId { get; set; }
+        public Workspace Workspace { get; set; } = null!;
     }
 }

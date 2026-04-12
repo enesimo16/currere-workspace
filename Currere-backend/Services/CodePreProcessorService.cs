@@ -35,31 +35,29 @@ namespace Currere_backend.Services
                 }
             }
 
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = "python",
-                Arguments = $"\"{scriptPath}\"",
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                StandardInputEncoding = Encoding.UTF8,   // Giren kod
-                StandardOutputEncoding = Encoding.UTF8,  // Çıkan kod
-                StandardErrorEncoding = Encoding.UTF8    // Çıkan hata
-            };
-
-            using var process = new Process { StartInfo = startInfo };
+            var tempCodeFile = Path.Combine(Path.GetTempPath(), $"currere_code_{Guid.NewGuid()}.py");
             
             try
             {
+                // BOM OLMADAN, KESİNLİKLE TEMİZ UTF-8 FİZİKSEL DOSYA
+                await File.WriteAllTextAsync(tempCodeFile, rawCode, new UTF8Encoding(false));
+
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "python",
+                    Arguments = $"-X utf8 \"{scriptPath}\" \"{tempCodeFile}\"",
+                    RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                StandardOutputEncoding = new UTF8Encoding(false),  // Çıkan kod
+                StandardErrorEncoding = new UTF8Encoding(false)    // Çıkan hata
+                };
+
+                using var process = new Process { StartInfo = startInfo };
+
                 process.Start();
-
-                // Tüm veriyi stdin'e yazıp kapatıyoruz, böylece Python betiği okumayı bitirir.
-                await process.StandardInput.WriteAsync(rawCode);
-                process.StandardInput.Close();
-
-                // Çıktı ve hataları eşzamanlı olarak oku
+                
                 var outputTask = process.StandardOutput.ReadToEndAsync();
                 var errorTask = process.StandardError.ReadToEndAsync();
 
@@ -104,8 +102,14 @@ namespace Currere_backend.Services
                     throw new Exception(ex.Message); 
                 }
                 
-                // Sistem hatalarını sakla / dönüştür
                 throw new Exception($"Sistem Hatası: Güvenlik taraması sırasında bir hata oluştu: {ex.Message}");
+            }
+            finally
+            {
+                if (File.Exists(tempCodeFile))
+                {
+                    try { File.Delete(tempCodeFile); } catch { }
+                }
             }
         }
     }

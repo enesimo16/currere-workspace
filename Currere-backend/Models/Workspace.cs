@@ -1,4 +1,4 @@
-﻿using Currere_backend.DTOs;
+using Currere_backend.DTOs;
 
 namespace Currere_backend.Models
 {
@@ -22,5 +22,6 @@ namespace Currere_backend.Models
         public ICollection<WorkspaceFile> Files { get; set; } = new List<WorkspaceFile>();
         public ICollection<WorkspaceSnapshot> Snapshots { get; set; } = new List<WorkspaceSnapshot>();
         public ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
+        public ICollection<ExperimentLog> ExperimentLogs { get; set; } = new List<ExperimentLog>();
     }
 }

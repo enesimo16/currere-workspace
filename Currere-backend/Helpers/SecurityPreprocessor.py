@@ -103,11 +103,21 @@ def analyze_security(code: str) -> list:
 
 
 def main():
-    sys.stdin.reconfigure(encoding='utf-8')
     sys.stdout.reconfigure(encoding='utf-8')
     sys.stderr.reconfigure(encoding='utf-8')
 
-    raw_input = sys.stdin.read()
+    if len(sys.argv) < 2:
+        print(json.dumps({"code": "", "dependencies": []}))
+        sys.exit(0)
+        
+    file_path = sys.argv[1]
+    
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            raw_input = f.read()
+    except Exception as e:
+        print(f"Bilinmeyen Hata: Dosya okunamadı: {str(e)}", file=sys.stderr)
+        sys.exit(1)
     
     if not raw_input.strip():
         print(json.dumps({"code": "", "dependencies": []}))

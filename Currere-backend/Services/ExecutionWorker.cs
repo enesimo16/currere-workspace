@@ -60,6 +60,7 @@ namespace Currere_backend.Services
 
                         var expLog = new ExperimentLog
                         {
+                            WorkspaceId = job.WorkspaceId,
                             CodeHash = ComputeHash(job.Code),
                             CodeContent = job.Code,
                             DatasetReference = job.DatasetFileName,

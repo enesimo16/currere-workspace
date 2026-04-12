@@ -36,7 +36,7 @@ namespace Currere_backend.Services
         {
             var stopwatch = Stopwatch.StartNew();
             int workspaceId = job.WorkspaceId;
-            string code = job.Code;
+            string code = job.Code?.Replace("\uFEFF", "") ?? ""; // BOM (Byte Order Mark) temizleme
             CodePreProcessResultDto preProcessResult;
             try
             {
@@ -119,7 +119,15 @@ namespace Currere_backend.Services
 
                 // py wrapper ve base64 korumasi
                 // Kullanıcı kodundaki tırnak ve boşlukların bash/python'u patlatmaması için base64 ile şifreliyoruz
-                var base64Code = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(code));
+                var codeBytes = new System.Text.UTF8Encoding(false).GetBytes(code);
+                // Son bir çare: Eğer hala gizli bir BOM (EF BB BF) varsa, byte array üzerinden manuel kes:
+                if (codeBytes.Length >= 3 && codeBytes[0] == 0xEF && codeBytes[1] == 0xBB && codeBytes[2] == 0xBF)
+                {
+                    var newBytes = new byte[codeBytes.Length - 3];
+                    Array.Copy(codeBytes, 3, newBytes, 0, newBytes.Length);
+                    codeBytes = newBytes;
+                }
+                var base64Code = Convert.ToBase64String(codeBytes);
 
                 // Artık Python kodunu C# içinde yollamıyoruz, sadece Base64 metnini değişkene veriyoruz
                 // Yeni: Ön kurulum yapılan site-packages klasörünü PYTHONPATH'e ekliyoruz
@@ -174,7 +182,8 @@ namespace Currere_backend.Services
                     WorkingDir = "/workspace",
                     HostConfig = new HostConfig
                     {
-                        Memory = 512L * 1024L * 1024L, // 512MB RAM Limiti (Güvenlik Odaklı)
+                        Memory = 512L * 1024L * 1024L, // 512MB RAM Limit
+                        NanoCPUs = 500000000,          // 0.5 CPU Limit (Koruması)
                         NetworkMode = "none",       // interneti kes
                         AutoRemove = false,
                         Binds = bindsList
