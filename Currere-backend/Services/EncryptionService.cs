@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Currere_backend.Services
@@ -11,7 +11,7 @@ namespace Currere_backend.Services
         public EncryptionService(IConfiguration config)
         {
             // appsettings.json'dan 32 karakterlik bir gizli anahtar
-            var secretKey = config["EncryptionSettings:SecretKey"]
+            var secretKey = config["Encryption:SecretKey"]
                 ?? throw new Exception("Encryption SecretKey bulunamadı!");
 
             // AES için 32 byte Key ve 16 byte IV 

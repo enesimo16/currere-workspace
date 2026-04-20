@@ -92,7 +92,7 @@ namespace Currere_backend.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> UpdateFileContent([FromRoute] int workspaceId, [FromRoute] string fileName, [FromForm] IFormFile file)
+        public async Task<IActionResult> UpdateFileContent([FromRoute] int workspaceId, [FromRoute] string fileName, [FromForm(Name = "file")] IFormFile file)
         {
             try
             {

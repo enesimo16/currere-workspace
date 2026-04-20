@@ -41,11 +41,15 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
         if (activeFile.name === 'main.py') {
           await api.put(`/workspace/${workspaceId}/code`, { code });
         } else {
-          const fileObj = new File([code], activeFile.name, { type: 'text/plain' });
+          const blob = new Blob([code], { type: 'text/plain' });
           const formData = new FormData();
-          formData.append('file', fileObj);
+          formData.append('file', blob, activeFile.name); // Final word: key is 'file'
           
-          await api.put(`/workspace/${workspaceId}/file/${activeFile.name}`, formData);
+          await api.put(`/workspace/${workspaceId}/file/${activeFile.name}`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
         }
         
         setHasUnsavedChanges(false);

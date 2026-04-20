@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import api from '@/services/api';
 import axios from 'axios';
+import { FiFile } from 'react-icons/fi';
 
 import EditorHeader from '@/components/editor/EditorHeader';
 import FileExplorer from '@/components/editor/FileExplorer';
 import CodeEditor from '@/components/editor/CodeEditor';
 import TerminalOutput from '@/components/editor/TerminalOutput';
+import CsvTable from '@/components/editor/CsvTable';
 import CurrereAI from '@/components/editor/CurrereAI';
 
 export default function EditorPage() {
@@ -189,7 +191,11 @@ export default function EditorPage() {
       
       <main className="flex-1 flex overflow-hidden">
         <FileExplorer workspaceId={activeWorkspace.id} />
-        <CodeEditor workspaceId={activeWorkspace.id} code={code} setCode={handleCodeChange} />
+        {activeFile.name.endsWith('.csv') ? (
+          <CsvTable csvData={code} fileName={activeFile.name} />
+        ) : (
+          <CodeEditor workspaceId={activeWorkspace.id} code={code} setCode={handleCodeChange} />
+        )}
         <TerminalOutput output={terminalOutput} isError={isError} />
       </main>
       
