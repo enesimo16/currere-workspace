@@ -1,8 +1,16 @@
-FROM python:3.10-slim
-WORKDIR /app
-COPY runner.py /app/runner.py
+# Temel olarak hafif bir Python sürümü kullanıyoruz
+FROM python:3.11-slim
+
+# Çalışma dizinini bizim C# backend'in beklediği gibi /workspace yapıyoruz
+WORKDIR /workspace
+
+# Python'un print() çıktılarını bekletmeden anında terminale yansıtmasını sağlar (Çok kritik!)
+ENV PYTHONUNBUFFERED=1
+
+# Senin eski dosyandaki gibi veri bilimi kütüphanelerini de kuralım, lazım olacak.
 RUN pip install --no-cache-dir pandas numpy
 
-
-# Konteyner çalıştığında bir şey yapmasına gerek yok c# kodu yollayacağız
-CMD ["tail", "-f", "/dev/null"]
+# Backend'deki C# servisi "runner.py" dosyasını "/app/runner.py" konumunda aradığı için
+# Onu konteynerın içine kopyalamalıyız.
+RUN mkdir -p /app
+COPY runner.py /app/runner.py

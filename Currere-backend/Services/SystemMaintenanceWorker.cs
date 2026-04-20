@@ -66,28 +66,7 @@ namespace Currere_backend.Services
 
         private async Task PerformMaintenanceAsync(CancellationToken stoppingToken)
         {
-            // 1. DOCKER PRUNE (Kalıntıları ve çalışmayan imajları sil)
-            try
-            {
-                var processInfo = new ProcessStartInfo("docker", "system prune -af")
-                {
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                };
-
-                using var process = Process.Start(processInfo);
-                if (process != null)
-                {
-                    await process.WaitForExitAsync(stoppingToken);
-                    _logger.LogInformation("Docker System Prune başarıyla tamamlandı. Disk alanı açıldı.");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Docker prune işlemi başarısız oldu (Docker kurulu olmayabilir veya yetki hatası).");
-            }
+            // 1. DOCKER PRUNE TEMİZLİĞİ İPTAL EDİLMİŞTİR (İmajların silinmesini engellemek için)
 
             // 2. ARTIFACT DOSYA TEMİZLİĞİ (24 Saatten eski klasörler)
             try

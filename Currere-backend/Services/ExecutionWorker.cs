@@ -38,58 +38,64 @@ namespace Currere_backend.Services
                 try
                 {
                     var job = await _queueService.DequeueJobAsync(stoppingToken);
-
-                    // Her bir iş için yeni bir Scope yaratıyoruz (Çünkü ICodeExecutionService Scoped olarak kayıtlı)
-                    using var scope = _serviceProvider.CreateScope();
-                    var executionService = scope.ServiceProvider.GetRequiredService<ICodeExecutionService>();
-
-                    try
+                    if (job != null)
                     {
-                        var result = await executionService.ExecutePythonCodeAsync(job);
+                        _logger.LogInformation($"Job {job.JobId} kuyruktan alındı ve Docker başlatılıyor...");
                         
-                        job.Result = result;
-                        job.Status = result.IsSuccess ? "Completed" : "Failed";
-
-                        // --- EF CORE EXPERIMENT TRACKING ENTEGRASYONU ---
-                        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                        string? parsedMetrics = null;
-                        if (result.IsSuccess)
+                        try
                         {
-                            parsedMetrics = MetricsParser.ParseMetrics(result.Output);
+                            // Her bir iş için yeni bir Scope yaratıyoruz (Çünkü ICodeExecutionService Scoped olarak kayıtlı)
+                            using var scope = _serviceProvider.CreateScope();
+                            var executionService = scope.ServiceProvider.GetRequiredService<ICodeExecutionService>();
+
+                            var result = await executionService.ExecutePythonCodeAsync(job);
+                            
+                            job.Result = result;
+                            job.Status = result.IsSuccess ? "Completed" : "Failed";
+
+                            // --- EF CORE EXPERIMENT TRACKING ENTEGRASYONU ---
+                            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                            string? parsedMetrics = null;
+                            if (result.IsSuccess)
+                            {
+                                parsedMetrics = MetricsParser.ParseMetrics(result.Output);
+                            }
+
+                            var expLog = new ExperimentLog
+                            {
+                                WorkspaceId = job.WorkspaceId,
+                                CodeHash = ComputeHash(job.Code),
+                                CodeContent = job.Code,
+                                DatasetReference = job.DatasetFileName,
+                                ExecutionDurationMs = result.ExecutionTimeMs,
+                                OutputMetrics = parsedMetrics,
+                                ArtifactUrls = result.ArtifactUrls != null && result.ArtifactUrls.Count > 0 
+                                    ? System.Text.Json.JsonSerializer.Serialize(result.ArtifactUrls) 
+                                    : null,
+                                IsSuccess = result.IsSuccess
+                            };
+
+                            dbContext.ExperimentLogs.Add(expLog);
+                            await dbContext.SaveChangesAsync(stoppingToken);
+                            // ------------------------------------------------
                         }
-
-                        var expLog = new ExperimentLog
+                        catch (Exception ex)
                         {
-                            WorkspaceId = job.WorkspaceId,
-                            CodeHash = ComputeHash(job.Code),
-                            CodeContent = job.Code,
-                            DatasetReference = job.DatasetFileName,
-                            ExecutionDurationMs = result.ExecutionTimeMs,
-                            OutputMetrics = parsedMetrics,
-                            ArtifactUrls = result.ArtifactUrls != null && result.ArtifactUrls.Count > 0 
-                                ? System.Text.Json.JsonSerializer.Serialize(result.ArtifactUrls) 
-                                : null,
-                            IsSuccess = result.IsSuccess
-                        };
-
-                        dbContext.ExperimentLogs.Add(expLog);
-                        await dbContext.SaveChangesAsync(stoppingToken);
-                        // ------------------------------------------------
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"JobId {job.JobId} calistirilirken beklenmeyen bir hata olustu.");
-                        job.Status = "Failed";
-                        job.Result = new ExecutionResultDto
+                            _logger.LogError(ex, $"JobId {job.JobId} calistirilirken beklenmeyen bir hata olustu.");
+                            job.Status = "Failed";
+                            job.Result = new ExecutionResultDto
+                            {
+                                IsSuccess = false,
+                                Error = $"Sistem Hatası: {ex.Message}",
+                                ErrorType = "InternalQueueError",
+                                Output = ""
+                            };
+                        }
+                        finally
                         {
-                            IsSuccess = false,
-                            Error = "Sistem Hatası: Kuyruktan işlenirken arka planda beklenmeyen bir sorun meydana geldi.",
-                            ErrorType = "InternalQueueError"
-                        };
-                    }
-                    finally
-                    {
-                        _queueService.UpdateJob(job);
+                            _logger.LogInformation($"Job {job.JobId} islemi sonlandi. (Statu: {job.Status})");
+                            _queueService.UpdateJob(job);
+                        }
                     }
                 }
                 catch (OperationCanceledException)

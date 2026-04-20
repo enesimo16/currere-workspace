@@ -36,7 +36,7 @@ namespace Currere_backend.Services
         {
             var stopwatch = Stopwatch.StartNew();
             int workspaceId = job.WorkspaceId;
-            string code = job.Code?.Replace("\uFEFF", "") ?? ""; // BOM (Byte Order Mark) temizleme
+            string code = job.Code?.Replace("\uFEFF", "").Replace("\r", "") ?? ""; // BOM ve Windows CRLF temizleme
             CodePreProcessResultDto preProcessResult;
             try
             {
@@ -145,7 +145,7 @@ namespace Currere_backend.Services
                 var dockerOutputBind = hostOutputPath.Replace("\\", "/");
 
                 var bindsList = new List<string> { 
-                    $"{dockerBindPath}:/workspace:ro",  // Workspace Root RO
+                    $"{dockerBindPath}:/workspace:rw",  // Workspace Root RW
                     $"{dockerOutputBind}:/workspace/output:rw" // Artifact Output RW
                 };
 
@@ -315,7 +315,7 @@ namespace Currere_backend.Services
                     ArtifactUrls = artifactUrls
                 };
             }
-            catch (Exception ex) when (ex is TaskCanceledException || ex is OperationCanceledException || ex is TimeoutException || ex.Message.Contains("timed out"))
+            catch (Exception ex) when (ex is TaskCanceledException || ex is OperationCanceledException)
             {
                 // timeout yakalandı
                 stopwatch.Stop();
@@ -332,10 +332,11 @@ namespace Currere_backend.Services
             {
                 // genel sistem hataları
                 stopwatch.Stop();
+                var innerMsg = ex.InnerException != null ? $" | Inner: {ex.InnerException.Message}" : "";
                 return new ExecutionResultDto
                 {
                     Output = "",
-                    Error = $"Sistem Hatası: {ex.Message}",
+                    Error = $"Sistem Hatası: {ex.Message}{innerMsg}",
                     ErrorType = "SystemError",
                     IsSuccess = false,
                     ExecutionTimeMs = stopwatch.ElapsedMilliseconds
