@@ -70,5 +70,46 @@ namespace Currere_backend.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+        [HttpGet("{fileName}/raw")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GetFileRawContent(int workspaceId, string fileName)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var content = await _fileService.GetFileContentAsync(workspaceId, userId, fileName);
+                return Ok(new { content });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpPut("{fileName}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> UpdateFileContent(int workspaceId, string fileName, [FromBody] UpdateFileContentRequest request)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var success = await _fileService.UpdateFileContentAsync(workspaceId, userId, fileName, request.Content);
+                if (!success) return BadRequest(new { error = "Dosya güncellenemedi." });
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+    }
+
+    public class UpdateFileContentRequest
+    {
+        public string Content { get; set; } = string.Empty;
     }
 }

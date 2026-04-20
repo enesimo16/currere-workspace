@@ -117,5 +117,43 @@ namespace Currere_backend.Services
 
             return files;
         }
+
+        public async Task<string> GetFileContentAsync(int workspaceId, int userId, string fileName)
+        {
+            var workspace = await _context.Workspaces
+                .FirstOrDefaultAsync(w => w.Id == workspaceId && w.UserId == userId);
+            
+            if (workspace == null)
+                throw new Exception("Çalışma alanı bulunamadı veya yetkiniz yok.");
+
+            var file = await _context.WorkspaceFiles
+                .FirstOrDefaultAsync(f => f.WorkspaceId == workspaceId && f.FileName == fileName && f.ExpiresAt > DateTime.UtcNow);
+
+            if (file == null)
+                throw new Exception("Dosya bulunamadı veya süresi dolmuş.");
+
+            if (!System.IO.File.Exists(file.FilePath))
+                throw new Exception("Fiziksel dosya sunucuda bulunamadı.");
+
+            return await System.IO.File.ReadAllTextAsync(file.FilePath);
+        }
+
+        public async Task<bool> UpdateFileContentAsync(int workspaceId, int userId, string fileName, string content)
+        {
+            var workspace = await _context.Workspaces
+                .FirstOrDefaultAsync(w => w.Id == workspaceId && w.UserId == userId);
+            
+            if (workspace == null)
+                return false;
+
+            var file = await _context.WorkspaceFiles
+                .FirstOrDefaultAsync(f => f.WorkspaceId == workspaceId && f.FileName == fileName && f.ExpiresAt > DateTime.UtcNow);
+
+            if (file == null || !System.IO.File.Exists(file.FilePath))
+                return false;
+
+            await System.IO.File.WriteAllTextAsync(file.FilePath, content);
+            return true;
+        }
     }
 }

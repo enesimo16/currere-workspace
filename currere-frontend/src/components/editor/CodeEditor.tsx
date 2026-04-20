@@ -1,6 +1,7 @@
 import Editor from '@monaco-editor/react';
 import { useEffect, useRef } from 'react';
 import api from '@/services/api';
+import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 
 interface CodeEditorProps {
   workspaceId?: string | number;
@@ -10,6 +11,7 @@ interface CodeEditorProps {
 
 export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorProps) {
   const isInitialMount = useRef(true);
+  const { activeFile } = useWorkspaceStore();
 
   useEffect(() => {
     // İlk yüklemede kaydetme tetiklenmemesi için kontrol (Initial Mount)
@@ -22,15 +24,25 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
 
     const timeoutId = setTimeout(async () => {
       try {
-        await api.put(`/workspace/${workspaceId}/code`, { code });
-        console.log('Kod başarıyla otomatik kaydedildi.');
+        if (activeFile.name === 'main.py') {
+          await api.put(`/workspace/${workspaceId}/code`, { code });
+        } else {
+          await api.put(`/workspace/${workspaceId}/file/${activeFile.name}`, { content: code });
+        }
+        console.log(`Kod başarıyla otomatik kaydedildi (${activeFile.name}).`);
       } catch (error) {
         console.error('Kod kaydedilirken hata oluştu:', error);
       }
     }, 1500);
 
     return () => clearTimeout(timeoutId);
-  }, [code, workspaceId]);
+  }, [code, workspaceId, activeFile.name]);
+
+  const ext = activeFile.name.split('.').pop()?.toLowerCase();
+  let defaultLang = 'python';
+  if (ext === 'json') defaultLang = 'json';
+  if (ext === 'csv' || ext === 'txt') defaultLang = 'plaintext';
+  if (ext === 'sql') defaultLang = 'sql';
 
   return (
     <section className="w-[60%] h-full border-r border-zinc-200 flex flex-col bg-[#1e1e1e]">
@@ -40,14 +52,14 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
           <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
           </svg>
-          main.py
+          {activeFile.name}
         </div>
       </div>
       
       <div className="flex-1 w-full relative">
         <Editor
           height="100%"
-          defaultLanguage="python"
+          language={defaultLang}
           theme="vs-dark"
           value={code}
           onChange={(val) => setCode(val || '')}

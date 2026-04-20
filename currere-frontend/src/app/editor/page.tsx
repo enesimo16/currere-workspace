@@ -12,7 +12,7 @@ import CodeEditor from '@/components/editor/CodeEditor';
 import TerminalOutput from '@/components/editor/TerminalOutput';
 
 export default function EditorPage() {
-  const { activeWorkspace } = useWorkspaceStore();
+  const { activeWorkspace, activeFile } = useWorkspaceStore();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
@@ -42,14 +42,31 @@ export default function EditorPage() {
     }
   }, [mounted, activeWorkspace, router]);
 
-  // Sayfa yüklendiğinde mevcut state'i doldur
+  // Sayfa yüklendiğinde VEYA activeFile değiştiğinde içeriği getir
   useEffect(() => {
-    if (activeWorkspace?.currentState) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCode(activeWorkspace.currentState);
+    const loadContent = async () => {
+      if (!activeWorkspace?.id) return;
+      
+      try {
+        if (activeFile.name === 'main.py') {
+          // main.py ise workspace currentState'den çek veya lokal kal
+          setCode(activeWorkspace.currentState || '');
+        } else {
+          // Başka bir dosya ise raw content çek
+          const response = await api.get(`/workspace/${activeWorkspace.id}/file/${activeFile.name}/raw`);
+          setCode(response.data.content || '');
+        }
+      } catch (err) {
+        console.error('Dosya içeriği alınamadı:', err);
+        setCode('// Dosya içeriği okunamadı veya yüklenemedi.');
+      }
+    };
+
+    if (mounted) {
+      loadContent();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeWorkspace?.id]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeWorkspace?.id, activeFile.name, mounted]);
 
   const handleRun = async () => {
     if (!activeWorkspace) return;

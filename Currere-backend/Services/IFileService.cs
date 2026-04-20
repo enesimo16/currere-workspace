@@ -8,5 +8,7 @@ namespace Currere_backend.Services
         // Kullanıcı idsini güvenlik ile aliyoruz cünkü kendi workspaceyine atacagiz
         Task<FileUploadResponseDto> UploadFileAsync(int workspaceId, int userId, IFormFile file);
         Task<List<WorkspaceFileDto>> GetWorkspaceFilesAsync(int workspaceId, int userId);
+        Task<string> GetFileContentAsync(int workspaceId, int userId, string fileName);
+        Task<bool> UpdateFileContentAsync(int workspaceId, int userId, string fileName, string content);
     }
 }

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { FiUpload, FiFile, FiImage } from 'react-icons/fi';
 import { DiPython } from 'react-icons/di';
 import { BsFiletypeCsv, BsFiletypeJson, BsFiletypeSql } from 'react-icons/bs';
+import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 
 interface WorkspaceFile {
   id: number;
@@ -17,6 +18,7 @@ interface FileExplorerProps {
 }
 
 export default function FileExplorer({ workspaceId }: FileExplorerProps) {
+  const { activeFile, setActiveFile } = useWorkspaceStore();
   const [files, setFiles] = useState<WorkspaceFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -136,7 +138,14 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
       <div className="flex-1 overflow-y-auto py-2">
         {/* Virtual Script File */}
         <div className="px-2 mb-1">
-          <div className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-md hover:bg-[#2d2d2d] cursor-pointer text-sm text-zinc-200 bg-[#2d2d2d]/50 border border-[#3d3d3d]/50">
+          <div 
+            onClick={() => setActiveFile({ name: 'main.py', type: 'code' })}
+            className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md cursor-pointer text-sm transition-colors border ${
+              activeFile.name === 'main.py' 
+                ? 'bg-[#2d2d2d] text-zinc-200 border-[#3d3d3d]' 
+                : 'text-zinc-400 border-transparent hover:bg-[#2d2d2d]/50 hover:text-zinc-200'
+            }`}
+          >
             <DiPython className="text-emerald-400 w-5 h-5 shrink-0" />
             <span className="truncate hidden md:block">main.py</span>
           </div>
@@ -161,7 +170,12 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
               <div 
                 key={file.id}
                 title={file.fileName}
-                className="group flex items-center gap-2.5 px-2.5 py-1.5 rounded-md hover:bg-[#2d2d2d] cursor-pointer text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+                onClick={() => setActiveFile({ name: file.fileName, type: 'file' })}
+                className={`group flex items-center gap-2.5 px-2.5 py-1.5 rounded-md cursor-pointer text-sm transition-colors border ${
+                  activeFile.name === file.fileName
+                    ? 'bg-[#2d2d2d] text-zinc-200 border-[#3d3d3d]'
+                    : 'text-zinc-400 border-transparent hover:bg-[#2d2d2d]/50 hover:text-zinc-200'
+                }`}
               >
                 <div className="shrink-0">{getFileIcon(file.fileName)}</div>
                 <span className="truncate hidden md:block">{file.fileName}</span>
