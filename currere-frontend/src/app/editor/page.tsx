@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import api from '@/services/api';
 import axios from 'axios';
-import { FiFile } from 'react-icons/fi';
 
 import EditorHeader from '@/components/editor/EditorHeader';
 import FileExplorer from '@/components/editor/FileExplorer';
 import CodeEditor from '@/components/editor/CodeEditor';
-import TerminalOutput from '@/components/editor/TerminalOutput';
 import CsvTable from '@/components/editor/CsvTable';
+import TerminalOutput from '@/components/editor/TerminalOutput';
 import CurrereAI from '@/components/editor/CurrereAI';
+import ResizablePanels from '@/components/editor/ResizablePanels';
 
 export default function EditorPage() {
   const { activeWorkspace, activeFile } = useWorkspaceStore();
@@ -191,12 +191,16 @@ export default function EditorPage() {
       
       <main className="flex-1 flex overflow-hidden">
         <FileExplorer workspaceId={activeWorkspace.id} />
-        {activeFile.name.endsWith('.csv') ? (
-          <CsvTable csvData={code} fileName={activeFile.name} />
-        ) : (
-          <CodeEditor workspaceId={activeWorkspace.id} code={code} setCode={handleCodeChange} />
-        )}
-        <TerminalOutput output={terminalOutput} isError={isError} />
+        <ResizablePanels
+          leftPanel={
+            activeFile.name.endsWith('.csv') ? (
+              <CsvTable csvData={code} fileName={activeFile.name} />
+            ) : (
+              <CodeEditor workspaceId={activeWorkspace.id} code={code} setCode={handleCodeChange} />
+            )
+          }
+          rightPanel={<TerminalOutput output={terminalOutput} isError={isError} />}
+        />
       </main>
       
       {/* Floating AI Interface */}

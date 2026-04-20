@@ -75,7 +75,7 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
   if (ext === 'sql') defaultLang = 'sql';
 
   return (
-    <section className="w-[60%] h-full border-r border-zinc-200 flex flex-col bg-[#1e1e1e]">
+    <section className="h-full flex flex-col bg-[#1e1e1e] overflow-hidden">
       {/* Subtle Editor Tab */}
       <div className="h-10 bg-[#2d2d2d] border-b border-[#1e1e1e] flex items-center px-4 shrink-0 shadow-sm">
         <div className="flex items-center gap-2 text-zinc-300 text-xs font-mono bg-[#1e1e1e] px-4 py-1.5 rounded-t-md border-t border-emerald-500/50">

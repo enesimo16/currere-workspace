@@ -11,7 +11,7 @@ export default function TerminalOutput({ output, isError, images = [] }: Termina
   const [activeTab, setActiveTab] = useState<'terminal' | 'visual'>('terminal');
 
   return (
-    <section className="w-[40%] h-full bg-zinc-950 flex flex-col border-l border-zinc-800">
+    <section className="h-full bg-zinc-950 flex flex-col border-l border-zinc-800">
       {/* Tab Header */}
       <div className="h-10 border-b border-zinc-800 flex items-center shrink-0 bg-zinc-900/50">
         <button 
