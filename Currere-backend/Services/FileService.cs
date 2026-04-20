@@ -1,4 +1,4 @@
-﻿using Currere_backend.Data;
+using Currere_backend.Data;
 using Currere_backend.DTOs;
 using Currere_backend.Helpers;
 using Currere_backend.Models;
@@ -93,6 +93,29 @@ namespace Currere_backend.Services
                 ExpiresAt = workspaceFile.ExpiresAt,
                 Message = "Dosya başarıyla yüklendi (Veri profili arka planda çıkarılıyor). Currere kuralları gereği 4 saat boyunca aktif kalacaktır."
             };
+        }
+
+        public async Task<List<WorkspaceFileDto>> GetWorkspaceFilesAsync(int workspaceId, int userId)
+        {
+            var workspace = await _context.Workspaces
+                .FirstOrDefaultAsync(w => w.Id == workspaceId && w.UserId == userId);
+            
+            if (workspace == null)
+                throw new Exception("Çalışma alanı bulunamadı veya yetkiniz yok.");
+
+            var files = await _context.WorkspaceFiles
+                .Where(f => f.WorkspaceId == workspaceId && f.ExpiresAt > DateTime.UtcNow)
+                .OrderByDescending(f => f.UploadedAt)
+                .Select(f => new WorkspaceFileDto
+                {
+                    Id = f.Id,
+                    FileName = f.FileName,
+                    UploadedAt = f.UploadedAt,
+                    ExpiresAt = f.ExpiresAt
+                })
+                .ToListAsync();
+
+            return files;
         }
     }
 }

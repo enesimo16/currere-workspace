@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Currere_backend.DTOs;
 using Currere_backend.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -60,6 +60,17 @@ namespace Currere_backend.Controllers
             if (!success) return NotFound("Güncellenecek proje bulunamadı.");
 
             return Ok("Proje başarıyla güncellendi.");
+        }
+
+        [HttpPut("{id}/code")]
+        public async Task<IActionResult> SaveWorkspaceCode(int id, [FromBody] SaveCodeDto dto)
+        {
+            var userId = GetUserId();
+            var success = await _workspaceService.UpdateWorkspaceCodeAsync(id, userId, dto.Code);
+
+            if (!success) return NotFound("Proje bulunamadı.");
+
+            return Ok("Kod başarıyla kaydedildi.");
         }
 
         [HttpDelete("{id}")]

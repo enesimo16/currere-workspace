@@ -74,6 +74,20 @@ namespace Currere_backend.Services
             return true;
         }
 
+        public async Task<bool> UpdateWorkspaceCodeAsync(int workspaceId, int userId, string code)
+        {
+            var workspace = await _context.Workspaces
+                .FirstOrDefaultAsync(w => w.Id == workspaceId && w.UserId == userId);
+
+            if (workspace == null) return false;
+
+            workspace.CurrentState = code;
+            workspace.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<bool> DeleteWorkspaceAsync(int workspaceId, int userId)
         {
             var workspace = await _context.Workspaces

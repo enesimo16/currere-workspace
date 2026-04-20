@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Currere_backend.DTOs;
 
 namespace Currere_backend.Services
@@ -7,5 +7,6 @@ namespace Currere_backend.Services
     {
         // Kullanıcı idsini güvenlik ile aliyoruz cünkü kendi workspaceyine atacagiz
         Task<FileUploadResponseDto> UploadFileAsync(int workspaceId, int userId, IFormFile file);
+        Task<List<WorkspaceFileDto>> GetWorkspaceFilesAsync(int workspaceId, int userId);
     }
 }

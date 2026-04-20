@@ -1,4 +1,4 @@
-﻿using Currere_backend.DTOs;
+using Currere_backend.DTOs;
 
 namespace Currere_backend.Services
 {
@@ -8,6 +8,7 @@ namespace Currere_backend.Services
         Task<List<WorkspaceResponseDto>> GetUserWorkspacesAsync(int userId);
         Task<WorkspaceResponseDto?> GetWorkspaceByIdAsync(int workspaceId, int userId);
         Task<bool> UpdateWorkspaceAsync(int workspaceId, int userId, UpdateWorkspaceDto dto);
+        Task<bool> UpdateWorkspaceCodeAsync(int workspaceId, int userId, string code);
         Task<bool> DeleteWorkspaceAsync(int workspaceId, int userId);
     }
 }

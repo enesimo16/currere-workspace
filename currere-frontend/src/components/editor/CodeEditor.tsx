@@ -1,11 +1,37 @@
 import Editor from '@monaco-editor/react';
+import { useEffect, useRef } from 'react';
+import api from '@/services/api';
 
 interface CodeEditorProps {
+  workspaceId?: string | number;
   code: string;
   setCode: (val: string) => void;
 }
 
-export default function CodeEditor({ code, setCode }: CodeEditorProps) {
+export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorProps) {
+  const isInitialMount = useRef(true);
+
+  useEffect(() => {
+    // İlk yüklemede kaydetme tetiklenmemesi için kontrol (Initial Mount)
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    if (!workspaceId) return;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        await api.put(`/workspace/${workspaceId}/code`, { code });
+        console.log('Kod başarıyla otomatik kaydedildi.');
+      } catch (error) {
+        console.error('Kod kaydedilirken hata oluştu:', error);
+      }
+    }, 1500);
+
+    return () => clearTimeout(timeoutId);
+  }, [code, workspaceId]);
+
   return (
     <section className="w-[60%] h-full border-r border-zinc-200 flex flex-col bg-[#1e1e1e]">
       {/* Subtle Editor Tab */}

@@ -7,6 +7,7 @@ import api from '@/services/api';
 import axios from 'axios';
 
 import EditorHeader from '@/components/editor/EditorHeader';
+import FileExplorer from '@/components/editor/FileExplorer';
 import CodeEditor from '@/components/editor/CodeEditor';
 import TerminalOutput from '@/components/editor/TerminalOutput';
 
@@ -41,12 +42,21 @@ export default function EditorPage() {
     }
   }, [mounted, activeWorkspace, router]);
 
+  // Sayfa yüklendiğinde mevcut state'i doldur
+  useEffect(() => {
+    if (activeWorkspace?.currentState) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCode(activeWorkspace.currentState);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeWorkspace?.id]);
+
   const handleRun = async () => {
     if (!activeWorkspace) return;
     
     setIsExecuting(true);
     setIsError(false);
-    setTerminalOutput('Yürütülüyor...');
+    setTerminalOutput('--- Execution Started ---\n\nYürütülüyor...');
 
     try {
       const response = await api.post(`/execution/${activeWorkspace.id}/run`, { code });
@@ -144,7 +154,8 @@ export default function EditorPage() {
       />
       
       <main className="flex-1 flex overflow-hidden">
-        <CodeEditor code={code} setCode={setCode} />
+        <FileExplorer workspaceId={activeWorkspace.id} />
+        <CodeEditor workspaceId={activeWorkspace.id} code={code} setCode={setCode} />
         <TerminalOutput output={terminalOutput} isError={isError} />
       </main>
     </div>

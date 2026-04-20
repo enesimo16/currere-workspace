@@ -6,6 +6,7 @@ export interface Workspace {
   name?: string;
   title?: string;
   createdAt?: string;
+  currentState?: string;
   // include other properties if needed
 }
 

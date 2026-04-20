@@ -38,7 +38,7 @@ try
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<IWorkspaceService, WorkspaceService>();
     builder.Services.AddSingleton<IExecutionQueueService, ExecutionQueueService>();
-// builder.Services.AddHostedService<ExecutionWorker>(); // Şimdilik Worker'ı susturduk (Sync Execution Test)
+builder.Services.AddHostedService<ExecutionWorker>();
 builder.Services.AddHostedService<SystemMaintenanceWorker>();
 builder.Services.AddScoped<ICodePreProcessorService, CodePreProcessorService>();
 builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();

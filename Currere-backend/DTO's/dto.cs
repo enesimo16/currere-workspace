@@ -93,6 +93,11 @@ namespace Currere_backend.DTOs
         public string CurrentState { get; set; } = string.Empty; // Kodun o anki hali
     }
 
+    public class SaveCodeDto
+    {
+        public string Code { get; set; } = string.Empty;
+    }
+
     public class WorkspaceResponseDto
     {
         public int Id { get; set; }
@@ -134,6 +139,15 @@ namespace Currere_backend.DTOs
         public string FileName { get; set; } = string.Empty;
         public DateTime ExpiresAt { get; set; } // usera dosya silinme sresini gsterme
         public string Message { get; set; } = string.Empty;
+    }
+
+    public class WorkspaceFileDto
+    {
+        public int Id { get; set; }
+        public string FileName { get; set; } = string.Empty;
+        public DateTime UploadedAt { get; set; }
+        public DateTime ExpiresAt { get; set; }
+        public string FilePath { get; set; } = string.Empty; // Just the name/extension indicator, but maybe Path is secret so we shouldn't send it. Wait, the user just wants names.
     }
 
     // AI INTEGRATION

@@ -51,7 +51,7 @@ namespace Currere_backend.Controllers
                 return NotFound(new { error = "Çalışma alanı bulunamadı veya erişim yetkiniz yok." });
             }
 
-            // Asenkron iş kuyruğuna atama İPTAL EDİLDİ - SENKRON (BLOKLAYICI) YÜRÜTME YAPILIYOR
+            // Asenkron iş kuyruğuna atama işlemi
             var job = new ExecutionJob
             {
                 WorkspaceId = workspaceId,
@@ -59,62 +59,7 @@ namespace Currere_backend.Controllers
                 DatasetFileName = request.DatasetFileName
             };
 
-            job.Status = "Processing";
-            _queueService.UpdateJob(job); // Durumu memory'e kaydet
-
-            try 
-            {
-                var result = await _executionService.ExecutePythonCodeAsync(job);
-                job.Result = result;
-                job.Status = result.IsSuccess ? "Completed" : "Failed";
-
-                // --- EF CORE EXPERIMENT TRACKING ENTEGRASYONU ---
-                var dbContext = HttpContext.RequestServices.GetRequiredService<Currere_backend.Data.AppDbContext>();
-                string? parsedMetrics = null;
-                if (result.IsSuccess)
-                {
-                    parsedMetrics = Currere_backend.Helpers.MetricsParser.ParseMetrics(result.Output);
-                }
-
-                // Hızlı Basit Hash
-                using (var sha256Hash = System.Security.Cryptography.SHA256.Create())
-                {
-                    var bytes = sha256Hash.ComputeHash(System.Text.Encoding.UTF8.GetBytes(job.Code ?? ""));
-                    var builder = new System.Text.StringBuilder();
-                    foreach (var b in bytes) builder.Append(b.ToString("x2"));
-                    
-                    var expLog = new ExperimentLog
-                    {
-                        WorkspaceId = job.WorkspaceId,
-                        CodeHash = builder.ToString(),
-                        CodeContent = job.Code,
-                        DatasetReference = job.DatasetFileName,
-                        ExecutionDurationMs = result.ExecutionTimeMs,
-                        OutputMetrics = parsedMetrics,
-                        ArtifactUrls = result.ArtifactUrls != null && result.ArtifactUrls.Count > 0 
-                            ? System.Text.Json.JsonSerializer.Serialize(result.ArtifactUrls) 
-                            : null,
-                        IsSuccess = result.IsSuccess
-                    };
-
-                    dbContext.ExperimentLogs.Add(expLog);
-                    await dbContext.SaveChangesAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                job.Status = "Failed";
-                job.Result = new ExecutionResultDto
-                {
-                    IsSuccess = false,
-                    Error = $"Sistem Hatası (Sync Execution): {ex.Message}",
-                    ErrorType = "InternalApiCrash"
-                };
-            }
-            finally
-            {
-                _queueService.UpdateJob(job);
-            }
+            await _queueService.EnqueueJobAsync(job);
 
             return Accepted(new { jobId = job.JobId, status = job.Status });
         }
