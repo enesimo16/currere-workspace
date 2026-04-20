@@ -1,0 +1,87 @@
+2026-04-20 18:10:54.267 +03:00 [INF] Currere API aya?a kalk?yor...
+2026-04-20 18:10:55.094 +03:00 [INF] User profile is available. Using 'C:\Users\enes yel\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-04-20 18:10:55.110 +03:00 [INF] SystemMaintenanceWorker başlatıldı...
+2026-04-20 18:10:55.110 +03:00 [INF] Execution Worker arka planda calismaya basladi.
+2026-04-20 18:10:55.111 +03:00 [INF] Sistem temizliği başlatılıyor (Docker Prune, Files, DB)...
+2026-04-20 18:10:55.298 +03:00 [INF] Now listening on: http://localhost:5279
+2026-04-20 18:10:55.303 +03:00 [INF] Starting Hangfire Server using job storage: 'Hangfire.MemoryStorage.MemoryStorage'
+2026-04-20 18:10:55.305 +03:00 [INF] Using the following options for Hangfire Server:
+    Worker count: 20
+    Listening queues: 'default'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+2026-04-20 18:10:55.314 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-04-20 18:10:55.315 +03:00 [INF] Hosting environment: Development
+2026-04-20 18:10:55.316 +03:00 [INF] Content root path: C:\Users\enes yel\Desktop\Currere\Currere-backend
+2026-04-20 18:10:55.322 +03:00 [INF] Server desktop-rukajg8:13220:396943d2 successfully announced in 5,6311 ms
+2026-04-20 18:10:55.324 +03:00 [INF] Server desktop-rukajg8:13220:396943d2 is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, ExpirationManager, CountersAggregator, Worker, DelayedJobScheduler, RecurringJobScheduler...
+2026-04-20 18:10:55.329 +03:00 [INF] Server desktop-rukajg8:13220:396943d2 all the dispatchers started
+2026-04-20 18:10:55.410 +03:00 [INF] Docker System Prune başarıyla tamamlandı. Disk alanı açıldı.
+2026-04-20 18:10:56.229 +03:00 [INF] Executed DbCommand (19ms) [Parameters=[@__thirtyDaysAgo_0='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT [e].[Id], [e].[ArtifactUrls], [e].[CodeContent], [e].[CodeHash], [e].[CreatedAt], [e].[DatasetReference], [e].[ExecutionDurationMs], [e].[IsSuccess], [e].[OutputMetrics], [e].[WorkspaceId]
+FROM [ExperimentLogs] AS [e]
+WHERE [e].[CreatedAt] < @__thirtyDaysAgo_0
+2026-04-20 18:10:56.242 +03:00 [INF] Bir sonraki temizlik için bekleniyor... Süre: 8,8 saat.
+2026-04-20 18:11:36.143 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/auth/register - null null
+2026-04-20 18:11:36.188 +03:00 [WRN] Failed to determine the https port for redirect.
+2026-04-20 18:11:36.189 +03:00 [INF] CORS policy execution successful.
+2026-04-20 18:11:36.195 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/auth/register - 204 null null 52.4228ms
+2026-04-20 18:11:36.200 +03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5279/api/auth/register - application/json 80
+2026-04-20 18:11:36.204 +03:00 [INF] CORS policy execution successful.
+2026-04-20 18:11:36.239 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.AuthController.Register (Currere-backend)'
+2026-04-20 18:11:36.253 +03:00 [INF] Route matched with {action = "Register", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Register(Currere_backend.DTOs.RegisterDto) on controller Currere_backend.Controllers.AuthController (Currere-backend).
+2026-04-20 18:11:36.291 +03:00 [INF] Executing BadRequestObjectResult, writing value of type 'Microsoft.AspNetCore.Mvc.ValidationProblemDetails'.
+2026-04-20 18:11:36.322 +03:00 [INF] Executed action Currere_backend.Controllers.AuthController.Register (Currere-backend) in 64.6285ms
+2026-04-20 18:11:36.323 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.AuthController.Register (Currere-backend)'
+2026-04-20 18:11:36.325 +03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5279/api/auth/register - 400 null application/problem+json; charset=utf-8 125.544ms
+2026-04-20 18:11:43.887 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/auth/register - null null
+2026-04-20 18:11:43.890 +03:00 [INF] CORS policy execution successful.
+2026-04-20 18:11:43.891 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/auth/register - 204 null null 3.5762ms
+2026-04-20 18:11:43.893 +03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5279/api/auth/register - application/json 86
+2026-04-20 18:11:43.895 +03:00 [INF] CORS policy execution successful.
+2026-04-20 18:11:43.896 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.AuthController.Register (Currere-backend)'
+2026-04-20 18:11:43.897 +03:00 [INF] Route matched with {action = "Register", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Register(Currere_backend.DTOs.RegisterDto) on controller Currere_backend.Controllers.AuthController (Currere-backend).
+2026-04-20 18:11:43.900 +03:00 [INF] Executing BadRequestObjectResult, writing value of type 'Microsoft.AspNetCore.Mvc.ValidationProblemDetails'.
+2026-04-20 18:11:43.901 +03:00 [INF] Executed action Currere_backend.Controllers.AuthController.Register (Currere-backend) in 2.8546ms
+2026-04-20 18:11:43.902 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.AuthController.Register (Currere-backend)'
+2026-04-20 18:11:43.903 +03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5279/api/auth/register - 400 null application/problem+json; charset=utf-8 9.7918ms
+2026-04-20 18:11:45.252 +03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5279/api/auth/register - application/json 86
+2026-04-20 18:11:45.255 +03:00 [INF] CORS policy execution successful.
+2026-04-20 18:11:45.257 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.AuthController.Register (Currere-backend)'
+2026-04-20 18:11:45.257 +03:00 [INF] Route matched with {action = "Register", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Register(Currere_backend.DTOs.RegisterDto) on controller Currere_backend.Controllers.AuthController (Currere-backend).
+2026-04-20 18:11:45.261 +03:00 [INF] Executing BadRequestObjectResult, writing value of type 'Microsoft.AspNetCore.Mvc.ValidationProblemDetails'.
+2026-04-20 18:11:45.262 +03:00 [INF] Executed action Currere_backend.Controllers.AuthController.Register (Currere-backend) in 3.2829ms
+2026-04-20 18:11:45.263 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.AuthController.Register (Currere-backend)'
+2026-04-20 18:11:45.263 +03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5279/api/auth/register - 400 null application/problem+json; charset=utf-8 11.2837ms
+2026-04-20 18:11:45.645 +03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5279/api/auth/register - application/json 86
+2026-04-20 18:11:45.647 +03:00 [INF] CORS policy execution successful.
+2026-04-20 18:11:45.648 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.AuthController.Register (Currere-backend)'
+2026-04-20 18:11:45.649 +03:00 [INF] Route matched with {action = "Register", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Register(Currere_backend.DTOs.RegisterDto) on controller Currere_backend.Controllers.AuthController (Currere-backend).
+2026-04-20 18:11:45.651 +03:00 [INF] Executing BadRequestObjectResult, writing value of type 'Microsoft.AspNetCore.Mvc.ValidationProblemDetails'.
+2026-04-20 18:11:45.652 +03:00 [INF] Executed action Currere_backend.Controllers.AuthController.Register (Currere-backend) in 2.0133ms
+2026-04-20 18:11:45.653 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.AuthController.Register (Currere-backend)'
+2026-04-20 18:11:45.655 +03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5279/api/auth/register - 400 null application/problem+json; charset=utf-8 9.7962ms
+2026-04-20 18:11:56.987 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/auth/register - null null
+2026-04-20 18:11:56.990 +03:00 [INF] CORS policy execution successful.
+2026-04-20 18:11:56.991 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/auth/register - 204 null null 3.3175ms
+2026-04-20 18:11:56.992 +03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5279/api/auth/register - application/json 86
+2026-04-20 18:11:56.994 +03:00 [INF] CORS policy execution successful.
+2026-04-20 18:11:56.995 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.AuthController.Register (Currere-backend)'
+2026-04-20 18:11:56.996 +03:00 [INF] Route matched with {action = "Register", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Register(Currere_backend.DTOs.RegisterDto) on controller Currere_backend.Controllers.AuthController (Currere-backend).
+2026-04-20 18:11:56.997 +03:00 [INF] Executing BadRequestObjectResult, writing value of type 'Microsoft.AspNetCore.Mvc.ValidationProblemDetails'.
+2026-04-20 18:11:56.998 +03:00 [INF] Executed action Currere_backend.Controllers.AuthController.Register (Currere-backend) in 1.5809ms
+2026-04-20 18:11:56.999 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.AuthController.Register (Currere-backend)'
+2026-04-20 18:11:57.000 +03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5279/api/auth/register - 400 null application/problem+json; charset=utf-8 7.373ms
+2026-04-20 18:11:59.753 +03:00 [INF] Request starting HTTP/1.1 POST http://localhost:5279/api/auth/register - application/json 86
+2026-04-20 18:11:59.756 +03:00 [INF] CORS policy execution successful.
+2026-04-20 18:11:59.756 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.AuthController.Register (Currere-backend)'
+2026-04-20 18:11:59.757 +03:00 [INF] Route matched with {action = "Register", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Register(Currere_backend.DTOs.RegisterDto) on controller Currere_backend.Controllers.AuthController (Currere-backend).
+2026-04-20 18:11:59.758 +03:00 [INF] Executing BadRequestObjectResult, writing value of type 'Microsoft.AspNetCore.Mvc.ValidationProblemDetails'.
+2026-04-20 18:11:59.760 +03:00 [INF] Executed action Currere_backend.Controllers.AuthController.Register (Currere-backend) in 1.8382ms
+2026-04-20 18:11:59.761 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.AuthController.Register (Currere-backend)'
+2026-04-20 18:11:59.762 +03:00 [INF] Request finished HTTP/1.1 POST http://localhost:5279/api/auth/register - 400 null application/problem+json; charset=utf-8 8.2764ms
+2026-04-20 18:14:33.499 +03:00 [INF] Server desktop-rukajg8:13220:396943d2 caught stopping signal...
+2026-04-20 18:14:33.500 +03:00 [INF] Application is shutting down...
+2026-04-20 18:14:33.501 +03:00 [INF] Server desktop-rukajg8:13220:396943d2 All dispatchers stopped
+2026-04-20 18:14:33.503 +03:00 [INF] Server desktop-rukajg8:13220:396943d2 successfully reported itself as stopped in 0,2578 ms
+2026-04-20 18:14:33.503 +03:00 [INF] Server desktop-rukajg8:13220:396943d2 has been stopped in total 3,3336 ms
