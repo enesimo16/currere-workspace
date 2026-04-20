@@ -1,6 +1,7 @@
 import Editor from '@monaco-editor/react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import api from '@/services/api';
+import axios from 'axios';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 
 interface CodeEditorProps {
@@ -12,6 +13,19 @@ interface CodeEditorProps {
 export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorProps) {
   const isInitialMount = useRef(true);
   const { activeFile } = useWorkspaceStore();
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = ''; // Modern browsers trigger the default dialog.
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   useEffect(() => {
     // İlk yüklemede kaydetme tetiklenmemesi için kontrol (Initial Mount)
@@ -27,13 +41,25 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
         if (activeFile.name === 'main.py') {
           await api.put(`/workspace/${workspaceId}/code`, { code });
         } else {
-          await api.put(`/workspace/${workspaceId}/file/${activeFile.name}`, { content: code });
+          const fileObj = new File([code], activeFile.name, { type: 'text/plain' });
+          const formData = new FormData();
+          formData.append('file', fileObj);
+          
+          await api.put(`/workspace/${workspaceId}/file/${activeFile.name}`, formData);
         }
+        
+        setHasUnsavedChanges(false);
         console.log(`Kod başarıyla otomatik kaydedildi (${activeFile.name}).`);
-      } catch (error) {
-        console.error('Kod kaydedilirken hata oluştu:', error);
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          console.error('Kayıt Hatası Detayı:', error.response?.data || error.message);
+        } else if (error instanceof Error) {
+          console.error('Kayıt Hatası Detayı:', error.message);
+        } else {
+          console.error('Kayıt Hatası Detayı:', error);
+        }
       }
-    }, 1500);
+    }, 1000);
 
     return () => clearTimeout(timeoutId);
   }, [code, workspaceId, activeFile.name]);
@@ -62,7 +88,10 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
           language={defaultLang}
           theme="vs-dark"
           value={code}
-          onChange={(val) => setCode(val || '')}
+          onChange={(val) => {
+            setCode(val || '');
+            setHasUnsavedChanges(true);
+          }}
           options={{
             minimap: { enabled: false },
             fontSize: 14,

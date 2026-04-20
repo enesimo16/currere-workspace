@@ -10,6 +10,7 @@ import EditorHeader from '@/components/editor/EditorHeader';
 import FileExplorer from '@/components/editor/FileExplorer';
 import CodeEditor from '@/components/editor/CodeEditor';
 import TerminalOutput from '@/components/editor/TerminalOutput';
+import CurrereAI from '@/components/editor/CurrereAI';
 
 export default function EditorPage() {
   const { activeWorkspace, activeFile } = useWorkspaceStore();
@@ -18,6 +19,7 @@ export default function EditorPage() {
 
   // States for Execution
   const [code, setCode] = useState('print("Merhaba TEKNOFEST 2026!")');
+  const [fileCache, setFileCache] = useState<Record<string, string>>({});
   const [terminalOutput, setTerminalOutput] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -47,18 +49,28 @@ export default function EditorPage() {
     const loadContent = async () => {
       if (!activeWorkspace?.id) return;
       
+      // Cache'de varsa oradan çek
+      if (fileCache[activeFile.name] !== undefined) {
+        setCode(fileCache[activeFile.name]);
+        return;
+      }
+      
       try {
+        let contentToSet = '';
         if (activeFile.name === 'main.py') {
-          // main.py ise workspace currentState'den çek veya lokal kal
-          setCode(activeWorkspace.currentState || '');
+          contentToSet = activeWorkspace.currentState || '';
         } else {
-          // Başka bir dosya ise raw content çek
           const response = await api.get(`/workspace/${activeWorkspace.id}/file/${activeFile.name}/raw`);
-          setCode(response.data.content || '');
+          contentToSet = response.data.content || '';
         }
+        
+        setCode(contentToSet);
+        setFileCache(prev => ({ ...prev, [activeFile.name]: contentToSet }));
       } catch (err) {
         console.error('Dosya içeriği alınamadı:', err);
-        setCode('// Dosya içeriği okunamadı veya yüklenemedi.');
+        const errMsg = '// Dosya içeriği okunamadı veya yüklenemedi.';
+        setCode(errMsg);
+        setFileCache(prev => ({ ...prev, [activeFile.name]: errMsg }));
       }
     };
 
@@ -67,6 +79,11 @@ export default function EditorPage() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeWorkspace?.id, activeFile.name, mounted]);
+
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    setFileCache(prev => ({ ...prev, [activeFile.name]: newCode }));
+  };
 
   const handleRun = async () => {
     if (!activeWorkspace) return;
@@ -172,9 +189,12 @@ export default function EditorPage() {
       
       <main className="flex-1 flex overflow-hidden">
         <FileExplorer workspaceId={activeWorkspace.id} />
-        <CodeEditor workspaceId={activeWorkspace.id} code={code} setCode={setCode} />
+        <CodeEditor workspaceId={activeWorkspace.id} code={code} setCode={handleCodeChange} />
         <TerminalOutput output={terminalOutput} isError={isError} />
       </main>
+      
+      {/* Floating AI Interface */}
+      <CurrereAI />
     </div>
   );
 }

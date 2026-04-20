@@ -92,14 +92,38 @@ namespace Currere_backend.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> UpdateFileContent(int workspaceId, string fileName, [FromBody] UpdateFileContentRequest request)
+        public async Task<IActionResult> UpdateFileContent([FromRoute] int workspaceId, [FromRoute] string fileName, [FromForm] IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                    return BadRequest(new { error = "Dosya boş geldi. Body veya FormData hatalı gönderilmiş olabilir." });
+
+                using var reader = new StreamReader(file.OpenReadStream());
+                var content = await reader.ReadToEndAsync();
+
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var success = await _fileService.UpdateFileContentAsync(workspaceId, userId, fileName, content);
+                if (!success) return BadRequest(new { error = "Dosya güncellenemedi." });
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpPost("create")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> CreateFile(int workspaceId, [FromBody] CreateFileRequest request)
         {
             try
             {
                 var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                var success = await _fileService.UpdateFileContentAsync(workspaceId, userId, fileName, request.Content);
-                if (!success) return BadRequest(new { error = "Dosya güncellenemedi." });
-                return Ok();
+                var result = await _fileService.CreateFileAsync(workspaceId, userId, request.FileName);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -111,5 +135,10 @@ namespace Currere_backend.Controllers
     public class UpdateFileContentRequest
     {
         public string Content { get; set; } = string.Empty;
+    }
+
+    public class CreateFileRequest
+    {
+        public string FileName { get; set; } = string.Empty;
     }
 }

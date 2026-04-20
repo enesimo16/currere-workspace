@@ -152,8 +152,59 @@ namespace Currere_backend.Services
             if (file == null || !System.IO.File.Exists(file.FilePath))
                 return false;
 
-            await System.IO.File.WriteAllTextAsync(file.FilePath, content);
+            // Güvenli dosya yazma işlemi (File Lock sorunlarını çözmek için FileMode.Create ve FileShare.None)
+            byte[] contentBytes = System.Text.Encoding.UTF8.GetBytes(content);
+            using (var stream = new FileStream(file.FilePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true))
+            {
+                await stream.WriteAsync(contentBytes, 0, contentBytes.Length);
+            }
+
             return true;
+        }
+
+        public async Task<FileUploadResponseDto> CreateFileAsync(int workspaceId, int userId, string fileName)
+        {
+            var workspace = await _context.Workspaces
+                .FirstOrDefaultAsync(w => w.Id == workspaceId && w.UserId == userId);
+            
+            if (workspace == null)
+                throw new Exception("Çalışma alanı bulunamadı veya yetkiniz yok.");
+
+            var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var workspaceFolderPath = Path.Combine(webRootPath, "workspaces", workspaceId.ToString());
+
+            if (!Directory.Exists(workspaceFolderPath))
+            {
+                Directory.CreateDirectory(workspaceFolderPath);
+            }
+
+            var uniqueFileName = $"{Guid.NewGuid().ToString("N").Substring(0, 8)}_{fileName}";
+            var fullPhysicalPath = Path.Combine(workspaceFolderPath, uniqueFileName);
+
+            // Create empty file
+            await System.IO.File.WriteAllTextAsync(fullPhysicalPath, "");
+
+            var workspaceFile = new WorkspaceFile
+            {
+                WorkspaceId = workspaceId,
+                FileName = fileName,
+                FilePath = fullPhysicalPath,
+                UploadedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddHours(24), // Empty files might last slightly longer, or same 4h. Let's do 4.
+                ProfileJson = null
+            };
+            workspaceFile.ExpiresAt = DateTime.UtcNow.AddHours(4);
+
+            _context.WorkspaceFiles.Add(workspaceFile);
+            await _context.SaveChangesAsync();
+
+            return new FileUploadResponseDto
+            {
+                FileId = workspaceFile.Id,
+                FileName = workspaceFile.FileName,
+                ExpiresAt = workspaceFile.ExpiresAt,
+                Message = "Dosya başarıyla oluşturuldu."
+            };
         }
     }
 }
