@@ -55,6 +55,7 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
 
 
 
+    builder.Services.AddMemoryCache();
     builder.Services.AddSignalR(); // frontend signalR
     builder.Services.AddControllers();
 
@@ -63,7 +64,7 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
     {
         options.AddPolicy("AllowAll",
             corsBuilder => corsBuilder
-                .SetIsOriginAllowed(origin => true) // SignalR with AllowCredentials requires this instead of AllowAnyOrigin
+                .SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost") // Flexibly allow localhost for SignalR
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials());
@@ -185,6 +186,7 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
     app.MapControllers();
 
     app.MapHub<TerminalHub>("/terminalHub"); // frontend signalR
+    app.MapHub<SyncHub>("/syncHub"); // VS Code Sync SignalR
 
     app.Run();
 }

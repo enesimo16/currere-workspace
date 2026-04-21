@@ -1,4 +1,4 @@
-﻿using Currere_backend.Models;
+using Currere_backend.Models;
 
 namespace Currere_backend.Services
 {
@@ -6,6 +6,7 @@ namespace Currere_backend.Services
     {
         Task<WorkspaceSnapshot> CreateSnapshotAsync(int workspaceId, string description);
         Task<bool> RestoreSnapshotAsync(int workspaceId, int snapshotId);
+        Task<bool> DeleteSnapshotAsync(int workspaceId, int snapshotId);
         Task<List<WorkspaceSnapshot>> GetSnapshotsAsync(int workspaceId);
     }
 }

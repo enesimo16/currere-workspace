@@ -6,6 +6,7 @@ import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 import { FiAlertCircle, FiLoader } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import JupyterViewer from './JupyterViewer';
+import { useSync } from '@/hooks/useSync';
 
 interface CodeEditorProps {
   workspaceId?: string | number;
@@ -20,12 +21,25 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
   const { activeFile, setActiveFile, pendingInjection, clearInjection } = useWorkspaceStore();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
+  
+  // VS Code Sync
+  const { sendUpdate } = useSync(workspaceId);
 
   // Monaco Editor yüklendiğinde referansı kaydet
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleEditorDidMount = (editor: any) => {
     editorRef.current = editor;
   };
+
+  // Sync Update Listener
+  useEffect(() => {
+    const handleSyncUpdate = (e: any) => {
+      if (e.detail !== undefined) {
+        setCode(e.detail);
+      }
+    };
+    window.addEventListener('editor-sync-update', handleSyncUpdate);
+    return () => window.removeEventListener('editor-sync-update', handleSyncUpdate);
+  }, [setCode]);
 
   // Kod Enjeksiyonu (AI Chat'ten gelen)
   useEffect(() => {
@@ -33,7 +47,6 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
       const editor = editorRef.current;
       const selection = editor.getSelection();
       const model = editor.getModel();
-
       if (model) {
         const range = selection || {
           startLineNumber: model.getLineCount(),
@@ -41,17 +54,8 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
           endLineNumber: model.getLineCount(),
           endColumn: model.getLineMaxColumn(model.getLineCount())
         };
-
         const textToInsert = `\n${pendingInjection}\n`;
-
-        editor.executeEdits('ai-injection', [
-          {
-            range: range,
-            text: textToInsert,
-            forceMoveMarkers: true
-          }
-        ]);
-
+        editor.executeEdits('ai-injection', [{ range, text: textToInsert, forceMoveMarkers: true }]);
         clearInjection();
         editor.focus();
       }
@@ -65,22 +69,20 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
         e.returnValue = '';
       }
     };
-    
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
+  // Debounced Sync & Auto-save
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
     }
 
-    if (!workspaceId) return;
+    if (!workspaceId || !activeFile.name || code === undefined) return;
 
     const timeoutId = setTimeout(async () => {
-      if (!activeFile?.name || code === undefined || code === null || !workspaceId) return;
-
       try {
         if (activeFile.name === 'main.py') {
           await api.put(`/workspace/${workspaceId}/code`, { code });
@@ -88,26 +90,18 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
           const blob = new Blob([code], { type: 'text/plain' });
           const formData = new FormData();
           formData.append('file', blob, activeFile.name);
-          
-          await api.put(`/workspace/${workspaceId}/file/${activeFile.name}`, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          });
+          await api.put(`/workspace/${workspaceId}/file/${activeFile.name}`, formData);
         }
-        
         setHasUnsavedChanges(false);
-        console.log(`Kod başarıyla otomatik kaydedildi (${activeFile.name}).`);
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          const detail = error.response?.data || error.message || 'Bilinmeyen hata';
-          console.error('Kayıt Hatası Detayı:', typeof detail === 'object' ? JSON.stringify(detail) : detail);
-        }
+        // VS Code'a gönder
+        sendUpdate(activeFile.name, code);
+      } catch (error) {
+        console.error('Kayıt Hatası:', error);
       }
-    }, 1000);
+    }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [code, workspaceId, activeFile.name, activeFile]);
+  }, [code, workspaceId, activeFile.name, sendUpdate]);
 
   const handleConvertNotebook = async () => {
     if (!activeFile.id || !workspaceId) {

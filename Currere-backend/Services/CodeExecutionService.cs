@@ -13,6 +13,7 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SignalR; 
+using Currere_backend.Data;
 
 namespace Currere_backend.Services
 {
@@ -22,14 +23,16 @@ namespace Currere_backend.Services
         private readonly IWebHostEnvironment _env;
         private readonly IHubContext<TerminalHub> _hubContext; // hubı aldık
         private readonly ICodePreProcessorService _codePreProcessorService;
+        private readonly AppDbContext _context;
 
         // Constructor güncellendi
-        public CodeExecutionService(IWebHostEnvironment env, IHubContext<TerminalHub> hubContext, ICodePreProcessorService codePreProcessorService)
+        public CodeExecutionService(IWebHostEnvironment env, IHubContext<TerminalHub> hubContext, ICodePreProcessorService codePreProcessorService, AppDbContext context)
         {
             _dockerClient = new DockerClientConfiguration().CreateClient();
             _env = env;
             _hubContext = hubContext;
             _codePreProcessorService = codePreProcessorService;
+            _context = context;
         }
 
         public async Task<ExecutionResultDto> ExecutePythonCodeAsync(ExecutionJob job)
@@ -38,6 +41,9 @@ namespace Currere_backend.Services
             int workspaceId = job.WorkspaceId;
             string code = job.Code?.Replace("\uFEFF", "").Replace("\r", "") ?? ""; // BOM ve Windows CRLF temizleme
             CodePreProcessResultDto preProcessResult;
+            string? hostWorkspacePath = null;
+            var containerId = string.Empty;
+
             try
             {
                 // STATİK AST GÜVENLİK TARAMASI VE IPYNB PARSER
@@ -57,16 +63,35 @@ namespace Currere_backend.Services
                 };
             }
 
-            var containerId = string.Empty;
-
             // FİZİKSEL KLASÖR YOLUNU BULMA
             var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            var hostWorkspacePath = Path.Combine(webRootPath, "workspaces", workspaceId.ToString());
-
+            
+            // --- DOSYA İZOLASYON SENKRONİZASYONU ---
+            // Her iş için geçici bir 'execution' klasörü oluşturuyoruz
+            hostWorkspacePath = Path.Combine(webRootPath, "executions", job.JobId);
             if (!Directory.Exists(hostWorkspacePath))
             {
                 Directory.CreateDirectory(hostWorkspacePath);
             }
+
+            // Workspace'e ait tüm fiziksel dosyaları (CSV, TXT vb.) bul ve kopyala
+            try {
+                var workspaceFiles = _context.WorkspaceFiles
+                    .Where(f => f.WorkspaceId == workspaceId && f.ExpiresAt > DateTime.UtcNow)
+                    .ToList();
+
+                foreach (var wf in workspaceFiles)
+                {
+                    if (File.Exists(wf.FilePath))
+                    {
+                        var destPath = Path.Combine(hostWorkspacePath, wf.FileName);
+                        File.Copy(wf.FilePath, destPath, true);
+                    }
+                }
+            } catch (Exception ex) {
+                Console.WriteLine($"[File Sync Error] Workspace {workspaceId}: {ex.Message}");
+            }
+            // ---------------------------------------
 
             // DOCKER İÇİN PATH DÜZELTMESİ (Windows '\' karakterini '/' yapar)
             var dockerBindPath = hostWorkspacePath.Replace("\\", "/");
@@ -116,6 +141,27 @@ namespace Currere_backend.Services
                     // Temizlik (geçici kurucu konteyner)
                     await _dockerClient.Containers.RemoveContainerAsync(installerResponse.ID, new ContainerRemoveParameters { Force = true });
                 }
+
+                // ── MATPLOTLIB HEADLESS INTERCEPTOR ──────────────────────────────
+                // Docker pencere açamaz; Agg (Anti-Grain Geometry) back-end'i kullan
+                // Kullanıcının koduna müdahale etmeden en üste enjekte ediyoruz.
+                const string matplotlibHeader = 
+                    "import matplotlib\n" +
+                    "matplotlib.use('Agg')\n";
+
+                // Eğer kullanıcı zaten matplotlib.use() yazmışsa tekrar ekleme
+                if (!code.Contains("matplotlib.use("))
+                {
+                    code = matplotlibHeader + code;
+                }
+
+                // plt.show() → savefig() dönüşümü
+                // /workspace/output Docker'da artifacts klasörüne bind edilmiş
+                code = code.Replace(
+                    "plt.show()",
+                    "plt.savefig('/workspace/output/output_plot.png', bbox_inches='tight', dpi=150)\nplt.close()"
+                );
+                // ─────────────────────────────────────────────────────────────────
 
                 // py wrapper ve base64 korumasi
                 // Kullanıcı kodundaki tırnak ve boşlukların bash/python'u patlatmaması için base64 ile şifreliyoruz
@@ -178,13 +224,13 @@ namespace Currere_backend.Services
                     Image = "currere-sandbox:latest",
                     Name = $"currere-run-{job.JobId}", // JobId tabanlı benzersiz isim
                     Env = envVars,
-                    Cmd = new List<string> { "python", "-u", "/app/runner.py" },
+                    Cmd = new List<string> { "python", "/app/runner.py" },
                     WorkingDir = "/workspace",
                     HostConfig = new HostConfig
                     {
                         Memory = 512L * 1024L * 1024L, // 512MB RAM Limit
-                        NanoCPUs = 500000000,          // 0.5 CPU Limit (Koruması)
-                        NetworkMode = "none",       // interneti kes
+                        NanoCPUs = 500000000,          // 0.5 CPU Limit
+                        NetworkMode = "none",          // İnternet yok
                         AutoRemove = false,
                         Binds = bindsList
                     }
@@ -270,31 +316,19 @@ namespace Currere_backend.Services
                     var jsonResult = JsonDocument.Parse(rawOutput).RootElement;
                     isSuccess = jsonResult.GetProperty("success").GetBoolean();
                     finalOutput = jsonResult.GetProperty("message").GetString() ?? "";
-
-                    if (!isSuccess)
-                    {
-                        errorType = jsonResult.GetProperty("error_type").GetString() ?? "UnknownError";
-                        if (finalOutput.Contains("Traceback (most recent call last)") || finalOutput.Contains("File \""))
-                        {
-                            finalOutput = ParsePythonTraceback(finalOutput, ref errorType);
-                        }
-                    }
+                    errorType = isSuccess ? "" : (jsonResult.TryGetProperty("error_type", out var et) ? et.GetString() : "PythonError");
                 }
                 catch
                 {
-                    // Docker json donmeden çökerse
+                    // Docker json donmeden çökerse (Sistem hatası veya runner.py patlaması)
                     isSuccess = false;
                     finalOutput = rawOutput + "\n" + (stderr?.Trim() ?? "");
                     errorType = "SystemCrashError";
-
-                    if (finalOutput.Contains("Traceback (most recent call last)") || finalOutput.Contains("File \""))
-                    {
-                        finalOutput = ParsePythonTraceback(finalOutput, ref errorType);
-                    }
                 }
 
-                // ARTIFACT URL COLLECTION
+                // ARTIFACT URL + BASE64 IMAGE COLLECTION
                 var artifactUrls = new List<string>();
+                var base64Images = new List<string>();
                 if (Directory.Exists(hostOutputPath))
                 {
                     var files = Directory.GetFiles(hostOutputPath);
@@ -302,6 +336,14 @@ namespace Currere_backend.Services
                     {
                         var fileName = Path.GetFileName(file);
                         artifactUrls.Add($"/artifacts/{job.JobId}/{fileName}");
+
+                        // PNG/JPG gibi görsel dosyaları Base64 olarak ekle
+                        var ext = Path.GetExtension(file).ToLowerInvariant();
+                        if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".svg")
+                        {
+                            var bytes = await File.ReadAllBytesAsync(file);
+                            base64Images.Add(Convert.ToBase64String(bytes));
+                        }
                     }
                 }
 
@@ -312,7 +354,8 @@ namespace Currere_backend.Services
                     ErrorType = errorType,
                     IsSuccess = isSuccess,
                     ExecutionTimeMs = stopwatch.ElapsedMilliseconds,
-                    ArtifactUrls = artifactUrls
+                    ArtifactUrls = artifactUrls,
+                    Images = base64Images
                 };
             }
             catch (Exception ex) when (ex is TaskCanceledException || ex is OperationCanceledException)
@@ -352,6 +395,16 @@ namespace Currere_backend.Services
                         await _dockerClient.Containers.RemoveContainerAsync(containerId, new ContainerRemoveParameters { Force = true });
                     }
                     catch { /* Temizlik sırasında hata olursa yut */ }
+                }
+
+                // Geçici çalışma klasörünü temizle
+                if (!string.IsNullOrEmpty(hostWorkspacePath) && Directory.Exists(hostWorkspacePath))
+                {
+                    try
+                    {
+                        Directory.Delete(hostWorkspacePath, true);
+                    }
+                    catch { /* Klasör silinemezse yut */ }
                 }
             }
         }

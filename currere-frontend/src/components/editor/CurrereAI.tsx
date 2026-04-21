@@ -2,8 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiSparkles } from 'react-icons/hi';
-import { FiSend, FiX, FiCopy, FiArrowRight, FiCheck } from 'react-icons/fi';
+import { FiSend, FiX, FiCopy, FiArrowRight, FiCheck, FiCpu, FiActivity } from 'react-icons/fi';
 import api from '@/services/api';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 
@@ -26,6 +25,8 @@ export default function CurrereAI() {
   const [injectedIds, setInjectedIds] = useState<Set<string>>(new Set());
 
   const dragConstraintsRef = useRef(null);
+
+  const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -138,7 +139,6 @@ export default function CurrereAI() {
       <motion.div 
         className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-auto"
         drag
-        dragConstraints={dragConstraintsRef}
         dragMomentum={false}
       >
         <AnimatePresence>
@@ -148,21 +148,21 @@ export default function CurrereAI() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: 20 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="mb-4 w-[340px] md:w-[480px] h-[550px] max-h-[75vh] bg-black/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+              className="absolute bottom-20 right-0 w-[340px] md:w-[480px] h-[550px] max-h-[75vh] bg-black/50 backdrop-blur-xl border border-zinc-800/50 rounded-2xl shadow-2xl flex flex-col overflow-hidden pointer-events-auto"
               style={{
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05) inset'
               }}
             >
-              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700/50 bg-[#1e1e1e]/60">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/50 bg-[#1e1e1e]/60">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
-                    <HiSparkles className="text-emerald-400 w-3.5 h-3.5 animate-pulse" />
+                    <FiCpu className="text-emerald-400 w-3.5 h-3.5 animate-pulse" />
                   </div>
-                  <span className="font-semibold text-zinc-200 text-sm tracking-wide">Currere AI Asistanı</span>
+                  <span className="font-bold text-zinc-200 text-sm tracking-tight font-sans">Currere AI Assistant</span>
                 </div>
                 <button 
                   onClick={() => setIsOpen(false)}
-                  className="p-1 hover:bg-gray-700/50 rounded-md text-gray-400 hover:text-white transition-colors cursor-pointer"
+                  className="p-1 hover:bg-zinc-800/50 rounded-md text-zinc-500 hover:text-white transition-colors cursor-pointer"
                 >
                   <FiX className="w-4 h-4" />
                 </button>
@@ -181,47 +181,20 @@ export default function CurrereAI() {
                           : msg.type === 'error'
                             ? 'bg-red-500/20 text-red-200 border border-red-500/30 rounded-bl-sm px-4 py-2.5'
                             : msg.type === 'code'
-                              ? 'bg-[#111111]/90 border border-gray-700 rounded-bl-sm w-full'
-                              : 'bg-[#2d2d2d]/80 text-zinc-200 border border-gray-600/30 rounded-bl-sm px-4 py-2.5'
+                              ? 'bg-[#111111]/90 border border-zinc-800 rounded-bl-sm w-full'
+                              : 'bg-[#2d2d2d]/80 text-zinc-200 border border-zinc-700/30 rounded-bl-sm px-4 py-2.5'
                       }`}
                     >
                       {msg.type === 'code' ? (
                         <div className="flex flex-col">
-                          <div className="flex items-center justify-between px-3 py-1.5 bg-[#1e1e1e] border-b border-gray-700/50 text-xs text-zinc-400">
+                          <div className="flex items-center justify-between px-3 py-1.5 bg-[#1e1e1e] border-b border-zinc-800/50 text-xs text-zinc-400">
                             <span className="font-medium text-emerald-500/80 uppercase tracking-tighter">Python</span>
                             <div className="flex items-center gap-3">
-                              <button 
-                                onClick={() => copyToClipboard(msg.text)}
-                                className="flex items-center gap-1 hover:text-emerald-400 transition-colors"
-                                title="Kodu Kopyala"
-                              >
-                                <FiCopy className="w-3 h-3" />
-                                <span>Kopyala</span>
-                              </button>
-                              <button 
-                                onClick={() => handleInject(msg.id, msg.text)}
-                                className={`flex items-center gap-1 transition-all duration-200 ${
-                                  injectedIds.has(msg.id) 
-                                    ? 'text-emerald-400 font-bold' 
-                                    : 'hover:text-blue-400'
-                                }`}
-                                title="Editöre Aktar"
-                              >
-                                {injectedIds.has(msg.id) ? (
-                                  <>
-                                    <FiCheck className="w-3.5 h-3.5 animate-bounce" />
-                                    <span>Aktarıldı</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <FiArrowRight className="w-3.5 h-3.5" />
-                                    <span>Aktar</span>
-                                  </>
-                                )}
-                              </button>
+                              <button onClick={() => copyToClipboard(msg.text)} className="hover:text-emerald-400 transition-colors"><FiCopy /></button>
+                              <button onClick={() => handleInject(msg.id, msg.text)} className="hover:text-blue-400 transition-colors"><FiArrowRight /></button>
                             </div>
                           </div>
-                          <pre className="p-3 overflow-x-auto text-[13px] text-zinc-300 font-mono">
+                          <pre className="p-3 overflow-x-auto text-[13px] text-zinc-300 font-mono italic">
                             <code>{msg.text.replace(/```python\s*|```/g, '')}</code>
                           </pre>
                         </div>
@@ -231,24 +204,13 @@ export default function CurrereAI() {
                     </div>
                   </div>
                 ))}
-                
                 {isTyping && (
-                  <div className="flex justify-start">
-                    <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-[#2d2d2d]/80 text-zinc-200 border border-gray-600/30 rounded-bl-sm flex items-center gap-1.5">
-                      <span className="text-xs text-emerald-400 font-medium tracking-wider animate-pulse">Currere AI Düşünüyor</span>
-                      <div className="flex gap-0.5 mt-1">
-                        <div className="w-1 h-1 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                        <div className="w-1 h-1 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                        <div className="w-1 h-1 bg-emerald-500 rounded-full animate-bounce"></div>
-                      </div>
-                    </div>
-                  </div>
+                   <div className="text-[10px] text-emerald-500/80 animate-pulse font-black tracking-widest pl-2">AI IS THINKING...</div>
                 )}
-                
                 <div ref={messagesEndRef} />
               </div>
 
-              <div className="p-3 bg-[#1e1e1e]/80 border-t border-gray-700/50">
+              <div className="p-3 bg-[#111111]/95 border-t border-zinc-800/50 backdrop-blur-md">
                 <div className="relative flex items-center">
                   <input 
                     type="text" 
@@ -256,13 +218,13 @@ export default function CurrereAI() {
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                     disabled={isTyping}
-                    placeholder={isTyping ? "Yanıt Bekleniyor..." : "Kodunuzla ilgili bir soru sorun..."}
-                    className="w-full bg-[#111111]/80 text-zinc-200 text-sm rounded-xl pl-4 pr-10 py-3 outline-none border border-gray-700/50 focus:border-emerald-500/50 transition-colors placeholder:text-zinc-500 disabled:opacity-50"
+                    placeholder="Ask about your code..."
+                    className="w-full bg-[#1a1a1a] text-zinc-200 text-xs rounded-xl pl-4 pr-10 py-3 outline-none border border-zinc-800 focus:border-emerald-500/40 transition-all placeholder:opacity-30"
                   />
                   <button 
                     onClick={handleSend}
                     disabled={!input.trim() || isTyping}
-                    className="absolute right-2 p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="absolute right-2 p-1.5 text-emerald-500 hover:text-emerald-400 transition-colors"
                   >
                     <FiSend className="w-4 h-4" />
                   </button>
@@ -275,14 +237,16 @@ export default function CurrereAI() {
         {/* Floating Bubble Button */}
         <motion.button
           onClick={() => setIsOpen(!isOpen)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="w-14 h-14 rounded-full bg-emerald-600 flex items-center justify-center shadow-xl border border-emerald-400/30 text-white cursor-pointer group"
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          whileTap={{ scale: 0.9 }}
+          type="button"
+          className="w-14 h-14 rounded-full bg-emerald-600 flex items-center justify-center shadow-2xl border border-emerald-400/30 text-white cursor-pointer group relative z-50 pointer-events-auto"
           style={{
             boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.4), 0 0 0 1px rgba(255,255,255,0.1) inset'
           }}
         >
-          <HiSparkles className="w-6 h-6 group-hover:animate-pulse" />
+          <FiCpu className="w-6 h-6 group-hover:animate-pulse" />
+          <div className="absolute inset-0 rounded-full bg-emerald-400/20 animate-ping duration-1000"></div>
         </motion.button>
       </motion.div>
     </>

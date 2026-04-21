@@ -26,3 +26,9 @@ Thumbs.db
 
 # User uploaded workspace files
 wwwroot/workspaces/
+
+# Currere Snapshot Temizliği
+**/wwwroot/workspaces/*_backup_*
+**/site-packages/
+**/bin/
+**/obj/

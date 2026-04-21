@@ -1,4 +1,4 @@
-﻿using System.IO.Compression;
+using System.IO.Compression;
 using Currere_backend.Data;
 using Currere_backend.Models;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +26,15 @@ namespace Currere_backend.Services
             var snapshotDirectory = Path.Combine(webRootPath, "snapshots", workspaceId.ToString());
 
             if (!Directory.Exists(workspacePath))
-                throw new Exception("Çalışma alanı bulunamadı. Yedeklenecek dosya yok.");
+                Directory.CreateDirectory(workspacePath);
+
+            // KRITIK: Veritabanındaki editör kodunu da yedekle (Eğer klasör boşsa yedek boş kalmasın)
+            var workspace = await _context.Workspaces.FindAsync(workspaceId);
+            if (workspace != null && !string.IsNullOrEmpty(workspace.CurrentState))
+            {
+                var codeBackupPath = Path.Combine(workspacePath, "_currere_code_snapshot.py");
+                await File.WriteAllTextAsync(codeBackupPath, workspace.CurrentState);
+            }
 
             if (!Directory.Exists(snapshotDirectory))
                 Directory.CreateDirectory(snapshotDirectory);
@@ -65,18 +73,97 @@ namespace Currere_backend.Services
 
             var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             var workspacePath = Path.Combine(webRootPath, "workspaces", workspaceId.ToString());
+            var tempRestorePath = Path.Combine(webRootPath, "workspaces", $"{workspaceId}_temp_restore");
+            var backupPath = Path.Combine(webRootPath, "workspaces", $"{workspaceId}_backup_{DateTime.UtcNow.Ticks}");
 
-            // workspace sil
-            if (Directory.Exists(workspacePath))
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                Directory.Delete(workspacePath, true);
+                // 1. Önce geçici klasöre aç ve doğrula
+                if (Directory.Exists(tempRestorePath)) Directory.Delete(tempRestorePath, true);
+                Directory.CreateDirectory(tempRestorePath);
+
+                ZipFile.ExtractToDirectory(snapshot.ZipFilePath, tempRestorePath, overwriteFiles: true);
+
+                if (Directory.GetFileSystemEntries(tempRestorePath).Length == 0)
+                {
+                    Directory.Delete(tempRestorePath, true);
+                    throw new Exception("Hatalı veya boş yedek! Sistem dosyaları korunarak geri yükleme iptal edildi.");
+                }
+
+                // 2. Mevcut çalışma alanını yedekle (Daha dirençli yöntem: öğeleri tek tek taşı)
+                if (Directory.Exists(workspacePath))
+                {
+                    Directory.CreateDirectory(backupPath);
+                    foreach (var entry in Directory.GetFileSystemEntries(workspacePath))
+                    {
+                        var name = Path.GetFileName(entry);
+                        var dest = Path.Combine(backupPath, name);
+                        try
+                        {
+                            if (Directory.Exists(entry)) Directory.Move(entry, dest);
+                            else File.Move(entry, dest);
+                        }
+                        catch (IOException ioEx)
+                        {
+                            throw new Exception($"'{name}' dosyası bir işlem tarafından kullanılıyor olabilir. Lütfen açık terminal veya dosyaları kapatıp tekrar deneyin. Detay: {ioEx.Message}");
+                        }
+                    }
+                    // Ana klasörü silmeye çalışma, sadece içini boşaltmış olduk (Windows kilitlerini aşmak için)
+                }
+
+                // 3. Geçici klasördeki yeni dosyaları asıl çalışma alanına aktar
+                foreach (var entry in Directory.GetFileSystemEntries(tempRestorePath))
+                {
+                    var name = Path.GetFileName(entry);
+                    var dest = Path.Combine(workspacePath, name);
+                    if (Directory.Exists(entry)) Directory.Move(entry, dest);
+                    else File.Move(entry, dest);
+                }
+
+                // 4. Veritabanındaki kodu zipten çıkan kodla senkronize et
+                var codeBackupPath = Path.Combine(workspacePath, "_currere_code_snapshot.py");
+                if (File.Exists(codeBackupPath))
+                {
+                    var restoredCode = await File.ReadAllTextAsync(codeBackupPath);
+                    var workspaceToUpdate = await _context.Workspaces.FindAsync(workspaceId);
+                    if (workspaceToUpdate != null)
+                    {
+                        workspaceToUpdate.CurrentState = restoredCode;
+                        _context.Workspaces.Update(workspaceToUpdate);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                await transaction.CommitAsync();
+
+                // Temizlik
+                if (Directory.Exists(backupPath)) Directory.Delete(backupPath, true);
+                if (Directory.Exists(tempRestorePath)) Directory.Delete(tempRestorePath, true);
+
+                return true;
             }
-            Directory.CreateDirectory(workspacePath);
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                
+                if (Directory.Exists(tempRestorePath)) Directory.Delete(tempRestorePath, true);
+                
+                // Hata durumunda yedekleri geri yüklemeye çalış
+                if (Directory.Exists(backupPath) && Directory.Exists(workspacePath))
+                {
+                    foreach (var entry in Directory.GetFileSystemEntries(backupPath))
+                    {
+                        var name = Path.GetFileName(entry);
+                        var dest = Path.Combine(workspacePath, name);
+                        if (Directory.Exists(entry)) Directory.Move(entry, dest);
+                        else File.Move(entry, dest);
+                    }
+                    Directory.Delete(backupPath, true);
+                }
 
-            // yedeği workspaceye
-            ZipFile.ExtractToDirectory(snapshot.ZipFilePath, workspacePath, overwriteFiles: true);
-
-            return true;
+                throw new Exception($"Geri yükleme başarısız: {ex.Message}");
+            }
         }
 
         public async Task<List<WorkspaceSnapshot>> GetSnapshotsAsync(int workspaceId)
@@ -85,6 +172,26 @@ namespace Currere_backend.Services
                 .Where(s => s.WorkspaceId == workspaceId)
                 .OrderByDescending(s => s.CreatedAt)
                 .ToListAsync();
+        }
+
+        public async Task<bool> DeleteSnapshotAsync(int workspaceId, int snapshotId)
+        {
+            var snapshot = await _context.WorkspaceSnapshots
+                .FirstOrDefaultAsync(s => s.Id == snapshotId && s.WorkspaceId == workspaceId);
+
+            if (snapshot == null) return false;
+
+            // 1. Fiziki dosyayı sil
+            if (File.Exists(snapshot.ZipFilePath))
+            {
+                try { File.Delete(snapshot.ZipFilePath); } catch { /* log and continue */ }
+            }
+
+            // 2. DB kaydını sil
+            _context.WorkspaceSnapshots.Remove(snapshot);
+            await _context.SaveChangesAsync();
+
+            return true;
         }
     }
 }

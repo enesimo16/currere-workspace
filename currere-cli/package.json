@@ -1,0 +1,13 @@
+{
+  "name": "currere-cli",
+  "version": "1.0.0",
+  "description": "Currere VS Code Local Sync Agent",
+  "main": "index.js",
+  "bin": {
+    "currere-cli": "index.js"
+  },
+  "dependencies": {
+    "@microsoft/signalr": "^8.0.0",
+    "chokidar": "^3.6.0"
+  }
+}

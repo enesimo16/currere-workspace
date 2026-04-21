@@ -25,6 +25,8 @@ export default function EditorPage() {
   const [terminalOutput, setTerminalOutput] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [outputImages, setOutputImages] = useState<string[]>([]);
+  const [forceVisualTab, setForceVisualTab] = useState(false);
   
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -92,10 +94,26 @@ export default function EditorPage() {
     
     setIsExecuting(true);
     setIsError(false);
-    setTerminalOutput('--- Execution Started ---\n\nYürütülüyor...');
+    setOutputImages([]);
+    setForceVisualTab(false);
+    setTerminalOutput('--- Yürütme Başladı ---\n\nYürütülüyor...');
+
+    // Matplotlib & Styling Interceptor
+    const interceptorCode = `
+import matplotlib.pyplot as plt
+import matplotlib
+import os
+try:
+    plt.style.use('dark_background')
+    matplotlib.rcParams['axes.prop_cycle'] = matplotlib.cycler(color=['#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#f59e0b'])
+    matplotlib.rcParams['font.family'] = 'sans-serif'
+    matplotlib.rcParams['grid.alpha'] = 0.1
+except:
+    pass
+` + "\n" + code;
 
     try {
-      const response = await api.post(`/execution/${activeWorkspace.id}/run`, { code });
+      const response = await api.post(`/execution/${activeWorkspace.id}/run`, { code: interceptorCode });
       
       if (response.data && response.data.jobId) {
         const jobId = response.data.jobId;
@@ -135,6 +153,14 @@ export default function EditorPage() {
             if (isSuccess !== undefined) {
               if (isSuccess) {
                 setTerminalOutput(data.output || data.Output || 'Çalıştırma tamamlandı (Çıktı yok).');
+                // İmaj varsa yakala ve otomatik görsel sekmeye geç
+                const imgs = data.images || data.Images || [];
+                if (imgs.length > 0) {
+                  setOutputImages(imgs);
+                  setForceVisualTab(true);
+                } else {
+                  setOutputImages([]);
+                }
               } else {
                 setIsError(true);
                 setTerminalOutput((data.error || data.Error) + '\n' + (data.errorType || data.ErrorType || ''));
@@ -199,7 +225,7 @@ export default function EditorPage() {
               <CodeEditor workspaceId={activeWorkspace.id} code={code} setCode={handleCodeChange} />
             )
           }
-          rightPanel={<TerminalOutput output={terminalOutput} isError={isError} />}
+          rightPanel={<TerminalOutput output={terminalOutput} isError={isError} images={outputImages} forceVisualTab={forceVisualTab} workspaceId={activeWorkspace.id} />}
         />
       </main>
       

@@ -21,14 +21,16 @@ namespace Currere_backend.Controllers
         private readonly IDatasetProfilerService _profilerService;
         private readonly INotebookConverterService _notebookConverterService;
         private readonly ICodeExecutionService _executionService;
+        private readonly IHuggingFaceService _hfService;
 
-        public AiController(IAiService aiService, AppDbContext context, IDatasetProfilerService profilerService, INotebookConverterService notebookConverterService, ICodeExecutionService executionService)
+        public AiController(IAiService aiService, AppDbContext context, IDatasetProfilerService profilerService, INotebookConverterService notebookConverterService, ICodeExecutionService executionService, IHuggingFaceService hfService)
         {
             _aiService = aiService;
             _context = context;
             _profilerService = profilerService;
             _notebookConverterService = notebookConverterService;
             _executionService = executionService;
+            _hfService = hfService;
         }
 
         private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -312,6 +314,53 @@ HATALARI OLAN KOD:
             catch (Exception ex)
             {
                 return StatusCode(500, new { error = $"Dönüşüm Motoru Hatası: {ex.Message}" });
+            }
+        }
+
+        [HttpPost("generate-synthetic-data")]
+        public async Task<IActionResult> GenerateSyntheticData(int workspaceId, [FromBody] GenerateSyntheticDataDto request)
+        {
+            if (!await IsWorkspaceOwnerAsync(workspaceId)) 
+                return NotFound(new { error = "Çalışma alanı bulunamadı veya erişim yetkiniz yok." });
+
+            try
+            {
+                var csvData = await _hfService.GenerateSyntheticDataAsync(request.Prompt, request.RowCount);
+
+                return Ok(new
+                {
+                    message = "Sentetik veri başarıyla üretildi.",
+                    csv = csvData
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Hugging Face Üretim Hatası: {ex.Message}" });
+            }
+        }
+
+        [HttpPost("push-to-huggingface")]
+        public async Task<IActionResult> PushToHuggingFace(int workspaceId, [FromBody] PushToHubDto request)
+        {
+            if (!await IsWorkspaceOwnerAsync(workspaceId)) 
+                return NotFound(new { error = "Çalışma alanı bulunamadı veya erişim yetkiniz yok." });
+
+            if (string.IsNullOrEmpty(request.HfToken))
+                return BadRequest(new { error = "Hugging Face Access Token bulunamadı. Lütfen ayarlar kısmından giriş yapın." });
+
+            try
+            {
+                var hubLink = await _hfService.PushToHubAsync(workspaceId, request);
+
+                return Ok(new
+                {
+                    message = "Model Hub'a başarıyla aktarıldı.",
+                    url = hubLink
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Hugging Face Hub Hatası: {ex.Message}" });
             }
         }
     }

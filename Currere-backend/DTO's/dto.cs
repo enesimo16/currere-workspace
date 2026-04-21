@@ -126,8 +126,8 @@ namespace Currere_backend.DTOs
         public bool IsSuccess { get; set; }                 
         public long ExecutionTimeMs { get; set; }
         public List<string> ArtifactUrls { get; set; } = new List<string>();
-
-        public string ErrorType { get; set; } = string.Empty; // runnerdan error kodu almak cini
+        public List<string> Images { get; set; } = new List<string>(); // Base64 PNG görseller
+        public string ErrorType { get; set; } = string.Empty;
     }
 
 
@@ -186,6 +186,7 @@ namespace Currere_backend.DTOs
     public class CreateSnapshotRequest
     {
         public string Description { get; set; } = string.Empty;
+        public int UserId { get; set; } // Kullanıcı takibi için eklendi
     }
 
     // dataset

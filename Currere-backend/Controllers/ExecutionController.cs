@@ -80,8 +80,9 @@ namespace Currere_backend.Controllers
 
             if (job.Status == "Failed")
             {
-                // Result null ise internal failed olmuştur
-                return BadRequest(job.Result ?? new ExecutionResultDto { IsSuccess = false, Error = "Kuyruk hatası." });
+                // Result null ise internal failed olmuştur. Hata olsa bile kullanıcıya terminal çıktısını 
+                // gösterebilmek için 200 OK dönüyoruz.
+                return Ok(job.Result ?? new ExecutionResultDto { IsSuccess = false, Error = "İşlem başarısız veya kuyruk hatası." });
             }
 
             return Ok(job.Result);
