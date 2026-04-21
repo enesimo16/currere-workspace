@@ -11,5 +11,7 @@ namespace Currere_backend.Services
         Task<string> GetFileContentAsync(int workspaceId, int userId, string fileName);
         Task<bool> UpdateFileContentAsync(int workspaceId, int userId, string fileName, string content);
         Task<FileUploadResponseDto> CreateFileAsync(int workspaceId, int userId, string fileName);
+        Task<bool> DeleteFileAsync(int workspaceId, int userId, string fileName);
+        Task<bool> RenameFileAsync(int workspaceId, int userId, string oldFileName, string newFileName);
     }
 }

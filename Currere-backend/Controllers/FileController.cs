@@ -96,8 +96,8 @@ namespace Currere_backend.Controllers
         {
             try
             {
-                if (file == null || file.Length == 0)
-                    return BadRequest(new { error = "Dosya boş geldi. Body veya FormData hatalı gönderilmiş olabilir." });
+                if (file == null)
+                    return BadRequest(new { error = "Dosya gönderilmedi." });
 
                 using var reader = new StreamReader(file.OpenReadStream());
                 var content = await reader.ReadToEndAsync();
@@ -130,6 +130,44 @@ namespace Currere_backend.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        [HttpDelete("{fileName}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> DeleteFile(int workspaceId, string fileName)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var success = await _fileService.DeleteFileAsync(workspaceId, userId, fileName);
+                if (!success) return BadRequest(new { error = "Dosya silinemedi." });
+                return Ok(new { message = "Dosya başarıyla silindi." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpPut("{fileName}/rename")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> RenameFile(int workspaceId, string fileName, [FromBody] RenameFileRequest request)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var success = await _fileService.RenameFileAsync(workspaceId, userId, fileName, request.NewFileName);
+                if (!success) return BadRequest(new { error = "Dosya adı güncellenemedi." });
+                return Ok(new { message = "Dosya başarıyla yeniden adlandırıldı." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 
     public class UpdateFileContentRequest
@@ -140,5 +178,10 @@ namespace Currere_backend.Controllers
     public class CreateFileRequest
     {
         public string FileName { get; set; } = string.Empty;
+    }
+
+    public class RenameFileRequest
+    {
+        public string NewFileName { get; set; } = string.Empty;
     }
 }

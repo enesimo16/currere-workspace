@@ -17,14 +17,16 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  
-  // Create a default string to avoid reference checks on simple strings if needed
+  const [isCreatingModalOpen, setIsCreatingModalOpen] = useState(false);
+  const [newWorkspaceTitle, setNewWorkspaceTitle] = useState('');
+  const [newWorkspaceFormat, setNewWorkspaceFormat] = useState(1); // 1 = Python
+  const [newWorkspaceRuntime, setNewWorkspaceRuntime] = useState(1); // 1 = CPU
+
   const loadWorkspaces = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       const res = await api.get('/workspace');
-      // Assume res.data is an array or has a data property
       const data = Array.isArray(res.data) ? res.data : (res.data?.data || []);
       setWorkspaces(data);
     } catch (err: unknown) {
@@ -59,12 +61,17 @@ export default function DashboardPage() {
   }, [isAuthenticated, token, router, mounted, loadWorkspaces]);
 
   const handleCreateWorkspace = async () => {
-    const name = prompt('Yeni çalışma alanı adı:', `Yeni Workspace ${Math.floor(Math.random() * 1000)}`);
-    if (!name || !name.trim()) return;
+    if (!newWorkspaceTitle.trim()) return;
     
     try {
       setIsCreating(true);
-      await api.post('/workspace', { title: name.trim() });
+      await api.post('/workspace', { 
+        title: newWorkspaceTitle.trim(),
+        format: newWorkspaceFormat,
+        runtime: newWorkspaceRuntime
+      });
+      setIsCreatingModalOpen(false);
+      setNewWorkspaceTitle('');
       await loadWorkspaces();
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -78,7 +85,7 @@ export default function DashboardPage() {
   };
 
   const handleDeleteWorkspace = async (id: string | number, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click
+    e.stopPropagation();
     if (!confirm('Bu çalışma alanını silmek istediğinize emin misiniz?')) return;
     
     try {
@@ -133,15 +140,14 @@ export default function DashboardPage() {
             <p className="text-zinc-500 mt-1 font-light">Tüm projelerinizi buradan yönetebilirsiniz.</p>
           </div>
           <button
-            onClick={handleCreateWorkspace}
+            onClick={() => {
+              setNewWorkspaceTitle(`Yeni Workspace ${Math.floor(Math.random() * 1000)}`);
+              setIsCreatingModalOpen(true);
+            }}
             disabled={isCreating}
             className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm hover:shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {isCreating ? (
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-            ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            )}
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             Yeni Çalışma Alanı
           </button>
         </div>
@@ -164,7 +170,10 @@ export default function DashboardPage() {
             <h3 className="text-lg font-medium text-zinc-800">Henüz hiçbir çalışma alanınız yok</h3>
             <p className="text-zinc-500 mt-2 mb-6 max-w-sm mx-auto font-light">Yeni bir proje başlatmak için hemen bir çalışma alanı oluşturun.</p>
             <button
-              onClick={handleCreateWorkspace}
+              onClick={() => {
+                setNewWorkspaceTitle(`Yeni Workspace ${Math.floor(Math.random() * 1000)}`);
+                setIsCreatingModalOpen(true);
+              }}
               className="px-5 py-2.5 bg-white border border-zinc-200 hover:border-zinc-300 text-zinc-800 rounded-xl font-medium transition-all shadow-sm"
             >
               İlk Alanınızı Oluşturun
@@ -205,6 +214,70 @@ export default function DashboardPage() {
           </div>
         )}
       </main>
+      
+      {/* Create Workspace Modal */}
+      {isCreatingModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-zinc-200 animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-zinc-100 flex justify-between items-center bg-zinc-50/50">
+              <h2 className="text-xl font-medium text-zinc-800">Yeni Çalışma Alanı</h2>
+              <button onClick={() => setIsCreatingModalOpen(false)} className="text-zinc-400 hover:text-zinc-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 mb-2">Başlık</label>
+                <input 
+                  autoFocus
+                  type="text" 
+                  value={newWorkspaceTitle}
+                  onChange={(e) => setNewWorkspaceTitle(e.target.value)}
+                  className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:border-zinc-950 transition-colors"
+                  placeholder="Proje adını girin..."
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 mb-2">Format</label>
+                  <select 
+                    value={newWorkspaceFormat}
+                    onChange={(e) => setNewWorkspaceFormat(Number(e.target.value))}
+                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:border-zinc-950 transition-colors"
+                  >
+                    <option value={1}>Python (.py)</option>
+                    <option value={2}>Notebook (.ipynb)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 mb-2">Runtime</label>
+                  <select 
+                    value={newWorkspaceRuntime}
+                    onChange={(e) => setNewWorkspaceRuntime(Number(e.target.value))}
+                    className="w-full px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-2xl outline-none focus:border-zinc-950 transition-colors"
+                  >
+                    <option value={1}>CPU</option>
+                    <option value={2}>GPU</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="pt-2">
+                <button
+                  onClick={handleCreateWorkspace}
+                  disabled={isCreating || !newWorkspaceTitle.trim()}
+                  className="w-full bg-zinc-900 hover:bg-zinc-800 text-white py-3.5 rounded-2xl font-medium transition-all shadow-md active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isCreating && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
+                  {isCreating ? 'Oluşturuluyor...' : 'Hemen Başla'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

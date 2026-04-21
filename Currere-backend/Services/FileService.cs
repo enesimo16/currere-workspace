@@ -206,5 +206,76 @@ namespace Currere_backend.Services
                 Message = "Dosya başarıyla oluşturuldu."
             };
         }
+        
+        public async Task<bool> DeleteFileAsync(int workspaceId, int userId, string fileName)
+        {
+            var workspace = await _context.Workspaces
+                .FirstOrDefaultAsync(w => w.Id == workspaceId && w.UserId == userId);
+            
+            if (workspace == null) return false;
+
+            var file = await _context.WorkspaceFiles
+                .FirstOrDefaultAsync(f => f.WorkspaceId == workspaceId && f.FileName == fileName);
+
+            if (file == null) return false;
+
+            // Physical delete
+            if (System.IO.File.Exists(file.FilePath))
+            {
+                System.IO.File.Delete(file.FilePath);
+            }
+
+            // DB delete
+            _context.WorkspaceFiles.Remove(file);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> RenameFileAsync(int workspaceId, int userId, string oldFileName, string newFileName)
+        {
+            var workspace = await _context.Workspaces
+                .FirstOrDefaultAsync(w => w.Id == workspaceId && w.UserId == userId);
+            
+            if (workspace == null) return false;
+
+            var file = await _context.WorkspaceFiles
+                .FirstOrDefaultAsync(f => f.WorkspaceId == workspaceId && f.FileName == oldFileName);
+
+            if (file == null) return false;
+
+            // Check if new name already exists in DB for this workspace
+            var exists = await _context.WorkspaceFiles.AnyAsync(f => f.WorkspaceId == workspaceId && f.FileName == newFileName);
+            if (exists) throw new Exception("Bu ada sahip bir dosya zaten mevcut.");
+
+            // Physical rename
+            var directory = Path.GetDirectoryName(file.FilePath);
+            if (directory == null) return false;
+
+            // Generate new physical path (keeping the random prefix if possible, or generating new one)
+            // Let's generate a new one to be safe and consistent with Upload logic
+            var uniquePrefix = Guid.NewGuid().ToString("N").Substring(0, 8);
+            var newPhysicalName = $"{uniquePrefix}_{newFileName}";
+            var newFilePath = Path.Combine(directory, newPhysicalName);
+
+            if (System.IO.File.Exists(file.FilePath))
+            {
+                System.IO.File.Move(file.FilePath, newFilePath);
+            }
+            else
+            {
+                // If physical file missing but DB exists, we should probably still allow rename or handle it
+                // For now, let's just create an empty file if it's missing (unlikely case)
+                await System.IO.File.WriteAllTextAsync(newFilePath, "");
+            }
+
+            // Update DB
+            file.FileName = newFileName;
+            file.FilePath = newFilePath;
+            
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
     }
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import api from '@/services/api';
 import axios from 'axios';
-import { FiUpload, FiFile, FiImage, FiPlus, FiSettings, FiSearch, FiDownload, FiX } from 'react-icons/fi';
+import { FiUpload, FiFile, FiImage, FiPlus, FiSettings, FiSearch, FiDownload, FiX, FiEdit, FiTrash2 } from 'react-icons/fi';
 import { DiPython } from 'react-icons/di';
 import { BsFiletypeCsv, BsFiletypeJson, BsFiletypeSql } from 'react-icons/bs';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
@@ -29,6 +29,10 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isCreatingFile, setIsCreatingFile] = useState(false);
   const [newFileName, setNewFileName] = useState('');
+  
+  // Renaming states
+  const [renamingFileId, setRenamingFileId] = useState<number | null>(null);
+  const [renameInput, setRenameInput] = useState('');
   
   const [activeTab, setActiveTab] = useState<'files' | 'kaggle'>('files');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -192,6 +196,68 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
     }
   };
 
+  const handleRenameSubmit = async (file: WorkspaceFile) => {
+    if (!renameInput.trim() || renameInput === file.fileName) {
+      setRenamingFileId(null);
+      return;
+    }
+
+    try {
+      await api.put(`/workspace/${workspaceId}/file/${file.fileName}/rename`, {
+        newFileName: renameInput.trim()
+      });
+
+      // Update active file if it was the one renamed
+      if (activeFile.name === file.fileName) {
+        setActiveFile({ name: renameInput.trim(), type: activeFile.name.endsWith('.csv') ? 'file' : 'code' });
+      }
+
+      await fetchFiles();
+      setRenamingFileId(null);
+    } catch (err: unknown) {
+      console.error('Renaming error:', err);
+      alert('Dosya adı değiştirilemedi.');
+    }
+  };
+
+  const handleDeleteFile = async (fileName: string) => {
+    if (!window.confirm(`${fileName} dosyasını silmek istediğinize emin misiniz?`)) return;
+
+    try {
+      await api.delete(`/workspace/${workspaceId}/file/${fileName}`);
+      
+      // If deleted file is active, reset to main.py
+      if (activeFile.name === fileName) {
+        setActiveFile({ name: 'main.py', type: 'code' });
+      }
+
+      await fetchFiles();
+    } catch (err: unknown) {
+      console.error('Delete error:', err);
+      alert('Dosya silinemedi.');
+    }
+  };
+
+  const handleDownloadFile = async (fileName: string) => {
+    try {
+      const response = await api.get(`/workspace/${workspaceId}/file/${fileName}/raw`);
+      const content = response.data.content;
+      
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err: unknown) {
+      console.error('Download error:', err);
+      alert('Dosya indirilemedi.');
+    }
+  };
+
   const getFileIcon = (fileName: string) => {
     const ext = fileName.split('.').pop()?.toLowerCase();
     switch (ext) {
@@ -347,7 +413,16 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
                   }`}
                 >
                   <div className="shrink-0"><DiPython className="text-emerald-500 w-5 h-5 bg-emerald-500/10 rounded-sm" /></div>
-                  <span className="truncate hidden md:block font-medium">main.py</span>
+                  <span className="truncate hidden md:block font-medium flex-1">main.py</span>
+                  <div className="hidden group-hover:flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleDownloadFile('main.py'); }}
+                      className="p-1 hover:text-emerald-400 transition-colors"
+                      title="İndir"
+                    >
+                      <FiDownload className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
                 {files.length === 0 && (
@@ -361,7 +436,11 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
                   <div 
                     key={file.id}
                     title={file.fileName}
-                    onClick={() => setActiveFile({ name: file.fileName, type: 'file' })}
+                    onClick={() => {
+                       if (renamingFileId !== file.id) {
+                         setActiveFile({ name: file.fileName, type: file.fileName.endsWith('.csv') ? 'file' : 'code' });
+                       }
+                    }}
                     className={`group flex items-center gap-2.5 px-2.5 py-1.5 rounded-md cursor-pointer text-sm transition-colors border ${
                       activeFile.name === file.fileName
                         ? 'bg-[#2d2d2d] text-zinc-200 border-[#3d3d3d]'
@@ -369,7 +448,49 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
                     }`}
                   >
                     <div className="shrink-0">{getFileIcon(file.fileName)}</div>
-                    <span className="truncate hidden md:block">{file.fileName}</span>
+                    
+                    {renamingFileId === file.id ? (
+                      <input
+                        autoFocus
+                        value={renameInput}
+                        onChange={(e) => setRenameInput(e.target.value)}
+                        onBlur={() => handleRenameSubmit(file)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleRenameSubmit(file)}
+                        className="flex-1 bg-[#111111] text-zinc-200 text-xs rounded px-1 py-0.5 outline-none border border-emerald-500/50"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    ) : (
+                      <>
+                        <span className="truncate hidden md:block flex-1">{file.fileName}</span>
+                        <div className="hidden group-hover:flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              setRenamingFileId(file.id); 
+                              setRenameInput(file.fileName); 
+                            }}
+                            className="p-1 hover:text-blue-400 transition-colors"
+                            title="Yeniden Adlandır"
+                          >
+                            <FiEdit className="w-3 h-3" />
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleDownloadFile(file.fileName); }}
+                            className="p-1 hover:text-emerald-400 transition-colors"
+                            title="İndir"
+                          >
+                            <FiDownload className="w-3 h-3" />
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleDeleteFile(file.fileName); }}
+                            className="p-1 hover:text-red-400 transition-colors"
+                            title="Sil"
+                          >
+                            <FiTrash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>

@@ -37,13 +37,16 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
     if (!workspaceId) return;
 
     const timeoutId = setTimeout(async () => {
+      // Ghost Save (Race Condition) Onarımı: Aktif dosya değişmiş veya silinmiş olabilir.
+      if (!activeFile?.name || code === undefined || code === null || !workspaceId) return;
+
       try {
         if (activeFile.name === 'main.py') {
           await api.put(`/workspace/${workspaceId}/code`, { code });
         } else {
           const blob = new Blob([code], { type: 'text/plain' });
           const formData = new FormData();
-          formData.append('file', blob, activeFile.name); // Final word: key is 'file'
+          formData.append('file', blob, activeFile.name);
           
           await api.put(`/workspace/${workspaceId}/file/${activeFile.name}`, formData, {
             headers: {
@@ -56,17 +59,18 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
         console.log(`Kod başarıyla otomatik kaydedildi (${activeFile.name}).`);
       } catch (error: unknown) {
         if (axios.isAxiosError(error)) {
-          console.error('Kayıt Hatası Detayı:', error.response?.data || error.message);
+          const detail = error.response?.data || error.message || 'Bilinmeyen hata';
+          console.error('Kayıt Hatası Detayı:', typeof detail === 'object' ? JSON.stringify(detail) : detail);
         } else if (error instanceof Error) {
           console.error('Kayıt Hatası Detayı:', error.message);
         } else {
-          console.error('Kayıt Hatası Detayı:', error);
+          console.error('Kayıt Hatası Detayı:', String(error));
         }
       }
     }, 1000);
 
     return () => clearTimeout(timeoutId);
-  }, [code, workspaceId, activeFile.name]);
+  }, [code, workspaceId, activeFile.name, activeFile]);
 
   const ext = activeFile.name.split('.').pop()?.toLowerCase();
   let defaultLang = 'python';
