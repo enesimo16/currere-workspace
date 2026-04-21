@@ -11,6 +11,7 @@ export interface Workspace {
 }
 
 export interface ActiveFile {
+  id?: number | null;
   name: string;
   type: string;
 }
