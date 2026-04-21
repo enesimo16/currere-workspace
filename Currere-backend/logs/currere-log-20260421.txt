@@ -4416,3 +4416,580 @@ ORDER BY [w].[UpdatedAt] DESC
 2026-04-21 20:39:14.642 +03:00 [INF] Server desktop-rukajg8:11796:0a91bff9 All dispatchers stopped
 2026-04-21 20:39:14.644 +03:00 [INF] Server desktop-rukajg8:11796:0a91bff9 successfully reported itself as stopped in 0,2561 ms
 2026-04-21 20:39:14.645 +03:00 [INF] Server desktop-rukajg8:11796:0a91bff9 has been stopped in total 4,2119 ms
+2026-04-21 20:41:39.911 +03:00 [INF] Currere API aya?a kalk?yor...
+2026-04-21 20:41:40.279 +03:00 [INF] User profile is available. Using 'C:\Users\enes yel\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-04-21 20:41:40.292 +03:00 [INF] Execution Worker arka planda calismaya basladi.
+2026-04-21 20:41:40.292 +03:00 [INF] SystemMaintenanceWorker başlatıldı...
+2026-04-21 20:41:40.293 +03:00 [INF] Sistem temizliği başlatılıyor (Docker Prune, Files, DB)...
+2026-04-21 20:41:40.342 +03:00 [INF] Now listening on: http://localhost:5279
+2026-04-21 20:41:40.347 +03:00 [INF] Starting Hangfire Server using job storage: 'Hangfire.MemoryStorage.MemoryStorage'
+2026-04-21 20:41:40.348 +03:00 [INF] Using the following options for Hangfire Server:
+    Worker count: 20
+    Listening queues: 'default'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+2026-04-21 20:41:40.355 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-04-21 20:41:40.356 +03:00 [INF] Hosting environment: Development
+2026-04-21 20:41:40.357 +03:00 [INF] Content root path: C:\Users\enes yel\Desktop\Currere\Currere-backend
+2026-04-21 20:41:40.363 +03:00 [INF] Server desktop-rukajg8:18008:13b08c27 successfully announced in 4,5884 ms
+2026-04-21 20:41:40.366 +03:00 [INF] Server desktop-rukajg8:18008:13b08c27 is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, ExpirationManager, CountersAggregator, Worker, DelayedJobScheduler, RecurringJobScheduler...
+2026-04-21 20:41:40.372 +03:00 [INF] Server desktop-rukajg8:18008:13b08c27 all the dispatchers started
+2026-04-21 20:41:41.053 +03:00 [INF] Executed DbCommand (21ms) [Parameters=[@__thirtyDaysAgo_0='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT [e].[Id], [e].[ArtifactUrls], [e].[CodeContent], [e].[CodeHash], [e].[CreatedAt], [e].[DatasetReference], [e].[ExecutionDurationMs], [e].[IsSuccess], [e].[OutputMetrics], [e].[WorkspaceId]
+FROM [ExperimentLogs] AS [e]
+WHERE [e].[CreatedAt] < @__thirtyDaysAgo_0
+2026-04-21 20:41:41.068 +03:00 [INF] Bir sonraki temizlik için bekleniyor... Süre: 6,3 saat.
+2026-04-21 20:41:45.087 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace - null null
+2026-04-21 20:41:45.125 +03:00 [WRN] Failed to determine the https port for redirect.
+2026-04-21 20:41:45.127 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:41:45.131 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace - 204 null null 44.7964ms
+2026-04-21 20:41:45.136 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace - null null
+2026-04-21 20:41:45.143 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:41:45.209 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.WorkspaceController.GetMyWorkspaces (Currere-backend)'
+2026-04-21 20:41:45.220 +03:00 [INF] Route matched with {action = "GetMyWorkspaces", controller = "Workspace"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetMyWorkspaces() on controller Currere_backend.Controllers.WorkspaceController (Currere-backend).
+2026-04-21 20:41:45.273 +03:00 [INF] Executed DbCommand (12ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[UserId] = @__userId_0
+ORDER BY [w].[UpdatedAt] DESC
+2026-04-21 20:41:45.351 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceResponseDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:41:45.388 +03:00 [INF] Executed action Currere_backend.Controllers.WorkspaceController.GetMyWorkspaces (Currere-backend) in 164.197ms
+2026-04-21 20:41:45.390 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.WorkspaceController.GetMyWorkspaces (Currere-backend)'
+2026-04-21 20:41:45.394 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace - 200 null application/json; charset=utf-8 257.6408ms
+2026-04-21 20:41:46.297 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:41:46.299 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:41:46.301 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:41:46.303 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - 204 null null 6.0293ms
+2026-04-21 20:41:46.303 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:41:46.305 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:41:46.306 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - 204 null null 6.8474ms
+2026-04-21 20:41:46.315 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:41:46.323 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:41:46.343 +03:00 [INF] Route matched with {action = "GetWorkspaceFiles", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetWorkspaceFiles(Int32) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:41:46.413 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:41:46.433 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[FileName], [w].[UploadedAt], [w].[ExpiresAt]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[ExpiresAt] > GETUTCDATE()
+ORDER BY [w].[UploadedAt] DESC
+2026-04-21 20:41:46.436 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceFileDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:41:46.441 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend) in 95.5676ms
+2026-04-21 20:41:46.442 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:41:46.442 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:41:46.444 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:41:46.445 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - 200 null application/json; charset=utf-8 139.7581ms
+2026-04-21 20:41:46.447 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:41:46.448 +03:00 [INF] Route matched with {action = "GetWorkspaceFiles", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetWorkspaceFiles(Int32) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:41:46.456 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:41:46.463 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[FileName], [w].[UploadedAt], [w].[ExpiresAt]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[ExpiresAt] > GETUTCDATE()
+ORDER BY [w].[UploadedAt] DESC
+2026-04-21 20:41:46.464 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceFileDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:41:46.466 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend) in 15.9811ms
+2026-04-21 20:41:46.467 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:41:46.468 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - 200 null application/json; charset=utf-8 25.962ms
+2026-04-21 20:41:47.332 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/code - null null
+2026-04-21 20:41:47.334 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:41:47.335 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/code - 204 null null 2.5692ms
+2026-04-21 20:41:47.337 +03:00 [INF] Request starting HTTP/1.1 PUT http://localhost:5279/api/workspace/32/code - application/json 16
+2026-04-21 20:41:47.338 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:41:47.341 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend)'
+2026-04-21 20:41:47.345 +03:00 [INF] Route matched with {action = "SaveWorkspaceCode", controller = "Workspace"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] SaveWorkspaceCode(Int32, Currere_backend.DTOs.SaveCodeDto) on controller Currere_backend.Controllers.WorkspaceController (Currere-backend).
+2026-04-21 20:41:47.361 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:41:47.415 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@p1='?' (DbType = Int32), @p0='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Workspaces] SET [UpdatedAt] = @p0
+OUTPUT 1
+WHERE [Id] = @p1;
+2026-04-21 20:41:47.425 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.String'.
+2026-04-21 20:41:47.426 +03:00 [INF] Executed action Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend) in 80.0634ms
+2026-04-21 20:41:47.427 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend)'
+2026-04-21 20:41:47.428 +03:00 [INF] Request finished HTTP/1.1 PUT http://localhost:5279/api/workspace/32/code - 200 null text/plain; charset=utf-8 90.7004ms
+2026-04-21 20:44:12.707 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/code - null null
+2026-04-21 20:44:12.709 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:44:12.709 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/code - 204 null null 2.7526ms
+2026-04-21 20:44:12.711 +03:00 [INF] Request starting HTTP/1.1 PUT http://localhost:5279/api/workspace/32/code - application/json 16
+2026-04-21 20:44:12.712 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:44:12.714 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend)'
+2026-04-21 20:44:12.715 +03:00 [INF] Route matched with {action = "SaveWorkspaceCode", controller = "Workspace"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] SaveWorkspaceCode(Int32, Currere_backend.DTOs.SaveCodeDto) on controller Currere_backend.Controllers.WorkspaceController (Currere-backend).
+2026-04-21 20:44:12.722 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:44:12.728 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@p1='?' (DbType = Int32), @p0='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Workspaces] SET [UpdatedAt] = @p0
+OUTPUT 1
+WHERE [Id] = @p1;
+2026-04-21 20:44:12.729 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.String'.
+2026-04-21 20:44:12.730 +03:00 [INF] Executed action Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend) in 14.3254ms
+2026-04-21 20:44:12.731 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend)'
+2026-04-21 20:44:12.732 +03:00 [INF] Request finished HTTP/1.1 PUT http://localhost:5279/api/workspace/32/code - 200 null text/plain; charset=utf-8 20.5626ms
+2026-04-21 20:44:27.360 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:44:27.362 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:44:27.364 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - 204 null null 3.2627ms
+2026-04-21 20:44:27.367 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:44:27.369 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:44:27.371 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:44:27.371 +03:00 [INF] Route matched with {action = "GetWorkspaceFiles", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetWorkspaceFiles(Int32) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:44:27.383 +03:00 [INF] Executed DbCommand (5ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:44:27.391 +03:00 [INF] Executed DbCommand (5ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[FileName], [w].[UploadedAt], [w].[ExpiresAt]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[ExpiresAt] > GETUTCDATE()
+ORDER BY [w].[UploadedAt] DESC
+2026-04-21 20:44:27.394 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceFileDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:44:27.396 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend) in 21.8809ms
+2026-04-21 20:44:27.397 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:44:27.399 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - 200 null application/json; charset=utf-8 32.0046ms
+2026-04-21 20:45:30.180 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:45:30.181 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:45:30.182 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:45:30.183 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:45:30.184 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - 204 null null 4.4457ms
+2026-04-21 20:45:30.184 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - 204 null null 3.4662ms
+2026-04-21 20:45:30.189 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:45:30.191 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:45:30.192 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:45:30.193 +03:00 [INF] Route matched with {action = "GetWorkspaceFiles", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetWorkspaceFiles(Int32) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:45:30.199 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:45:30.205 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[FileName], [w].[UploadedAt], [w].[ExpiresAt]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[ExpiresAt] > GETUTCDATE()
+ORDER BY [w].[UploadedAt] DESC
+2026-04-21 20:45:30.207 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceFileDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:45:30.208 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend) in 13.9892ms
+2026-04-21 20:45:30.209 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:45:30.209 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:45:30.210 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - 200 null application/json; charset=utf-8 21.1954ms
+2026-04-21 20:45:30.212 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:45:30.214 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:45:30.215 +03:00 [INF] Route matched with {action = "GetWorkspaceFiles", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetWorkspaceFiles(Int32) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:45:30.220 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:45:30.226 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[FileName], [w].[UploadedAt], [w].[ExpiresAt]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[ExpiresAt] > GETUTCDATE()
+ORDER BY [w].[UploadedAt] DESC
+2026-04-21 20:45:30.228 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceFileDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:45:30.230 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend) in 13.2143ms
+2026-04-21 20:45:30.231 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:45:30.231 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - 200 null application/json; charset=utf-8 22.0723ms
+2026-04-21 20:45:31.702 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/code - null null
+2026-04-21 20:45:31.704 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:45:31.705 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/code - 204 null null 2.555ms
+2026-04-21 20:45:31.706 +03:00 [INF] Request starting HTTP/1.1 PUT http://localhost:5279/api/workspace/32/code - application/json 16
+2026-04-21 20:45:31.708 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:45:31.708 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend)'
+2026-04-21 20:45:31.709 +03:00 [INF] Route matched with {action = "SaveWorkspaceCode", controller = "Workspace"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] SaveWorkspaceCode(Int32, Currere_backend.DTOs.SaveCodeDto) on controller Currere_backend.Controllers.WorkspaceController (Currere-backend).
+2026-04-21 20:45:31.714 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:45:31.718 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@p1='?' (DbType = Int32), @p0='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Workspaces] SET [UpdatedAt] = @p0
+OUTPUT 1
+WHERE [Id] = @p1;
+2026-04-21 20:45:31.720 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.String'.
+2026-04-21 20:45:31.721 +03:00 [INF] Executed action Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend) in 10.385ms
+2026-04-21 20:45:31.722 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend)'
+2026-04-21 20:45:31.722 +03:00 [INF] Request finished HTTP/1.1 PUT http://localhost:5279/api/workspace/32/code - 200 null text/plain; charset=utf-8 16.0255ms
+2026-04-21 20:46:46.036 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:46:46.036 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:46:46.039 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:46:46.041 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:46:46.042 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - 204 null null 5.9851ms
+2026-04-21 20:46:46.042 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - 204 null null 6.0528ms
+2026-04-21 20:46:46.047 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:46:46.050 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:46:46.052 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:46:46.053 +03:00 [INF] Route matched with {action = "GetWorkspaceFiles", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetWorkspaceFiles(Int32) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:46:46.061 +03:00 [INF] Executed DbCommand (4ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:46:46.066 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[FileName], [w].[UploadedAt], [w].[ExpiresAt]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[ExpiresAt] > GETUTCDATE()
+ORDER BY [w].[UploadedAt] DESC
+2026-04-21 20:46:46.069 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceFileDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:46:46.070 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend) in 15.5589ms
+2026-04-21 20:46:46.071 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:46:46.071 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:46:46.073 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - 200 null application/json; charset=utf-8 25.173ms
+2026-04-21 20:46:46.074 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:46:46.078 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:46:46.079 +03:00 [INF] Route matched with {action = "GetWorkspaceFiles", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetWorkspaceFiles(Int32) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:46:46.084 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:46:46.088 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[FileName], [w].[UploadedAt], [w].[ExpiresAt]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[ExpiresAt] > GETUTCDATE()
+ORDER BY [w].[UploadedAt] DESC
+2026-04-21 20:46:46.090 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceFileDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:46:46.091 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend) in 9.6684ms
+2026-04-21 20:46:46.092 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:46:46.092 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - 200 null application/json; charset=utf-8 20.9376ms
+2026-04-21 20:46:47.286 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:46:47.288 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:46:47.289 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:46:47.290 +03:00 [INF] Route matched with {action = "GetWorkspaceFiles", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetWorkspaceFiles(Int32) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:46:47.298 +03:00 [INF] Executed DbCommand (4ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:46:47.305 +03:00 [INF] Executed DbCommand (4ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[FileName], [w].[UploadedAt], [w].[ExpiresAt]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[ExpiresAt] > GETUTCDATE()
+ORDER BY [w].[UploadedAt] DESC
+2026-04-21 20:46:47.307 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceFileDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:46:47.309 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend) in 17.5692ms
+2026-04-21 20:46:47.310 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:46:47.311 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:46:47.312 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - 200 null application/json; charset=utf-8 25.6134ms
+2026-04-21 20:46:47.313 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:46:47.317 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:46:47.318 +03:00 [INF] Route matched with {action = "GetWorkspaceFiles", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetWorkspaceFiles(Int32) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:46:47.322 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:46:47.326 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[FileName], [w].[UploadedAt], [w].[ExpiresAt]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[ExpiresAt] > GETUTCDATE()
+ORDER BY [w].[UploadedAt] DESC
+2026-04-21 20:46:47.328 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceFileDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:46:47.331 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend) in 11.274ms
+2026-04-21 20:46:47.332 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:46:47.333 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - 200 null application/json; charset=utf-8 22.5323ms
+2026-04-21 20:46:48.709 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/code - null null
+2026-04-21 20:46:48.712 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:46:48.712 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/code - 204 null null 3.0746ms
+2026-04-21 20:46:48.714 +03:00 [INF] Request starting HTTP/1.1 PUT http://localhost:5279/api/workspace/32/code - application/json 16
+2026-04-21 20:46:48.715 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:46:48.716 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend)'
+2026-04-21 20:46:48.717 +03:00 [INF] Route matched with {action = "SaveWorkspaceCode", controller = "Workspace"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] SaveWorkspaceCode(Int32, Currere_backend.DTOs.SaveCodeDto) on controller Currere_backend.Controllers.WorkspaceController (Currere-backend).
+2026-04-21 20:46:48.721 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:46:48.725 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@p1='?' (DbType = Int32), @p0='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Workspaces] SET [UpdatedAt] = @p0
+OUTPUT 1
+WHERE [Id] = @p1;
+2026-04-21 20:46:48.727 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.String'.
+2026-04-21 20:46:48.727 +03:00 [INF] Executed action Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend) in 9.9018ms
+2026-04-21 20:46:48.728 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend)'
+2026-04-21 20:46:48.729 +03:00 [INF] Request finished HTTP/1.1 PUT http://localhost:5279/api/workspace/32/code - 200 null text/plain; charset=utf-8 14.869ms
+2026-04-21 20:48:29.935 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:48:29.935 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:48:29.937 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:48:29.939 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:48:29.939 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - 204 null null 4.8265ms
+2026-04-21 20:48:29.940 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - 204 null null 4.6306ms
+2026-04-21 20:48:29.944 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:48:29.946 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:48:29.946 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:48:29.947 +03:00 [INF] Route matched with {action = "GetWorkspaceFiles", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetWorkspaceFiles(Int32) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:48:29.953 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:48:29.958 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[FileName], [w].[UploadedAt], [w].[ExpiresAt]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[ExpiresAt] > GETUTCDATE()
+ORDER BY [w].[UploadedAt] DESC
+2026-04-21 20:48:29.959 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceFileDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:48:29.960 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend) in 12.2109ms
+2026-04-21 20:48:29.961 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:48:29.961 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:48:29.962 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - 200 null application/json; charset=utf-8 17.741ms
+2026-04-21 20:48:29.964 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:48:29.966 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:48:29.967 +03:00 [INF] Route matched with {action = "GetWorkspaceFiles", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetWorkspaceFiles(Int32) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:48:29.970 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:48:29.974 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[FileName], [w].[UploadedAt], [w].[ExpiresAt]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[ExpiresAt] > GETUTCDATE()
+ORDER BY [w].[UploadedAt] DESC
+2026-04-21 20:48:29.975 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceFileDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:48:29.977 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend) in 8.6872ms
+2026-04-21 20:48:29.978 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:48:29.979 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - 200 null application/json; charset=utf-8 17.5285ms
+2026-04-21 20:48:31.711 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/code - null null
+2026-04-21 20:48:31.713 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:48:31.713 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/code - 204 null null 2.5825ms
+2026-04-21 20:48:31.715 +03:00 [INF] Request starting HTTP/1.1 PUT http://localhost:5279/api/workspace/32/code - application/json 16
+2026-04-21 20:48:31.716 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:48:31.717 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend)'
+2026-04-21 20:48:31.718 +03:00 [INF] Route matched with {action = "SaveWorkspaceCode", controller = "Workspace"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] SaveWorkspaceCode(Int32, Currere_backend.DTOs.SaveCodeDto) on controller Currere_backend.Controllers.WorkspaceController (Currere-backend).
+2026-04-21 20:48:31.722 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:48:31.728 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@p1='?' (DbType = Int32), @p0='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Workspaces] SET [UpdatedAt] = @p0
+OUTPUT 1
+WHERE [Id] = @p1;
+2026-04-21 20:48:31.729 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.String'.
+2026-04-21 20:48:31.730 +03:00 [INF] Executed action Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend) in 11.0868ms
+2026-04-21 20:48:31.731 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend)'
+2026-04-21 20:48:31.731 +03:00 [INF] Request finished HTTP/1.1 PUT http://localhost:5279/api/workspace/32/code - 200 null text/plain; charset=utf-8 16.2633ms
+2026-04-21 20:49:01.898 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:49:01.901 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:49:01.905 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - 204 null null 7.0095ms
+2026-04-21 20:49:01.911 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:49:01.913 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:49:01.917 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:49:01.918 +03:00 [INF] Route matched with {action = "GetWorkspaceFiles", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetWorkspaceFiles(Int32) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:49:01.926 +03:00 [INF] Executed DbCommand (5ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:49:01.933 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[FileName], [w].[UploadedAt], [w].[ExpiresAt]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[ExpiresAt] > GETUTCDATE()
+ORDER BY [w].[UploadedAt] DESC
+2026-04-21 20:49:01.936 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceFileDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:49:01.938 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend) in 18.0835ms
+2026-04-21 20:49:01.939 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:49:01.939 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - 200 null application/json; charset=utf-8 28.9218ms
+2026-04-21 20:49:35.884 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file/selam.py/raw - null null
+2026-04-21 20:49:35.886 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:49:35.887 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file/selam.py/raw - 204 null null 2.9046ms
+2026-04-21 20:49:35.889 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace/32/file/selam.py/raw - null null
+2026-04-21 20:49:35.892 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:49:35.893 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.GetFileRawContent (Currere-backend)'
+2026-04-21 20:49:35.896 +03:00 [INF] Route matched with {action = "GetFileRawContent", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetFileRawContent(Int32, System.String) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:49:35.900 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:49:35.910 +03:00 [INF] Executed DbCommand (4ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__fileName_1='?' (Size = 4000)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[DomainContext], [w].[ExpiresAt], [w].[FileName], [w].[FilePath], [w].[ProfileJson], [w].[UploadedAt], [w].[WorkspaceId]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[FileName] = @__fileName_1 AND [w].[ExpiresAt] > GETUTCDATE()
+2026-04-21 20:49:35.931 +03:00 [INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType10`1[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+2026-04-21 20:49:35.938 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.GetFileRawContent (Currere-backend) in 41.1758ms
+2026-04-21 20:49:35.939 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.GetFileRawContent (Currere-backend)'
+2026-04-21 20:49:35.939 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace/32/file/selam.py/raw - 200 null application/json; charset=utf-8 50.0719ms
+2026-04-21 20:49:38.267 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file/selam.py - null null
+2026-04-21 20:49:38.271 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:49:38.272 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file/selam.py - 204 null null 4.2423ms
+2026-04-21 20:49:38.273 +03:00 [INF] Request starting HTTP/1.1 PUT http://localhost:5279/api/workspace/32/file/selam.py - multipart/form-data; boundary=----WebKitFormBoundaryhaaBaLWk8WAsD3mG 190
+2026-04-21 20:49:38.275 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:49:38.277 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.UpdateFileContent (Currere-backend)'
+2026-04-21 20:49:38.282 +03:00 [INF] Route matched with {action = "UpdateFileContent", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] UpdateFileContent(Int32, System.String, Microsoft.AspNetCore.Http.IFormFile) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:49:38.296 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:49:38.298 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__fileName_1='?' (Size = 4000)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[DomainContext], [w].[ExpiresAt], [w].[FileName], [w].[FilePath], [w].[ProfileJson], [w].[UploadedAt], [w].[WorkspaceId]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[FileName] = @__fileName_1 AND [w].[ExpiresAt] > GETUTCDATE()
+2026-04-21 20:49:38.302 +03:00 [INF] Executing StatusCodeResult, setting HTTP status code 200
+2026-04-21 20:49:38.303 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.UpdateFileContent (Currere-backend) in 19.4995ms
+2026-04-21 20:49:38.304 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.UpdateFileContent (Currere-backend)'
+2026-04-21 20:49:38.305 +03:00 [INF] Request finished HTTP/1.1 PUT http://localhost:5279/api/workspace/32/file/selam.py - 200 0 null 31.7048ms
+2026-04-21 20:49:39.615 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace - null null
+2026-04-21 20:49:39.618 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:49:39.619 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace - 204 null null 3.9988ms
+2026-04-21 20:49:39.627 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace - null null
+2026-04-21 20:49:39.631 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:49:39.632 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.WorkspaceController.GetMyWorkspaces (Currere-backend)'
+2026-04-21 20:49:39.633 +03:00 [INF] Route matched with {action = "GetMyWorkspaces", controller = "Workspace"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetMyWorkspaces() on controller Currere_backend.Controllers.WorkspaceController (Currere-backend).
+2026-04-21 20:49:39.643 +03:00 [INF] Executed DbCommand (4ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[UserId] = @__userId_0
+ORDER BY [w].[UpdatedAt] DESC
+2026-04-21 20:49:39.646 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceResponseDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:49:39.648 +03:00 [INF] Executed action Currere_backend.Controllers.WorkspaceController.GetMyWorkspaces (Currere-backend) in 13.0586ms
+2026-04-21 20:49:39.651 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.WorkspaceController.GetMyWorkspaces (Currere-backend)'
+2026-04-21 20:49:39.653 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace - 200 null application/json; charset=utf-8 25.3083ms
+2026-04-21 20:49:56.015 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:49:56.017 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:49:56.017 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - 204 null null 2.5634ms
+2026-04-21 20:49:56.020 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:49:56.022 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:49:56.023 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:49:56.024 +03:00 [INF] Route matched with {action = "GetWorkspaceFiles", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetWorkspaceFiles(Int32) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:49:56.037 +03:00 [INF] Executed DbCommand (9ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:49:56.046 +03:00 [INF] Executed DbCommand (5ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[FileName], [w].[UploadedAt], [w].[ExpiresAt]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[ExpiresAt] > GETUTCDATE()
+ORDER BY [w].[UploadedAt] DESC
+2026-04-21 20:49:56.049 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceFileDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:49:56.050 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend) in 23.9539ms
+2026-04-21 20:49:56.051 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:49:56.052 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:49:56.053 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - 200 null application/json; charset=utf-8 32.7037ms
+2026-04-21 20:49:56.055 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:49:56.058 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:49:56.060 +03:00 [INF] Route matched with {action = "GetWorkspaceFiles", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetWorkspaceFiles(Int32) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:49:56.064 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:49:56.067 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[FileName], [w].[UploadedAt], [w].[ExpiresAt]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[ExpiresAt] > GETUTCDATE()
+ORDER BY [w].[UploadedAt] DESC
+2026-04-21 20:49:56.070 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceFileDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:49:56.071 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend) in 10.2904ms
+2026-04-21 20:49:56.072 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:49:56.073 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - 200 null application/json; charset=utf-8 21.7425ms
+2026-04-21 20:49:57.015 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/code - null null
+2026-04-21 20:49:57.016 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:49:57.017 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/code - 204 null null 2.6277ms
+2026-04-21 20:49:57.020 +03:00 [INF] Request starting HTTP/1.1 PUT http://localhost:5279/api/workspace/32/code - application/json 16
+2026-04-21 20:49:57.021 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:49:57.023 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend)'
+2026-04-21 20:49:57.023 +03:00 [INF] Route matched with {action = "SaveWorkspaceCode", controller = "Workspace"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] SaveWorkspaceCode(Int32, Currere_backend.DTOs.SaveCodeDto) on controller Currere_backend.Controllers.WorkspaceController (Currere-backend).
+2026-04-21 20:49:57.029 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:49:57.034 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@p1='?' (DbType = Int32), @p0='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Workspaces] SET [UpdatedAt] = @p0
+OUTPUT 1
+WHERE [Id] = @p1;
+2026-04-21 20:49:57.036 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.String'.
+2026-04-21 20:49:57.037 +03:00 [INF] Executed action Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend) in 12.6532ms
+2026-04-21 20:49:57.038 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend)'
+2026-04-21 20:49:57.039 +03:00 [INF] Request finished HTTP/1.1 PUT http://localhost:5279/api/workspace/32/code - 200 null text/plain; charset=utf-8 19.7101ms
+2026-04-21 20:50:09.387 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace - null null
+2026-04-21 20:50:09.391 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:50:09.393 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace - 204 null null 6.4299ms
+2026-04-21 20:50:09.397 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace - null null
+2026-04-21 20:50:09.400 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:50:09.400 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.WorkspaceController.GetMyWorkspaces (Currere-backend)'
+2026-04-21 20:50:09.401 +03:00 [INF] Route matched with {action = "GetMyWorkspaces", controller = "Workspace"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetMyWorkspaces() on controller Currere_backend.Controllers.WorkspaceController (Currere-backend).
+2026-04-21 20:50:09.411 +03:00 [INF] Executed DbCommand (5ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[UserId] = @__userId_0
+ORDER BY [w].[UpdatedAt] DESC
+2026-04-21 20:50:09.412 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceResponseDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:50:09.413 +03:00 [INF] Executed action Currere_backend.Controllers.WorkspaceController.GetMyWorkspaces (Currere-backend) in 9.012ms
+2026-04-21 20:50:09.414 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.WorkspaceController.GetMyWorkspaces (Currere-backend)'
+2026-04-21 20:50:09.414 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace - 200 null application/json; charset=utf-8 17.9645ms
+2026-04-21 20:50:10.330 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:50:10.332 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:50:10.332 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - 204 null null 2.5894ms
+2026-04-21 20:50:10.334 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:50:10.335 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:50:10.338 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:50:10.340 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:50:10.341 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/file - 204 null null 7.0053ms
+2026-04-21 20:50:10.342 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:50:10.345 +03:00 [INF] Route matched with {action = "GetWorkspaceFiles", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetWorkspaceFiles(Int32) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:50:10.353 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:50:10.360 +03:00 [INF] Executed DbCommand (4ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[FileName], [w].[UploadedAt], [w].[ExpiresAt]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[ExpiresAt] > GETUTCDATE()
+ORDER BY [w].[UploadedAt] DESC
+2026-04-21 20:50:10.363 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceFileDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:50:10.364 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend) in 17.7502ms
+2026-04-21 20:50:10.365 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:50:10.366 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - 200 null application/json; charset=utf-8 30.8026ms
+2026-04-21 20:50:10.369 +03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - null null
+2026-04-21 20:50:10.371 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:50:10.372 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:50:10.374 +03:00 [INF] Route matched with {action = "GetWorkspaceFiles", controller = "File"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetWorkspaceFiles(Int32) on controller Currere_backend.Controllers.FileController (Currere-backend).
+2026-04-21 20:50:10.377 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:50:10.381 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[FileName], [w].[UploadedAt], [w].[ExpiresAt]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[WorkspaceId] = @__workspaceId_0 AND [w].[ExpiresAt] > GETUTCDATE()
+ORDER BY [w].[UploadedAt] DESC
+2026-04-21 20:50:10.383 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[Currere_backend.DTOs.WorkspaceFileDto, Currere-backend, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+2026-04-21 20:50:10.385 +03:00 [INF] Executed action Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend) in 9.5849ms
+2026-04-21 20:50:10.386 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.FileController.GetWorkspaceFiles (Currere-backend)'
+2026-04-21 20:50:10.387 +03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5279/api/workspace/32/file - 200 null application/json; charset=utf-8 18.1508ms
+2026-04-21 20:50:10.651 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__now_0='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT [w].[Id], [w].[DomainContext], [w].[ExpiresAt], [w].[FileName], [w].[FilePath], [w].[ProfileJson], [w].[UploadedAt], [w].[WorkspaceId]
+FROM [WorkspaceFiles] AS [w]
+WHERE [w].[ExpiresAt] <= @__now_0
+2026-04-21 20:50:11.324 +03:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/code - null null
+2026-04-21 20:50:11.325 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:50:11.325 +03:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5279/api/workspace/32/code - 204 null null 1.8295ms
+2026-04-21 20:50:11.327 +03:00 [INF] Request starting HTTP/1.1 PUT http://localhost:5279/api/workspace/32/code - application/json 16
+2026-04-21 20:50:11.328 +03:00 [INF] CORS policy execution successful.
+2026-04-21 20:50:11.329 +03:00 [INF] Executing endpoint 'Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend)'
+2026-04-21 20:50:11.330 +03:00 [INF] Route matched with {action = "SaveWorkspaceCode", controller = "Workspace"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] SaveWorkspaceCode(Int32, Currere_backend.DTOs.SaveCodeDto) on controller Currere_backend.Controllers.WorkspaceController (Currere-backend).
+2026-04-21 20:50:11.333 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[@__workspaceId_0='?' (DbType = Int32), @__userId_1='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [w].[Id], [w].[CreatedAt], [w].[CurrentState], [w].[Format], [w].[Runtime], [w].[Title], [w].[UpdatedAt], [w].[UserId]
+FROM [Workspaces] AS [w]
+WHERE [w].[Id] = @__workspaceId_0 AND [w].[UserId] = @__userId_1
+2026-04-21 20:50:11.338 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[@p1='?' (DbType = Int32), @p0='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Workspaces] SET [UpdatedAt] = @p0
+OUTPUT 1
+WHERE [Id] = @p1;
+2026-04-21 20:50:11.340 +03:00 [INF] Executing OkObjectResult, writing value of type 'System.String'.
+2026-04-21 20:50:11.340 +03:00 [INF] Executed action Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend) in 9.3706ms
+2026-04-21 20:50:11.341 +03:00 [INF] Executed endpoint 'Currere_backend.Controllers.WorkspaceController.SaveWorkspaceCode (Currere-backend)'
+2026-04-21 20:50:11.342 +03:00 [INF] Request finished HTTP/1.1 PUT http://localhost:5279/api/workspace/32/code - 200 null text/plain; charset=utf-8 14.7337ms
+2026-04-21 20:57:04.104 +03:00 [INF] Server desktop-rukajg8:18008:13b08c27 caught stopping signal...
+2026-04-21 20:57:04.105 +03:00 [INF] Application is shutting down...
+2026-04-21 20:57:04.106 +03:00 [INF] Server desktop-rukajg8:18008:13b08c27 All dispatchers stopped
+2026-04-21 20:57:04.108 +03:00 [INF] Server desktop-rukajg8:18008:13b08c27 successfully reported itself as stopped in 0,1648 ms
+2026-04-21 20:57:04.109 +03:00 [INF] Server desktop-rukajg8:18008:13b08c27 has been stopped in total 4,1412 ms

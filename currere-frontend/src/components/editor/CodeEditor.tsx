@@ -12,8 +12,50 @@ interface CodeEditorProps {
 
 export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorProps) {
   const isInitialMount = useRef(true);
-  const { activeFile } = useWorkspaceStore();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const editorRef = useRef<any>(null);
+  const { activeFile, pendingInjection, clearInjection } = useWorkspaceStore();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Monaco Editor yüklendiğinde referansı kaydet
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleEditorDidMount = (editor: any) => {
+    editorRef.current = editor;
+  };
+
+  // Kod Enjeksiyonu (AI Chat'ten gelen)
+  useEffect(() => {
+    if (pendingInjection && editorRef.current) {
+      const editor = editorRef.current;
+      const selection = editor.getSelection();
+      const model = editor.getModel();
+
+      if (model) {
+        const range = selection || {
+          startLineNumber: model.getLineCount(),
+          startColumn: model.getLineMaxColumn(model.getLineCount()),
+          endLineNumber: model.getLineCount(),
+          endColumn: model.getLineMaxColumn(model.getLineCount())
+        };
+
+        const textToInsert = `\n${pendingInjection}\n`;
+
+        editor.executeEdits('ai-injection', [
+          {
+            range: range,
+            text: textToInsert,
+            forceMoveMarkers: true
+          }
+        ]);
+
+        // İşlem tamamlanınca state'i temizle
+        clearInjection();
+        
+        // Görsel geri bildirim için odağı editöre ver
+        editor.focus();
+      }
+    }
+  }, [pendingInjection, clearInjection]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -96,6 +138,7 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
           language={defaultLang}
           theme="vs-dark"
           value={code}
+          onMount={handleEditorDidMount}
           onChange={(val) => {
             setCode(val || '');
             setHasUnsavedChanges(true);

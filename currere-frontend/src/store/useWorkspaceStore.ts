@@ -18,9 +18,14 @@ export interface ActiveFile {
 interface WorkspaceState {
   activeWorkspace: Workspace | null;
   activeFile: ActiveFile;
+  pendingInjection: string | null;
+  viewMode: 'list' | 'tree';
   setActiveWorkspace: (workspace: Workspace) => void;
   clearActiveWorkspace: () => void;
   setActiveFile: (file: ActiveFile) => void;
+  injectCode: (code: string) => void;
+  clearInjection: () => void;
+  setViewMode: (mode: 'list' | 'tree') => void;
 }
 
 export const useWorkspaceStore = create<WorkspaceState>()(
@@ -28,9 +33,14 @@ export const useWorkspaceStore = create<WorkspaceState>()(
     (set) => ({
       activeWorkspace: null,
       activeFile: { name: 'main.py', type: 'code' },
+      pendingInjection: null,
+      viewMode: 'list',
       setActiveWorkspace: (workspace: Workspace) => set({ activeWorkspace: workspace, activeFile: { name: 'main.py', type: 'code' } }),
       clearActiveWorkspace: () => set({ activeWorkspace: null, activeFile: { name: 'main.py', type: 'code' } }),
       setActiveFile: (file: ActiveFile) => set({ activeFile: file }),
+      injectCode: (code: string) => set({ pendingInjection: code }),
+      clearInjection: () => set({ pendingInjection: null }),
+      setViewMode: (mode: 'list' | 'tree') => set({ viewMode: mode }),
     }),
     {
       name: 'workspace-storage',

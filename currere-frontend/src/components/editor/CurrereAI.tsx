@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiSparkles } from 'react-icons/hi';
-import { FiSend, FiX, FiCopy } from 'react-icons/fi';
+import { FiSend, FiX, FiCopy, FiArrowRight, FiCheck } from 'react-icons/fi';
 import api from '@/services/api';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 
@@ -22,7 +22,8 @@ export default function CurrereAI() {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { activeWorkspace, activeFile } = useWorkspaceStore();
+  const { activeWorkspace, activeFile, injectCode } = useWorkspaceStore();
+  const [injectedIds, setInjectedIds] = useState<Set<string>>(new Set());
 
   const dragConstraintsRef = useRef(null);
 
@@ -37,7 +38,22 @@ export default function CurrereAI() {
   }, [messages, isOpen, isTyping]);
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(text.replace(/```python\s*|```/g, ''));
+  };
+
+  const handleInject = (id: string, code: string) => {
+    const cleanCode = code.replace(/```python\s*|```/g, '');
+    injectCode(cleanCode);
+    setInjectedIds(prev => new Set(prev).add(id));
+    
+    // Reset success state after 2 seconds
+    setTimeout(() => {
+      setInjectedIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }, 2000);
   };
 
   const handleSend = async () => {
@@ -172,15 +188,38 @@ export default function CurrereAI() {
                       {msg.type === 'code' ? (
                         <div className="flex flex-col">
                           <div className="flex items-center justify-between px-3 py-1.5 bg-[#1e1e1e] border-b border-gray-700/50 text-xs text-zinc-400">
-                            <span>Python Üretildi</span>
-                            <button 
-                              onClick={() => copyToClipboard(msg.text)}
-                              className="flex items-center gap-1 hover:text-emerald-400 transition-colors"
-                              title="Kodu Kopyala"
-                            >
-                              <FiCopy className="w-3.5 h-3.5" />
-                              <span>Kopyala</span>
-                            </button>
+                            <span className="font-medium text-emerald-500/80 uppercase tracking-tighter">Python</span>
+                            <div className="flex items-center gap-3">
+                              <button 
+                                onClick={() => copyToClipboard(msg.text)}
+                                className="flex items-center gap-1 hover:text-emerald-400 transition-colors"
+                                title="Kodu Kopyala"
+                              >
+                                <FiCopy className="w-3 h-3" />
+                                <span>Kopyala</span>
+                              </button>
+                              <button 
+                                onClick={() => handleInject(msg.id, msg.text)}
+                                className={`flex items-center gap-1 transition-all duration-200 ${
+                                  injectedIds.has(msg.id) 
+                                    ? 'text-emerald-400 font-bold' 
+                                    : 'hover:text-blue-400'
+                                }`}
+                                title="Editöre Aktar"
+                              >
+                                {injectedIds.has(msg.id) ? (
+                                  <>
+                                    <FiCheck className="w-3.5 h-3.5 animate-bounce" />
+                                    <span>Aktarıldı</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <FiArrowRight className="w-3.5 h-3.5" />
+                                    <span>Aktar</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
                           </div>
                           <pre className="p-3 overflow-x-auto text-[13px] text-zinc-300 font-mono">
                             <code>{msg.text.replace(/```python\s*|```/g, '')}</code>
