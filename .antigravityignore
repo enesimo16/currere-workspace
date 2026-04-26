@@ -1,0 +1,16 @@
+# --- BACKEND (.NET) İÇİN ---
+# Hangi klasörün içinde olursa olsun tüm derlenmiş dosyaları yoksay
+**/bin/
+**/obj/
+**/Migrations/
+**/appsettings.json
+**/appsettings.Development.json
+
+# --- FRONTEND & EXTENSION İÇİN ---
+# Node paketlerini ve derlenmiş web çıktılarını yoksay
+**/node_modules/
+**/dist/
+**/build/
+
+# --- GENEL ---
+*.log

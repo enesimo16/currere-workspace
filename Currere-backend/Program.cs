@@ -59,12 +59,32 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
     builder.Services.AddSignalR(); // frontend signalR
     builder.Services.AddControllers();
 
-    // CORS Configuration (Frontend & Extension Webview Support)
+    // CORS Configuration — İkili Politika: AllowAll (Frontend) + ExtensionPolicy (VS Code & CLI)
     builder.Services.AddCors(options =>
     {
+        // Genel frontend politikası (Next.js dev & production)
         options.AddPolicy("AllowAll",
             corsBuilder => corsBuilder
-                .SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost") // Flexibly allow localhost for SignalR
+                .WithOrigins(
+                    "http://localhost:3000",    // Next.js dev server
+                    "http://localhost:5279",    // Backend self-reference
+                    "https://currere.app"       // Production domain (ileride)
+                )
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials());
+
+        // VS Code Extension & CLI için esnek politika
+        // vscode-webview:// origin ve localhost tüm portları kabul eder
+        options.AddPolicy("ExtensionPolicy",
+            corsBuilder => corsBuilder
+                .SetIsOriginAllowed(origin =>
+                {
+                    if (string.IsNullOrEmpty(origin)) return false;
+                    if (origin.StartsWith("vscode-webview://")) return true;
+                    try { return new Uri(origin).Host == "localhost"; }
+                    catch { return false; }
+                })
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials());
@@ -185,8 +205,8 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
 
     app.MapControllers();
 
-    app.MapHub<TerminalHub>("/terminalHub"); // frontend signalR
-    app.MapHub<SyncHub>("/syncHub"); // VS Code Sync SignalR
+    app.MapHub<TerminalHub>("/terminalHub").RequireCors("AllowAll"); // frontend signalR
+    app.MapHub<SyncHub>("/syncHub").RequireCors("ExtensionPolicy"); // VS Code Sync SignalR
 
     app.Run();
 }
