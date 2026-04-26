@@ -43,7 +43,7 @@ export const useSync = (workspaceId: number | string | undefined) => {
         }
       )
       .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
-      .configureLogging(signalR.LogLevel.Warning)
+      .configureLogging(signalR.LogLevel.None)
       .build();
 
     // --- EVENT LISTENERS ---
@@ -95,8 +95,17 @@ export const useSync = (workspaceId: number | string | undefined) => {
         connectionRef.current = connection;
         console.log('[Sync] Hub bağlantısı kuruldu.');
         await connection.invoke('JoinWorkspaceById', Number(workspaceId));
-      } catch (err) {
-        if (mountedRef.current) {
+      } catch (err: unknown) {
+        // Strict Mode'un çift render'ı negotiation sırasında stop() çağırabilir.
+        // Bu beklenen bir davranış — sessizce yut, ikinci render bağlantıyı kuracak.
+        const errMsg = err instanceof Error ? err.message : String(err);
+        const isExpectedAbort =
+          errMsg.includes('negotiation') ||
+          errMsg.includes('abort') ||
+          errMsg.includes('stopped') ||
+          errMsg.includes('The connection was stopped');
+
+        if (mountedRef.current && !isExpectedAbort) {
           console.error('[Sync] Hub bağlantı hatası:', err);
         }
       } finally {

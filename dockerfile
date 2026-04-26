@@ -8,7 +8,7 @@ WORKDIR /workspace
 ENV PYTHONUNBUFFERED=1
 
 # Senin eski dosyandaki gibi veri bilimi kütüphanelerini de kuralım, lazım olacak.
-RUN pip install --no-cache-dir pandas numpy
+RUN pip install --no-cache-dir pandas numpy matplotlib
 
 # Backend'deki C# servisi "runner.py" dosyasını "/app/runner.py" konumunda aradığı için
 # Onu konteynerın içine kopyalamalıyız.

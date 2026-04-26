@@ -40,14 +40,16 @@ def parse_ipynb_to_py(content: str) -> str:
 
 class SecurityNodeVisitor(ast.NodeVisitor):
     def __init__(self):
-        # Disallowed modules for import
+        # Gerçek güvenlik Docker konteynerinin kendisidir (--network none, 512MB RAM, 0.5 CPU).
+        # Burada sadece konteyner kaçışına yol açabilecek modüller engellenir.
+        # os, sys, json, math gibi standart modüller SERBEST — pandas, numpy, matplotlib bunlara bağımlı.
         self.forbidden_modules = {
-            "os", "subprocess", "shutil", "sys", "pty", "socket", "urllib", "requests"
+            "subprocess", "pty", "socket", "ctypes", "multiprocessing"
         }
         
-        # Specific forbidden fully qualified function names
+        # Sadece konteyner dışına erişim sağlayabilecek tehlikeli çağrılar
         self.forbidden_calls = {
-            "eval", "exec", "open", "compile", "globals", "locals"
+            "compile", "globals", "locals"
         }
         
         self.dependencies = set()
