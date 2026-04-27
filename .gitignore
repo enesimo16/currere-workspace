@@ -1,34 +1,59 @@
-# .NET / C#
-bin/
-obj/
+# ══════════════════════════════════════════════════════════════════
+# CURRERE — FINAL PRODUCTION-READY .GITIGNORE
+# ══════════════════════════════════════════════════════════════════
+
+# 1. KULLANICI VERİLERİ (ASLA GİTMEMELİ)
+Currere-backend/wwwroot/workspaces/*
+!Currere-backend/wwwroot/workspaces/.gitkeep
+Currere-backend/wwwroot/snapshots/*
+!Currere-backend/wwwroot/snapshots/.gitkeep
+
+# 2. HASSAS BİLGİLER (SIRLAR)
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+Currere-backend/appsettings.json
+Currere-backend/appsettings.Development.json
+.env
+.env.local
+.env.*.local
+*.pfx
+*.cert
+*.key
+
+# 3. .NET CORE & C# (BİLEŞENLER)
+[Bb]in/
+[Oo]bj/
 .vs/
+.vscode/
 *.user
 *.suo
+TestResults/
+Currere-backend/logs/
 
-# Node.js / Next.js
+# 4. FRONTEND (NODE.JS / NEXT.JS)
 node_modules/
+currere-frontend/node_modules/
 .next/
+currere-frontend/.next/
 out/
 build/
-.env
+.pnp
+.pnp.js
+.DS_Store
 
-# Python
+# 5. PYTHON & AI KERNEL
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
+.ipynb_checkpoints/
+**/site-packages/
+.env/
 venv/
 env/
-.env
 
-# İşletim Sistemi
-.DS_Store
-Thumbs.db
-
-# User uploaded workspace files
-wwwroot/workspaces/
-
-# Currere Snapshot Temizliği
-**/wwwroot/workspaces/*_backup_*
-**/site-packages/
-**/bin/
-**/obj/
+# 6. DOCKER & LOGS
+*.log
+docker-compose.override.yml
+.dockerignore

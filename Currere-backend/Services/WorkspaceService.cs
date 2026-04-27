@@ -1,7 +1,6 @@
 using Currere_backend.Data;
 using Currere_backend.DTOs;
 using Currere_backend.Models;
-using Currere_backend.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting; // added for environment
 

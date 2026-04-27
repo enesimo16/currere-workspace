@@ -1,18 +1,25 @@
+using System.Security.Claims;
+using Currere_backend.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace Currere_backend.Hubs
 {
+    [Authorize]
     public class SyncHub : Hub
     {
         private readonly IMemoryCache _cache;
         private readonly ILogger<SyncHub> _logger;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public SyncHub(IMemoryCache cache, ILogger<SyncHub> logger)
+        public SyncHub(IMemoryCache cache, ILogger<SyncHub> logger, IServiceScopeFactory serviceScopeFactory)
         {
             _cache = cache;
             _logger = logger;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         /// <summary>
@@ -62,10 +69,30 @@ namespace Currere_backend.Hubs
         }
 
         /// <summary>
-        /// Web frontend doğrudan workspace ID ile gruba katılma
+        /// Web frontend doğrudan workspace ID ile gruba katılma.
+        /// JWT'den kullanıcı kimliği alınarak workspace sahipliği DB'den doğrulanır.
         /// </summary>
         public async Task JoinWorkspaceById(int workspaceId)
         {
+            // JWT'den userId al
+            var userIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                throw new HubException("Yetkilendirme hatası: Kullanıcı kimliği alınamadı.");
+            }
+
+            // DB'den workspace ownership kontrol et
+            using var scope = _serviceScopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var ownsWorkspace = await db.Workspaces.AnyAsync(w => w.Id == workspaceId && w.UserId == userId);
+
+            if (!ownsWorkspace)
+            {
+                _logger.LogWarning("[SyncHub] Yetkisiz workspace erişim denemesi! UserId: {UserId}, WorkspaceId: {WsId}, Connection: {ConnId}",
+                    userId, workspaceId, Context.ConnectionId);
+                throw new HubException("Bu workspace'e erişim yetkiniz yok.");
+            }
+
             var groupName = $"workspace-{workspaceId}";
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
             _logger.LogInformation("[SyncHub] İstemci (Web) gruba katıldı: {GroupName}, Connection: {ConnectionId}", groupName, Context.ConnectionId);

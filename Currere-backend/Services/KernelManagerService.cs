@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -79,6 +81,10 @@ namespace Currere_backend.Services
             var args = new StringBuilder();
             args.Append("run -i --rm --network none ");
             args.Append("--memory 512m --cpus 0.5 ");
+            args.Append("--user 1000:1000 --read-only --tmpfs /tmp:rw,noexec,nosuid,size=64m ");
+            args.Append("--security-opt no-new-privileges --cap-drop ALL ");
+            args.Append("--pids-limit 50 ");
+            args.Append("--ipc none ");
             args.Append($"--name currere-kernel-{workspaceId} ");
             args.Append("-w /workspace ");
             args.Append($"-v \"{dockerWorkspaceBind}:/workspace/data:ro\" ");
@@ -281,6 +287,52 @@ namespace Currere_backend.Services
             catch
             {
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Belirtilen idle timeout süresini aşmış session'ların workspace ID'lerini döndürür.
+        /// KernelReaperWorker tarafından kullanılır.
+        /// </summary>
+        public List<int> GetIdleSessions(TimeSpan idleTimeout)
+        {
+            var now = DateTime.UtcNow;
+            return _sessions
+                .Where(kvp => (now - kvp.Value.LastActivityAt) > idleTimeout)
+                .Select(kvp => kvp.Key)
+                .ToList();
+        }
+
+        /// <summary>
+        /// Belirtilen workspace'in kernel session'ını zorla öldürür.
+        /// KernelReaperWorker tarafından kullanılır.
+        /// </summary>
+        public void ForceKillSession(int workspaceId)
+        {
+            if (_sessions.TryRemove(workspaceId, out var session))
+            {
+                _logger.LogWarning("[Kernel] WorkspaceId: {WsId} — session zorla öldürüldü (idle timeout)", workspaceId);
+                session.Dispose();
+
+                // Eski konteyneri zorla temizle
+                try
+                {
+                    var killProcess = new Process
+                    {
+                        StartInfo = new ProcessStartInfo
+                        {
+                            FileName = "docker",
+                            Arguments = $"rm -f currere-kernel-{workspaceId}",
+                            UseShellExecute = false,
+                            CreateNoWindow = true,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true
+                        }
+                    };
+                    killProcess.Start();
+                    killProcess.WaitForExit(5000);
+                }
+                catch { }
             }
         }
 

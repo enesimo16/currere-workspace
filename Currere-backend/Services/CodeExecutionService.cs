@@ -128,6 +128,10 @@ namespace Currere_backend.Services
                 var args = new StringBuilder();
                 args.Append("run --rm --network none ");
                 args.Append("--memory 512m --cpus 0.5 ");
+                args.Append("--user 1000:1000 --read-only --tmpfs /tmp:rw,noexec,nosuid,size=64m ");
+                args.Append("--security-opt no-new-privileges --cap-drop ALL ");
+                args.Append("--pids-limit 50 ");
+                args.Append("--ipc none ");
                 args.Append("-w /workspace ");
                 args.Append($"-v \"{dockerWorkspaceBind}:/workspace/data:ro\" ");
                 args.Append($"-v \"{dockerOutputBind}:/workspace/output:rw\" ");

@@ -37,9 +37,12 @@ namespace Currere_backend.Services
             if (!validationResult.IsValid)
                 throw new Exception(validationResult.ErrorMessage);
 
+            // PathSanitizer kullanımı
+            var sanitizedFileName = PathSanitizer.SanitizeFileName(file.FileName);
+
             // fiziksel klasor => wwwroot/workspaces/{workspaceId}
             var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            var workspaceFolderPath = Path.Combine(webRootPath, "workspaces", workspaceId.ToString());
+            var workspaceFolderPath = Path.GetFullPath(Path.Combine(webRootPath, "workspaces", workspaceId.ToString()));
 
             if (!Directory.Exists(workspaceFolderPath))
             {
@@ -47,8 +50,10 @@ namespace Currere_backend.Services
             }
 
             // cakismayi önlesin diye dosyanın önüne 8 haneli sayi
-            var uniqueFileName = $"{Guid.NewGuid().ToString("N").Substring(0, 8)}_{file.FileName}";
-            var fullPhysicalPath = Path.Combine(workspaceFolderPath, uniqueFileName);
+            var uniqueFileName = $"{Guid.NewGuid().ToString("N").Substring(0, 8)}_{sanitizedFileName}";
+            var fullPhysicalPath = Path.GetFullPath(Path.Combine(workspaceFolderPath, uniqueFileName));
+
+            PathSanitizer.ValidatePathWithinBoundary(fullPhysicalPath, workspaceFolderPath);
 
             // diske atıp rami koruyoruz
             using (var stream = new FileStream(fullPhysicalPath, FileMode.Create))
@@ -60,7 +65,7 @@ namespace Currere_backend.Services
             var workspaceFile = new WorkspaceFile
             {
                 WorkspaceId = workspaceId,
-                FileName = file.FileName,       // 8 hanesiz original name
+                FileName = sanitizedFileName,       // 8 hanesiz original name
                 FilePath = fullPhysicalPath,    // fiziksel yol
                 UploadedAt = DateTime.UtcNow,
                 ExpiresAt = DateTime.UtcNow.AddHours(4), // user expire date görecek
@@ -126,11 +131,18 @@ namespace Currere_backend.Services
             if (workspace == null)
                 throw new Exception("Çalışma alanı bulunamadı veya yetkiniz yok.");
 
+            var sanitizedFileName = PathSanitizer.SanitizeFileName(fileName);
+
             var file = await _context.WorkspaceFiles
-                .FirstOrDefaultAsync(f => f.WorkspaceId == workspaceId && f.FileName == fileName && f.ExpiresAt > DateTime.UtcNow);
+                .FirstOrDefaultAsync(f => f.WorkspaceId == workspaceId && f.FileName == sanitizedFileName && f.ExpiresAt > DateTime.UtcNow);
 
             if (file == null)
                 throw new Exception("Dosya bulunamadı veya süresi dolmuş.");
+
+            var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var workspaceFolderPath = Path.GetFullPath(Path.Combine(webRootPath, "workspaces", workspaceId.ToString()));
+            
+            PathSanitizer.ValidatePathWithinBoundary(file.FilePath, workspaceFolderPath);
 
             if (!System.IO.File.Exists(file.FilePath))
                 throw new Exception("Fiziksel dosya sunucuda bulunamadı.");
@@ -146,11 +158,17 @@ namespace Currere_backend.Services
             if (workspace == null)
                 return false;
 
+            var sanitizedFileName = PathSanitizer.SanitizeFileName(fileName);
+
             var file = await _context.WorkspaceFiles
-                .FirstOrDefaultAsync(f => f.WorkspaceId == workspaceId && f.FileName == fileName && f.ExpiresAt > DateTime.UtcNow);
+                .FirstOrDefaultAsync(f => f.WorkspaceId == workspaceId && f.FileName == sanitizedFileName && f.ExpiresAt > DateTime.UtcNow);
 
             if (file == null || !System.IO.File.Exists(file.FilePath))
                 return false;
+
+            var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var workspaceFolderPath = Path.GetFullPath(Path.Combine(webRootPath, "workspaces", workspaceId.ToString()));
+            PathSanitizer.ValidatePathWithinBoundary(file.FilePath, workspaceFolderPath);
 
             // Güvenli dosya yazma işlemi (File Lock sorunlarını çözmek için FileMode.Create ve FileShare.None)
             byte[] contentBytes = System.Text.Encoding.UTF8.GetBytes(content);
@@ -170,16 +188,20 @@ namespace Currere_backend.Services
             if (workspace == null)
                 throw new Exception("Çalışma alanı bulunamadı veya yetkiniz yok.");
 
+            var sanitizedFileName = PathSanitizer.SanitizeFileName(fileName);
+
             var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            var workspaceFolderPath = Path.Combine(webRootPath, "workspaces", workspaceId.ToString());
+            var workspaceFolderPath = Path.GetFullPath(Path.Combine(webRootPath, "workspaces", workspaceId.ToString()));
 
             if (!Directory.Exists(workspaceFolderPath))
             {
                 Directory.CreateDirectory(workspaceFolderPath);
             }
 
-            var uniqueFileName = $"{Guid.NewGuid().ToString("N").Substring(0, 8)}_{fileName}";
-            var fullPhysicalPath = Path.Combine(workspaceFolderPath, uniqueFileName);
+            var uniqueFileName = $"{Guid.NewGuid().ToString("N").Substring(0, 8)}_{sanitizedFileName}";
+            var fullPhysicalPath = Path.GetFullPath(Path.Combine(workspaceFolderPath, uniqueFileName));
+
+            PathSanitizer.ValidatePathWithinBoundary(fullPhysicalPath, workspaceFolderPath);
 
             // Create empty file
             await System.IO.File.WriteAllTextAsync(fullPhysicalPath, "");
@@ -187,7 +209,7 @@ namespace Currere_backend.Services
             var workspaceFile = new WorkspaceFile
             {
                 WorkspaceId = workspaceId,
-                FileName = fileName,
+                FileName = sanitizedFileName,
                 FilePath = fullPhysicalPath,
                 UploadedAt = DateTime.UtcNow,
                 ExpiresAt = DateTime.UtcNow.AddHours(24), // Empty files might last slightly longer, or same 4h. Let's do 4.
@@ -214,10 +236,16 @@ namespace Currere_backend.Services
             
             if (workspace == null) return false;
 
+            var sanitizedFileName = PathSanitizer.SanitizeFileName(fileName);
+
             var file = await _context.WorkspaceFiles
-                .FirstOrDefaultAsync(f => f.WorkspaceId == workspaceId && f.FileName == fileName);
+                .FirstOrDefaultAsync(f => f.WorkspaceId == workspaceId && f.FileName == sanitizedFileName);
 
             if (file == null) return false;
+
+            var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var workspaceFolderPath = Path.GetFullPath(Path.Combine(webRootPath, "workspaces", workspaceId.ToString()));
+            PathSanitizer.ValidatePathWithinBoundary(file.FilePath, workspaceFolderPath);
 
             // Physical delete
             if (System.IO.File.Exists(file.FilePath))
@@ -239,13 +267,16 @@ namespace Currere_backend.Services
             
             if (workspace == null) return false;
 
+            var sanitizedOldFileName = PathSanitizer.SanitizeFileName(oldFileName);
+            var sanitizedNewFileName = PathSanitizer.SanitizeFileName(newFileName);
+
             var file = await _context.WorkspaceFiles
-                .FirstOrDefaultAsync(f => f.WorkspaceId == workspaceId && f.FileName == oldFileName);
+                .FirstOrDefaultAsync(f => f.WorkspaceId == workspaceId && f.FileName == sanitizedOldFileName);
 
             if (file == null) return false;
 
             // Check if new name already exists in DB for this workspace
-            var exists = await _context.WorkspaceFiles.AnyAsync(f => f.WorkspaceId == workspaceId && f.FileName == newFileName);
+            var exists = await _context.WorkspaceFiles.AnyAsync(f => f.WorkspaceId == workspaceId && f.FileName == sanitizedNewFileName);
             if (exists) throw new Exception("Bu ada sahip bir dosya zaten mevcut.");
 
             // Physical rename
@@ -255,8 +286,14 @@ namespace Currere_backend.Services
             // Generate new physical path (keeping the random prefix if possible, or generating new one)
             // Let's generate a new one to be safe and consistent with Upload logic
             var uniquePrefix = Guid.NewGuid().ToString("N").Substring(0, 8);
-            var newPhysicalName = $"{uniquePrefix}_{newFileName}";
-            var newFilePath = Path.Combine(directory, newPhysicalName);
+            var newPhysicalName = $"{uniquePrefix}_{sanitizedNewFileName}";
+            var newFilePath = Path.GetFullPath(Path.Combine(directory, newPhysicalName));
+
+            var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var workspaceFolderPath = Path.GetFullPath(Path.Combine(webRootPath, "workspaces", workspaceId.ToString()));
+
+            PathSanitizer.ValidatePathWithinBoundary(file.FilePath, workspaceFolderPath);
+            PathSanitizer.ValidatePathWithinBoundary(newFilePath, workspaceFolderPath);
 
             if (System.IO.File.Exists(file.FilePath))
             {
@@ -270,7 +307,7 @@ namespace Currere_backend.Services
             }
 
             // Update DB
-            file.FileName = newFileName;
+            file.FileName = sanitizedNewFileName;
             file.FilePath = newFilePath;
             
             await _context.SaveChangesAsync();

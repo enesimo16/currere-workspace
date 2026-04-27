@@ -40,6 +40,7 @@ try
     builder.Services.AddSingleton<IExecutionQueueService, ExecutionQueueService>();
 builder.Services.AddHostedService<ExecutionWorker>();
 builder.Services.AddHostedService<SystemMaintenanceWorker>();
+builder.Services.AddHostedService<KernelReaperWorker>(); // Zombi kernel avcısı
 builder.Services.AddScoped<ICodePreProcessorService, CodePreProcessorService>();
 builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
     builder.Services.AddScoped<IFileService, FileService>();
@@ -91,30 +92,88 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
                 .AllowCredentials());
     });
 
-    // RAate limiting
+    // Rate limiting — Tüm kurallar tek GlobalLimiter içinde, bypass dahil
+    var testBypassSecret = builder.Configuration["TestSettings:RateLimitBypassSecret"] ?? "";
     builder.Services.AddRateLimiter(options =>
     {
-        // ip tabanl? rate limiting dakkada 60 istek
         options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
-            RateLimitPartition.GetFixedWindowLimiter(
-                partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                factory: partition => new FixedWindowRateLimiterOptions
-                {
-                    AutoReplenishment = true,
-                    PermitLimit = 60,
-                    QueueLimit = 2,
-                    Window = TimeSpan.FromMinutes(1)
-                }));
-
-        // Sadece AI Endpointleri i?in ?ok kat? limit , dakikada 5 istek
-        options.AddFixedWindowLimiter("AiStrictLimit", opt =>
         {
-            opt.PermitLimit = 5;
-            opt.Window = TimeSpan.FromMinutes(1);
-            opt.QueueLimit = 0;
+            // ═══ TEST BYPASS — Doğru secret gelirse rate limit tamamen devre dışı ═══
+            var headerSecret = httpContext.Request.Headers["X-Currere-Test-Secret"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(testBypassSecret) &&
+                !string.IsNullOrEmpty(headerSecret) &&
+                headerSecret == testBypassSecret)
+            {
+                return RateLimitPartition.GetNoLimiter<string>("test-bypass");
+            }
+
+            var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            var path = httpContext.Request.Path.Value?.ToLower() ?? "";
+
+            // Kernel execute — dakikada 20 istek
+            if (path.Contains("/kernel/") && path.Contains("/execute"))
+            {
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    $"kernel-{ip}",
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 20, Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0, AutoReplenishment = true,
+                        QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst
+                    });
+            }
+
+            // Sentetik veri — 5 dakikada 3 istek
+            if (path.Contains("/syntheticdata/"))
+            {
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    $"synthetic-{ip}",
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 3, Window = TimeSpan.FromMinutes(5),
+                        QueueLimit = 0, AutoReplenishment = true,
+                        QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst
+                    });
+            }
+
+            // HuggingFace — dakikada 5 istek
+            if (path.Contains("/huggingface/"))
+            {
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    $"hf-{ip}",
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5, Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0, AutoReplenishment = true,
+                        QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst
+                    });
+            }
+
+            // AI endpoint — dakikada 5 istek
+            if (path.Contains("/ai/"))
+            {
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    $"ai-{ip}",
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5, Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0, AutoReplenishment = true,
+                        QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst
+                    });
+            }
+
+            // Genel — dakikada 60 istek
+            return RateLimitPartition.GetFixedWindowLimiter(
+                ip,
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 60, Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0, AutoReplenishment = true,
+                    QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst
+                });
         });
 
-        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests; // a??l?rsa -> 429
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     });
 
     // Swagger JWT
@@ -150,7 +209,7 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
         options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
     });
 
-    // JWT Do?rulama
+    // JWT Doğrulama
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
@@ -164,6 +223,23 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
                 ValidateAudience = true,
                 ValidAudience = builder.Configuration.GetSection("JwtSettings:Audience").Value,
                 ValidateLifetime = true
+            };
+
+            // SignalR WebSocket JWT desteği: query string'den token okuma
+            options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    var accessToken = context.Request.Query["access_token"];
+                    var path = context.HttpContext.Request.Path;
+
+                    if (!string.IsNullOrEmpty(accessToken) &&
+                        (path.StartsWithSegments("/syncHub") || path.StartsWithSegments("/terminalHub")))
+                    {
+                        context.Token = accessToken;
+                    }
+                    return Task.CompletedTask;
+                }
             };
         });
 

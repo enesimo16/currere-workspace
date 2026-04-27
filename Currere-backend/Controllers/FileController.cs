@@ -9,7 +9,7 @@ namespace Currere_backend.Controllers
     /// <summary>
     /// Çalışma Alanı (Workspace) Dosya Yönetimi İşlemleri
     /// </summary>
-    // [Authorize] // UYARI: JWT token ile test ederken burayı açmayı unutma!
+    [Authorize] // UYARI: JWT token ile test ederken burayı açmayı unutma!
     [Route("api/workspace/{workspaceId}/[controller]")]
     [ApiController]
     public class FileController : ControllerBase
@@ -121,6 +121,19 @@ namespace Currere_backend.Controllers
         {
             try
             {
+                // ═══ Path Traversal koruması — controller katmanında erken reddet ═══
+                if (string.IsNullOrWhiteSpace(request.FileName))
+                    return BadRequest(new { error = "Dosya adı boş olamaz." });
+
+                var cleanName = Path.GetFileName(request.FileName);
+                if (cleanName != request.FileName || 
+                    request.FileName.Contains("..") || 
+                    request.FileName.Contains('/') || 
+                    request.FileName.Contains('\\'))
+                {
+                    return BadRequest(new { error = "Geçersiz dosya adı: Dizin atlama girişimi tespit edildi." });
+                }
+
                 var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
                 var result = await _fileService.CreateFileAsync(workspaceId, userId, request.FileName);
                 return Ok(result);
