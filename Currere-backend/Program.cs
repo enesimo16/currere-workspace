@@ -51,6 +51,7 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
     builder.Services.AddHttpClient<IKaggleService, KaggleService>(); // kaggle
     builder.Services.AddScoped<IWorkspaceSnapshotService, WorkspaceSnapshotService>(); // snapschot
     builder.Services.AddScoped<ISyntheticDataService, SyntheticDataService>(); // syntetic data dataset
+    builder.Services.AddSingleton<KernelManagerService>(); // Jupyter stateful kernel yönetimi
     builder.Services.AddHttpClient<IHuggingFaceService, HuggingFaceService>(); // huggingface model
 
 

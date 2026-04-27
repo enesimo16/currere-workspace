@@ -38,8 +38,9 @@ namespace Currere_backend.Controllers
                     }
                 }
 
-                var snapshot = await _snapshotService.CreateSnapshotAsync(workspaceId, request.Description);
-                return Ok(new { message = "Yedek başarıyla alındı.", snapshotId = snapshot.Id });
+                var label = !string.IsNullOrWhiteSpace(request.Label) ? request.Label : request.Description;
+                var snapshot = await _snapshotService.CreateSnapshotAsync(workspaceId, label, request.Description);
+                return Ok(new { message = "Yedek başarıyla alındı.", snapshotId = snapshot.Id, sizeKB = snapshot.SizeBytes / 1024, fileCount = snapshot.FileCount });
             }
             catch (Exception ex)
             {

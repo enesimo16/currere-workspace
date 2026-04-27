@@ -185,6 +185,10 @@ namespace Currere_backend.DTOs
 
     public class CreateSnapshotRequest
     {
+        /// <summary>
+        /// Kullanıcının yedeğe verdiği isim etiketi (Örn: "Veri Temizliği Öncesi")
+        /// </summary>
+        public string Label { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public int UserId { get; set; } // Kullanıcı takibi için eklendi
     }

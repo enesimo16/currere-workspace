@@ -2,6 +2,7 @@ using System.IO.Compression;
 using Currere_backend.Data;
 using Currere_backend.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Currere_backend.Services
 {
@@ -9,26 +10,29 @@ namespace Currere_backend.Services
     {
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
+        private readonly ILogger<WorkspaceSnapshotService> _logger;
 
-        public WorkspaceSnapshotService(AppDbContext context, IWebHostEnvironment env)
+        public WorkspaceSnapshotService(AppDbContext context, IWebHostEnvironment env, ILogger<WorkspaceSnapshotService> logger)
         {
             _context = context;
             _env = env;
+            _logger = logger;
         }
 
-        public async Task<WorkspaceSnapshot> CreateSnapshotAsync(int workspaceId, string description)
+        public async Task<WorkspaceSnapshot> CreateSnapshotAsync(int workspaceId, string label, string description)
         {
             var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             var workspacePath = Path.Combine(webRootPath, "workspaces", workspaceId.ToString());
 
-            // Yedeğin tutulacağı klasör
-            // aynı klasörde tutmuyoruz
-            var snapshotDirectory = Path.Combine(webRootPath, "snapshots", workspaceId.ToString());
-
+            // ── BOŞ WORKSPACE KORUMASI ───────────────────────────────────────
+            // Klasör yoksa veya boşsa ZIP oluşturma → 0-byte yedek engeli
             if (!Directory.Exists(workspacePath))
-                Directory.CreateDirectory(workspacePath);
+            {
+                throw new InvalidOperationException(
+                    "Yedek alınamadı: Çalışma alanı klasörü henüz oluşturulmamış. Lütfen önce bir dosya yükleyin veya kod yazın.");
+            }
 
-            // KRITIK: Veritabanındaki editör kodunu da yedekle (Eğer klasör boşsa yedek boş kalmasın)
+            // Veritabanındaki editör kodunu da yedekle
             var workspace = await _context.Workspaces.FindAsync(workspaceId);
             if (workspace != null && !string.IsNullOrEmpty(workspace.CurrentState))
             {
@@ -36,6 +40,18 @@ namespace Currere_backend.Services
                 await File.WriteAllTextAsync(codeBackupPath, workspace.CurrentState);
             }
 
+            // Dosya sayısını kontrol et (alt klasörler hariç, sadece dosyalar)
+            var workspaceFiles = Directory.GetFiles(workspacePath, "*", SearchOption.AllDirectories);
+            if (workspaceFiles.Length == 0)
+            {
+                throw new InvalidOperationException(
+                    "Yedek alınamadı: Çalışma alanında hiç dosya bulunamadı. Boş yedek oluşturmak engellenmiştir.");
+            }
+
+            _logger.LogInformation("[Snapshot] Yedek oluşturuluyor. WorkspaceId: {WsId}, Dosya sayısı: {Count}", workspaceId, workspaceFiles.Length);
+
+            // ── ZIP OLUŞTURMA ────────────────────────────────────────────────
+            var snapshotDirectory = Path.Combine(webRootPath, "snapshots", workspaceId.ToString());
             if (!Directory.Exists(snapshotDirectory))
                 Directory.CreateDirectory(snapshotDirectory);
 
@@ -43,19 +59,41 @@ namespace Currere_backend.Services
             var zipFileName = $"snapshot_{timestamp}.zip";
             var zipFilePath = Path.Combine(snapshotDirectory, zipFileName);
 
-            // zipleme
             ZipFile.CreateFromDirectory(workspacePath, zipFilePath, CompressionLevel.Fastest, includeBaseDirectory: false);
+
+            // ── BOYUT VE DOSYA SAYISI HESAPLAMA ──────────────────────────────
+            var zipFileInfo = new FileInfo(zipFilePath);
+            long sizeBytes = zipFileInfo.Length;
+            int fileCount = workspaceFiles.Length;
+
+            // Son doğrulama: Zip 0 byte ise sil ve hata fırlat
+            if (sizeBytes == 0)
+            {
+                File.Delete(zipFilePath);
+                throw new InvalidOperationException("Yedek alınamadı: Oluşturulan zip dosyası 0 byte. İşlem iptal edildi.");
+            }
+
+            // ── KULLANICI ETİKETİ ────────────────────────────────────────────
+            var finalLabel = !string.IsNullOrWhiteSpace(label) 
+                ? label.Trim() 
+                : $"Otomatik Yedek - {DateTime.Now:dd.MM.yyyy HH:mm}";
 
             var snapshot = new WorkspaceSnapshot
             {
                 WorkspaceId = workspaceId,
-                Description = string.IsNullOrWhiteSpace(description) ? "Otomatik Yedek" : description,
+                Label = finalLabel,
+                Description = string.IsNullOrWhiteSpace(description) ? finalLabel : description.Trim(),
                 ZipFilePath = zipFilePath,
+                SizeBytes = sizeBytes,
+                FileCount = fileCount,
                 CreatedAt = DateTime.UtcNow
             };
 
             _context.WorkspaceSnapshots.Add(snapshot);
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("[Snapshot] Yedek oluşturuldu. Id: {Id}, Label: {Label}, Size: {Size}KB, Files: {Count}", 
+                snapshot.Id, finalLabel, sizeBytes / 1024, fileCount);
 
             return snapshot;
         }
@@ -74,12 +112,34 @@ namespace Currere_backend.Services
             var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             var workspacePath = Path.Combine(webRootPath, "workspaces", workspaceId.ToString());
             var tempRestorePath = Path.Combine(webRootPath, "workspaces", $"{workspaceId}_temp_restore");
-            var backupPath = Path.Combine(webRootPath, "workspaces", $"{workspaceId}_backup_{DateTime.UtcNow.Ticks}");
+
+            // ── PRE-RESTORE GÜVENLİK YEDEĞİ ────────────────────────────────
+            // Geri yükleme başarısız olursa bu yedekten dönülecek
+            string? preRestoreZipPath = null;
+            if (Directory.Exists(workspacePath) && Directory.GetFileSystemEntries(workspacePath).Length > 0)
+            {
+                var safetyDir = Path.Combine(webRootPath, "snapshots", workspaceId.ToString());
+                if (!Directory.Exists(safetyDir))
+                    Directory.CreateDirectory(safetyDir);
+
+                preRestoreZipPath = Path.Combine(safetyDir, $"pre_restore_{DateTime.UtcNow.Ticks}.zip");
+                
+                try
+                {
+                    ZipFile.CreateFromDirectory(workspacePath, preRestoreZipPath, CompressionLevel.Fastest, includeBaseDirectory: false);
+                    _logger.LogInformation("[Snapshot] Pre-restore güvenlik yedeği alındı: {Path}", preRestoreZipPath);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "[Snapshot] Pre-restore güvenlik yedeği alınamadı, devam ediliyor...");
+                    preRestoreZipPath = null; // Güvenlik yedeği alınamazsa bile devam et
+                }
+            }
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // 1. Önce geçici klasöre aç ve doğrula
+                // 1. Seçilen yedeği geçici klasöre aç ve doğrula
                 if (Directory.Exists(tempRestorePath)) Directory.Delete(tempRestorePath, true);
                 Directory.CreateDirectory(tempRestorePath);
 
@@ -91,28 +151,30 @@ namespace Currere_backend.Services
                     throw new Exception("Hatalı veya boş yedek! Sistem dosyaları korunarak geri yükleme iptal edildi.");
                 }
 
-                // 2. Mevcut çalışma alanını yedekle (Daha dirençli yöntem: öğeleri tek tek taşı)
+                // 2. Mevcut workspace'i temizle (dosyaları tek tek sil — klasör yapısını koru)
                 if (Directory.Exists(workspacePath))
                 {
-                    Directory.CreateDirectory(backupPath);
                     foreach (var entry in Directory.GetFileSystemEntries(workspacePath))
                     {
-                        var name = Path.GetFileName(entry);
-                        var dest = Path.Combine(backupPath, name);
                         try
                         {
-                            if (Directory.Exists(entry)) Directory.Move(entry, dest);
-                            else File.Move(entry, dest);
+                            if (Directory.Exists(entry))
+                                Directory.Delete(entry, true);
+                            else
+                                File.Delete(entry);
                         }
                         catch (IOException ioEx)
                         {
-                            throw new Exception($"'{name}' dosyası bir işlem tarafından kullanılıyor olabilir. Lütfen açık terminal veya dosyaları kapatıp tekrar deneyin. Detay: {ioEx.Message}");
+                            throw new Exception($"'{Path.GetFileName(entry)}' dosyası bir işlem tarafından kullanılıyor olabilir. Detay: {ioEx.Message}");
                         }
                     }
-                    // Ana klasörü silmeye çalışma, sadece içini boşaltmış olduk (Windows kilitlerini aşmak için)
+                }
+                else
+                {
+                    Directory.CreateDirectory(workspacePath);
                 }
 
-                // 3. Geçici klasördeki yeni dosyaları asıl çalışma alanına aktar
+                // 3. Geçici klasördeki dosyaları workspace'e taşı
                 foreach (var entry in Directory.GetFileSystemEntries(tempRestorePath))
                 {
                     var name = Path.GetFileName(entry);
@@ -137,29 +199,62 @@ namespace Currere_backend.Services
 
                 await transaction.CommitAsync();
 
-                // Temizlik
-                if (Directory.Exists(backupPath)) Directory.Delete(backupPath, true);
+                // Başarılı — geçici klasörü ve güvenlik yedeğini temizle
                 if (Directory.Exists(tempRestorePath)) Directory.Delete(tempRestorePath, true);
+                // Pre-restore yedeğini başarılı geri yüklemeden sonra sil (artık gereksiz)
+                if (!string.IsNullOrEmpty(preRestoreZipPath) && File.Exists(preRestoreZipPath))
+                    File.Delete(preRestoreZipPath);
 
+                _logger.LogInformation("[Snapshot] Geri yükleme BAŞARILI. WorkspaceId: {WsId}, SnapshotId: {SnapId}", workspaceId, snapshotId);
                 return true;
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                
-                if (Directory.Exists(tempRestorePath)) Directory.Delete(tempRestorePath, true);
-                
-                // Hata durumunda yedekleri geri yüklemeye çalış
-                if (Directory.Exists(backupPath) && Directory.Exists(workspacePath))
+
+                // Geçici klasörü temizle
+                if (Directory.Exists(tempRestorePath))
                 {
-                    foreach (var entry in Directory.GetFileSystemEntries(backupPath))
+                    try { Directory.Delete(tempRestorePath, true); } catch { }
+                }
+
+                // ── TRANSACTION ROLLBACK: Güvenlik yedeğinden geri dön ───────
+                if (!string.IsNullOrEmpty(preRestoreZipPath) && File.Exists(preRestoreZipPath))
+                {
+                    _logger.LogWarning("[Snapshot] Geri yükleme BAŞARISIZ, güvenlik yedeğinden dönülüyor...");
+                    try
                     {
-                        var name = Path.GetFileName(entry);
-                        var dest = Path.Combine(workspacePath, name);
-                        if (Directory.Exists(entry)) Directory.Move(entry, dest);
-                        else File.Move(entry, dest);
+                        // Mevcut (bozulmuş olabilecek) workspace'i temizle
+                        if (Directory.Exists(workspacePath))
+                        {
+                            foreach (var entry in Directory.GetFileSystemEntries(workspacePath))
+                            {
+                                try
+                                {
+                                    if (Directory.Exists(entry)) Directory.Delete(entry, true);
+                                    else File.Delete(entry);
+                                }
+                                catch { }
+                            }
+                        }
+                        else
+                        {
+                            Directory.CreateDirectory(workspacePath);
+                        }
+
+                        // Güvenlik yedeğini aç
+                        ZipFile.ExtractToDirectory(preRestoreZipPath, workspacePath, overwriteFiles: true);
+                        _logger.LogInformation("[Snapshot] Güvenlik yedeğinden GERİ DÖNÜLDÜ.");
                     }
-                    Directory.Delete(backupPath, true);
+                    catch (Exception rollbackEx)
+                    {
+                        _logger.LogError(rollbackEx, "[Snapshot] Güvenlik yedeğinden geri dönüş de başarısız!");
+                    }
+                    finally
+                    {
+                        // Güvenlik yedeğini temizle
+                        try { File.Delete(preRestoreZipPath); } catch { }
+                    }
                 }
 
                 throw new Exception($"Geri yükleme başarısız: {ex.Message}");

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import api from '@/services/api';
-import { FiUpload, FiFile, FiImage, FiPlus, FiSettings, FiSearch, FiDownload, FiX, FiEdit, FiTrash2, FiList, FiGrid, FiChevronDown, FiArrowRight, FiBox } from 'react-icons/fi';
+import { FiUpload, FiFile, FiImage, FiPlus, FiSettings, FiSearch, FiDownload, FiX, FiEdit, FiTrash2, FiList, FiGrid, FiChevronDown, FiArrowRight, FiBox, FiLoader } from 'react-icons/fi';
 import { DiPython } from 'react-icons/di';
 import { BsFiletypeCsv, BsFiletypeJson, BsFiletypeSql } from 'react-icons/bs';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
@@ -19,6 +19,7 @@ interface WorkspaceFile {
 interface KaggleResult {
   ref: string;
   title: string;
+  size?: string;
 }
 
 interface FileExplorerProps {
@@ -323,8 +324,9 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
       // Eğer isim girilmemişse tarih/saat kullan
       const finalName = snapName.trim() || 'Manuel Yedek - ' + new Date().toLocaleTimeString('tr-TR');
 
-      // DTO: Description (PascalCase)
+      // DTO: Label (kullanıcı etiketi) + Description
       const response = await api.post(`/workspace/${workspaceId}/snapshot`, { 
+        Label: finalName,
         Description: finalName
       });
       
@@ -638,13 +640,25 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
                           <div className="flex justify-between items-start">
                              <div className="flex flex-col min-w-0 pr-4">
                                 <span className="text-[11px] font-bold text-zinc-200 group-hover:text-emerald-400 transition-colors truncate mb-1">
-                                   {snap.description}
+                                   {snap.label || snap.description}
                                 </span>
-                                <div className="flex items-center gap-2 text-[9px] font-bold text-zinc-500 tracking-wider">
-                                   <span className="text-zinc-600 uppercase">Snapshot #{snap.id}</span>
-                                   <span className="w-1 h-1 bg-zinc-800 rounded-full"></span>
-                                   <span>{new Date(snap.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
-                                </div>
+                                <div className="flex items-center gap-2 text-[9px] font-bold text-zinc-500 tracking-wider flex-wrap">
+                                    <span className="text-zinc-600 uppercase">Snapshot #{snap.id}</span>
+                                    <span className="w-1 h-1 bg-zinc-800 rounded-full"></span>
+                                    <span>{new Date(snap.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                    {snap.sizeBytes > 0 && (
+                                      <>
+                                        <span className="w-1 h-1 bg-zinc-800 rounded-full"></span>
+                                        <span className="text-emerald-500/60">{(snap.sizeBytes / 1024).toFixed(0)} KB</span>
+                                      </>
+                                    )}
+                                    {snap.fileCount > 0 && (
+                                      <>
+                                        <span className="w-1 h-1 bg-zinc-800 rounded-full"></span>
+                                        <span className="text-blue-400/60">{snap.fileCount} dosya</span>
+                                      </>
+                                    )}
+                                 </div>
                              </div>
                              
                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all pointer-events-auto shrink-0">
@@ -851,7 +865,7 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
 
       {/* Synthetic Data Factory Modal */}
       <SyntheticDataModal 
-        workspaceId={activeWorkspace.id}
+        workspaceId={activeWorkspace?.id || workspaceId}
         isOpen={isSyntheticModalOpen}
         onClose={() => setIsSyntheticModalOpen(false)}
         onSuccess={fetchFiles}

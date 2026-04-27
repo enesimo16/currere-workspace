@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import api from '@/services/api';
 import axios from 'axios';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
-import { FiAlertCircle, FiLoader } from 'react-icons/fi';
+import { FiLoader } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import JupyterViewer from './JupyterViewer';
 import { useSync } from '@/hooks/useSync';
@@ -81,6 +81,9 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
     }
 
     if (!workspaceId || !activeFile.name || code === undefined) return;
+
+    // .ipynb dosyaları JupyterViewer tarafından kaydedilir, CodeEditor karışmamalı
+    if (activeFile.name.endsWith('.ipynb')) return;
 
     const timeoutId = setTimeout(async () => {
       try {
@@ -191,20 +194,11 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
         )}
       </div>
 
-      {/* IPYNB Warning Banner */}
-      {isIpynb && (
-        <div className="bg-emerald-500/5 border-b border-emerald-500/10 px-4 py-2 flex items-center gap-3">
-          <FiAlertCircle className="text-emerald-500/60 w-4 h-4 shrink-0" />
-          <p className="text-[11px] text-zinc-400 leading-relaxed tracking-wide">
-            <span className="font-bold text-emerald-500/70">NOT:</span> Currere otonom motoru şu an Jupyter Notebook dosyalarını sadece okuyabilir, 
-            ancak çalıştırmak için Python formatına dönüştürmeniz gereklidir.
-          </p>
-        </div>
-      )}
+
       
       <div className="flex-1 w-full relative">
         {isIpynb ? (
-          <JupyterViewer content={code} />
+          <JupyterViewer content={code} workspaceId={workspaceId || ''} activeFileName={activeFile.name} />
         ) : (
           <Editor
             height="100%"

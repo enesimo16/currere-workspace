@@ -14,3 +14,4 @@ RUN pip install --no-cache-dir pandas numpy matplotlib
 # Onu konteynerın içine kopyalamalıyız.
 RUN mkdir -p /app
 COPY runner.py /app/runner.py
+COPY kernel_repl.py /app/kernel_repl.py
