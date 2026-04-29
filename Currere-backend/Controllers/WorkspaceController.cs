@@ -1,8 +1,12 @@
+using System.IO;
+using System.IO.Compression;
 using System.Security.Claims;
 using Currere_backend.DTOs;
 using Currere_backend.Services;
+using Currere_backend.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Currere_backend.Controllers
 {
@@ -12,10 +16,12 @@ namespace Currere_backend.Controllers
     public class WorkspaceController : ControllerBase
     {
         private readonly IWorkspaceService _workspaceService;
+        private readonly AppDbContext _context;
 
-        public WorkspaceController(IWorkspaceService workspaceService)
+        public WorkspaceController(IWorkspaceService workspaceService, AppDbContext context)
         {
             _workspaceService = workspaceService;
+            _context = context;
         }
 
         // JWT 'den kullanici alma
@@ -82,6 +88,48 @@ namespace Currere_backend.Controllers
             if (!success) return NotFound("Silinecek proje bulunamadı.");
 
             return Ok("Proje başarıyla silindi.");
+        }
+
+        [HttpGet("{workspaceId}/export")]
+        public async Task<IActionResult> ExportWorkspace(int workspaceId)
+        {
+            try
+            {
+                var userId = GetUserId();
+                var workspace = await _workspaceService.GetWorkspaceByIdAsync(workspaceId, userId);
+
+                if (workspace == null)
+                    return NotFound(new { error = "Proje bulunamadı veya erişim yetkiniz yok." });
+
+                var files = await _context.WorkspaceFiles
+                    .Where(f => f.WorkspaceId == workspaceId)
+                    .ToListAsync();
+
+                var memoryStream = new MemoryStream();
+
+                using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                {
+                    foreach (var file in files)
+                    {
+                        if (System.IO.File.Exists(file.FilePath))
+                        {
+                            var entry = archive.CreateEntry(file.FileName, CompressionLevel.Optimal);
+                            using (var entryStream = entry.Open())
+                            using (var fileStream = new FileStream(file.FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                            {
+                                await fileStream.CopyToAsync(entryStream);
+                            }
+                        }
+                    }
+                }
+
+                memoryStream.Position = 0;
+                return File(memoryStream, "application/zip", $"workspace_{workspaceId}_export.zip");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Dışa aktarma sırasında bir hata oluştu: {ex.Message}" });
+            }
         }
     }
 }

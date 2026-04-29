@@ -13,6 +13,8 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Text;
 using System.Threading.RateLimiting;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 Console.OutputEncoding = Encoding.UTF8;
 // serilog
@@ -26,6 +28,18 @@ try
 {
     Log.Information("Currere API aya?a kalk?yor...");
     var builder = WebApplication.CreateBuilder(args);
+
+    // ══════════════════════════════════════════════════════════════
+    // GÜVENLİK KONTROLÜ (HARDCODED SECRETS KORUMASI)
+    // ══════════════════════════════════════════════════════════════
+    var jwtSecret = builder.Configuration["JwtSettings:Secret"];
+    var encSecret = builder.Configuration["Encryption:SecretKey"];
+    
+    if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret == "DO_NOT_PUT_SECRETS_HERE" ||
+        string.IsNullOrWhiteSpace(encSecret) || encSecret == "DO_NOT_PUT_SECRETS_HERE")
+    {
+        throw new Exception("KRİTİK GÜVENLİK İHLALİ: JwtSettings:Secret veya Encryption:SecretKey güvenli değil! Lütfen şifreleri 'dotnet user-secrets' veya Environment Variables üzerinden sağlayın.");
+    }
 
     // varsay?lan log
     builder.Host.UseSerilog();
@@ -44,6 +58,8 @@ builder.Services.AddHostedService<KernelReaperWorker>(); // Zombi kernel avcıs�
 builder.Services.AddScoped<ICodePreProcessorService, CodePreProcessorService>();
 builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
     builder.Services.AddScoped<IFileService, FileService>();
+    builder.Services.AddScoped<IProfileJobService, ProfileJobService>(); // Hangfire BackgroundJob
+    builder.Services.AddScoped<FileCleanupService>(); // Hangfire BackgroundJob
     builder.Services.AddScoped<IDatasetProfilerService, DatasetProfilerService>(); // dataset okuyarak baglam kurma, cikarim yapma
     builder.Services.AddValidatorsFromAssemblyContaining<Program>(); // validatr
     builder.Services.AddHttpClient<IAiService, GroqAiService>(); // groq
@@ -52,6 +68,31 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
     builder.Services.AddHttpClient<IKaggleService, KaggleService>(); // kaggle
     builder.Services.AddScoped<IWorkspaceSnapshotService, WorkspaceSnapshotService>(); // snapschot
     builder.Services.AddScoped<ISyntheticDataService, SyntheticDataService>(); // syntetic data dataset
+    
+    // ══════════════════════════════════════════════════════════════
+    // SEMANTIC KERNEL DİNAMİK MOTOR (ENGINE) YAPILANDIRMASI
+    // ══════════════════════════════════════════════════════════════
+    builder.Services.AddKeyedScoped<Microsoft.SemanticKernel.ChatCompletion.IChatCompletionService, Currere_backend.Agents.Core.HybridChatCompletionService>("auto");
+
+    builder.Services.AddKernel()
+        .AddOpenAIChatCompletion(
+            modelId: "llama-3.3-70b-versatile",
+            apiKey: builder.Configuration["AiSettings:GroqApiKey"] ?? "IGNORE",
+            endpoint: new Uri("https://api.groq.com/openai/v1"),
+            serviceId: "groq"
+        )
+#pragma warning disable SKEXP0070 // Ollama is experimental in SK
+        .AddOllamaChatCompletion(
+            modelId: "llama3", 
+            endpoint: new Uri("http://localhost:11434"),
+            serviceId: "ollama"
+        );
+#pragma warning restore SKEXP0070
+
+    // Orchestrator ve Pluginler
+    builder.Services.AddScoped<Currere_backend.Agents.Plugins.DockerExecutionPlugin>();
+    builder.Services.AddScoped<Currere_backend.Agents.Core.AgentOrchestrator>();
+
     builder.Services.AddSingleton<KernelManagerService>(); // Jupyter stateful kernel yönetimi
     builder.Services.AddHttpClient<IHuggingFaceService, HuggingFaceService>(); // huggingface model
 
@@ -96,6 +137,21 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
     var testBypassSecret = builder.Configuration["TestSettings:RateLimitBypassSecret"] ?? "";
     builder.Services.AddRateLimiter(options =>
     {
+        // ══ EKLENDİ: Controller seviyesinde kullanılan "AiStrictLimit" politikası ══
+        options.AddPolicy("AiStrictLimit", httpContext =>
+        {
+            var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            return RateLimitPartition.GetFixedWindowLimiter(
+                $"AiStrictLimit-{ip}",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 5,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0,
+                    AutoReplenishment = true
+                });
+        });
+
         options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
         {
             // ═══ TEST BYPASS — Doğru secret gelirse rate limit tamamen devre dışı ═══
@@ -270,6 +326,9 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
 
     app.UseHttpsRedirection();
     
+    // Routing, RateLimiter'ın endpoint etiketlerini ([EnableRateLimiting]) okuyabilmesi için ÖNCE çağrılmalıdır!
+    app.UseRouting();
+
     // CORS'u UseRouting veya RateLimiter'dan hemen önce kullanıyoruz.
     app.UseCors("AllowAll");
 

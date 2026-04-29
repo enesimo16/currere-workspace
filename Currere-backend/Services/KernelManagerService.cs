@@ -164,10 +164,18 @@ namespace Currere_backend.Services
                 {
                     // Process ölmüşse yeniden başlat
                     _logger.LogWarning("[Kernel] WorkspaceId: {WsId} — process ölü, yeniden başlatılıyor", workspaceId);
-                    session.Dispose();
+                    
+                    var oldSession = session;
                     _sessions.TryRemove(workspaceId, out _);
+                    
+                    // Yeni session al ve kilidini kap (çünkü finally bloğu bu yeni session'ı release edecek)
                     session = await GetOrCreateSessionAsync(workspaceId);
                     await session.ExecutionLock.WaitAsync();
+                    
+                    // Eski session'ı dispose et ve kilidini bırak ki bekleyen thread'ler uyansın
+                    // Onlar uyanınca da eski session'ın öldüğünü görüp buraya girecekler.
+                    oldSession.Dispose();
+                    oldSession.ExecutionLock.Release();
                 }
 
                 session.LastActivityAt = DateTime.UtcNow;

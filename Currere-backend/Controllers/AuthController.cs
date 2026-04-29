@@ -1,4 +1,4 @@
-﻿using Currere_backend.DTOs;
+using Currere_backend.DTOs;
 using Currere_backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -40,9 +40,13 @@ namespace Currere_backend.Controllers
                 var token = await _authService.LoginAsync(request);
                 return Ok(new { token = token }); 
             }
-            catch (Exception ex)
+            catch (UnauthorizedAccessException ex)
             {
                 return Unauthorized(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Sistem Hatası: " + ex.Message });
             }
         }
 

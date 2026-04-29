@@ -92,15 +92,14 @@ namespace Currere_backend.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> UpdateFileContent([FromRoute] int workspaceId, [FromRoute] string fileName, [FromForm(Name = "file")] IFormFile file)
+        public async Task<IActionResult> UpdateFileContent([FromRoute] int workspaceId, [FromRoute] string fileName, [FromBody] UpdateFileContentDto request)
         {
             try
             {
-                if (file == null)
-                    return BadRequest(new { error = "Dosya gönderilmedi." });
+                if (request == null)
+                    return BadRequest(new { error = "İçerik gönderilmedi." });
 
-                using var reader = new StreamReader(file.OpenReadStream());
-                var content = await reader.ReadToEndAsync();
+                var content = request.Content;
 
                 var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
                 var success = await _fileService.UpdateFileContentAsync(workspaceId, userId, fileName, content);
@@ -183,7 +182,7 @@ namespace Currere_backend.Controllers
         }
     }
 
-    public class UpdateFileContentRequest
+    public class UpdateFileContentDto
     {
         public string Content { get; set; } = string.Empty;
     }

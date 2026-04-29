@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -23,11 +23,25 @@ namespace Currere_backend.Services
         {
             try
             {
-                using var document = JsonDocument.Parse(ipynbContent);
-                var root = document.RootElement;
+                if (string.IsNullOrWhiteSpace(ipynbContent))
+                    throw new FormatException("Geçersiz veya bozuk Notebook formatı. Lütfen geçerli bir .ipynb içeriği sağlayın.");
 
-                if (!root.TryGetProperty("cells", out var cells))
-                    throw new Exception("Geçersiz Notebook formatı: 'cells' dizisi bulunamadı.");
+                JsonDocument document;
+                try
+                {
+                    document = JsonDocument.Parse(ipynbContent);
+                }
+                catch
+                {
+                    throw new FormatException("Geçersiz veya bozuk Notebook formatı. Lütfen geçerli bir .ipynb içeriği sağlayın.");
+                }
+
+                using (document)
+                {
+                    var root = document.RootElement;
+
+                    if (!root.TryGetProperty("cells", out var cells))
+                        throw new FormatException("Geçersiz veya bozuk Notebook formatı. Lütfen geçerli bir .ipynb içeriği sağlayın.");
 
                 var rawPythonScript = new StringBuilder();
                 int cellIndex = 0;
@@ -59,11 +73,20 @@ namespace Currere_backend.Services
                     // Markdown cell'leri tamamen yoksay
                 }
 
-                return Task.FromResult(rawPythonScript.ToString());
+                var finalScript = rawPythonScript.ToString();
+                if (string.IsNullOrWhiteSpace(finalScript))
+                    throw new FormatException("Geçersiz veya bozuk Notebook formatı. Lütfen geçerli bir .ipynb içeriği sağlayın.");
+
+                return Task.FromResult(finalScript);
+                }
             }
-            catch (JsonException ex)
+            catch (FormatException)
             {
-                throw new Exception($"Notebook dosyası okunamadı, JSON formatı bozuk: {ex.Message}");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new FormatException("Geçersiz veya bozuk Notebook formatı. Lütfen geçerli bir .ipynb içeriği sağlayın.", ex);
             }
         }
 

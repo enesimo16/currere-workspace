@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "description": "Hata veren Python kodunu ve Traceback'i analiz edip onarılmış kodu üretir.",
+  "execution_settings": {
+    "default": {
+      "max_tokens": 4000,
+      "temperature": 0.2,
+      "top_p": 0.95
+    }
+  },
+  "input_variables": [
+    {
+      "name": "faultyCode",
+      "description": "Sistemde çalışırken hata fırlatan Python kodu",
+      "is_required": true
+    },
+    {
+      "name": "errorDetails",
+      "description": "Docker sandbox'ından dönen hata detayı veya Traceback çıktısı",
+      "is_required": true
+    }
+  ]
+}

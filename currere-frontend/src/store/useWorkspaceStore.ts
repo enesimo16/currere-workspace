@@ -16,6 +16,12 @@ export interface ActiveFile {
   type: string;
 }
 
+export interface QuotedSnippet {
+  id: string;
+  type: 'code' | 'terminal';
+  content: string;
+}
+
 interface WorkspaceState {
   activeWorkspace: Workspace | null;
   activeFile: ActiveFile;
@@ -27,6 +33,13 @@ interface WorkspaceState {
   injectCode: (code: string) => void;
   clearInjection: () => void;
   setViewMode: (mode: 'list' | 'tree') => void;
+  quotedSnippets: QuotedSnippet[];
+  referencedFiles: string[];
+  addQuotedSnippet: (snippet: QuotedSnippet) => void;
+  removeQuotedSnippet: (id: string) => void;
+  addReferencedFile: (fileName: string) => void;
+  removeReferencedFile: (fileName: string) => void;
+  clearContext: () => void;
 }
 
 export const useWorkspaceStore = create<WorkspaceState>()(
@@ -42,6 +55,13 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       injectCode: (code: string) => set({ pendingInjection: code }),
       clearInjection: () => set({ pendingInjection: null }),
       setViewMode: (mode: 'list' | 'tree') => set({ viewMode: mode }),
+      quotedSnippets: [],
+      referencedFiles: [],
+      addQuotedSnippet: (snippet) => set((state) => ({ quotedSnippets: [...state.quotedSnippets, snippet] })),
+      removeQuotedSnippet: (id) => set((state) => ({ quotedSnippets: state.quotedSnippets.filter(s => s.id !== id) })),
+      addReferencedFile: (fileName) => set((state) => ({ referencedFiles: state.referencedFiles.includes(fileName) ? state.referencedFiles : [...state.referencedFiles, fileName] })),
+      removeReferencedFile: (fileName) => set((state) => ({ referencedFiles: state.referencedFiles.filter(f => f !== fileName) })),
+      clearContext: () => set({ quotedSnippets: [], referencedFiles: [] }),
     }),
     {
       name: 'workspace-storage',

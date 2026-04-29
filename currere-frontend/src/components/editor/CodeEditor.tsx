@@ -18,8 +18,9 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
   const isInitialMount = useRef(true);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const editorRef = useRef<any>(null);
-  const { activeFile, setActiveFile, pendingInjection, clearInjection } = useWorkspaceStore();
+  const { activeFile, setActiveFile, pendingInjection, clearInjection, addQuotedSnippet } = useWorkspaceStore();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [selectedCode, setSelectedCode] = useState('');
   const [isConverting, setIsConverting] = useState(false);
   
   // VS Code Sync
@@ -28,6 +29,16 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
   // Monaco Editor yüklendiğinde referansı kaydet
   const handleEditorDidMount = (editor: any) => {
     editorRef.current = editor;
+    
+    editor.onDidChangeCursorSelection(() => {
+      const selection = editor.getSelection();
+      const model = editor.getModel();
+      if (model && selection && !selection.isEmpty()) {
+        setSelectedCode(model.getValueInRange(selection));
+      } else {
+        setSelectedCode('');
+      }
+    });
   };
 
   // Sync Update Listener
@@ -45,16 +56,20 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
   useEffect(() => {
     if (pendingInjection && editorRef.current) {
       const editor = editorRef.current;
+      const position = editor.getPosition();
       const selection = editor.getSelection();
       const model = editor.getModel();
-      if (model) {
-        const range = selection || {
-          startLineNumber: model.getLineCount(),
-          startColumn: model.getLineMaxColumn(model.getLineCount()),
-          endLineNumber: model.getLineCount(),
-          endColumn: model.getLineMaxColumn(model.getLineCount())
+      
+      if (model && position && selection) {
+        const hasSelection = !selection.isEmpty();
+        const range = hasSelection ? selection : {
+          startLineNumber: position.lineNumber,
+          startColumn: position.column,
+          endLineNumber: position.lineNumber,
+          endColumn: position.column
         };
-        const textToInsert = `\n${pendingInjection}\n`;
+        
+        const textToInsert = hasSelection ? pendingInjection : `\n${pendingInjection}\n`;
         editor.executeEdits('ai-injection', [{ range, text: textToInsert, forceMoveMarkers: true }]);
         clearInjection();
         editor.focus();
@@ -197,6 +212,19 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
 
       
       <div className="flex-1 w-full relative">
+        {!isIpynb && selectedCode && (
+          <button 
+            onClick={() => {
+              addQuotedSnippet({ id: Date.now().toString(), type: 'code', content: selectedCode });
+              toast.success('Seçili kod bağlama eklendi', {
+                style: { background: '#333', color: '#fff', fontSize: '12px' }
+              });
+            }}
+            className="absolute right-8 top-4 z-10 bg-emerald-600/90 hover:bg-emerald-500 text-white px-3 py-1.5 text-[10px] font-bold tracking-widest rounded shadow-xl backdrop-blur-md flex items-center gap-1.5 border border-emerald-400/30 transition-all active:scale-95"
+          >
+            🪄 AI'a Gönder
+          </button>
+        )}
         {isIpynb ? (
           <JupyterViewer content={code} workspaceId={workspaceId || ''} activeFileName={activeFile.name} />
         ) : (

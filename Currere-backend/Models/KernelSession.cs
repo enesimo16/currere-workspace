@@ -42,7 +42,8 @@ namespace Currere_backend.Models
         {
             try
             {
-                ExecutionLock.Dispose();
+                // ExecutionLock.Dispose() bilinçli olarak yapılmaz (bekleyen thead'ler ObjectDisposedException almasın diye).
+                // GC tarafından temizlenecektir.
                 if (DockerProcess != null && !DockerProcess.HasExited)
                 {
                     DockerProcess.Kill(entireProcessTree: true);

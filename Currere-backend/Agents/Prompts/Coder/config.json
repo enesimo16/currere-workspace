@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "description": "Architect'in oluşturduğu planı alarak saf çalıştırılabilir Python kodu üretir.",
+  "execution_settings": {
+    "default": {
+      "max_tokens": 4000,
+      "temperature": 0.1,
+      "top_p": 0.95
+    }
+  },
+  "input_variables": [
+    {
+      "name": "planJson",
+      "description": "Architect tarafından oluşturulmuş ExecutionPlan objesinin JSON hali",
+      "is_required": true
+    }
+  ]
+}

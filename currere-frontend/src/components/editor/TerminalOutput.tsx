@@ -8,9 +8,24 @@ interface TerminalOutputProps {
   forceVisualTab?: boolean;
 }
 
+import { useWorkspaceStore } from '@/store/useWorkspaceStore';
+import toast from 'react-hot-toast';
+
 export default function TerminalOutput({ output, isError, images = [], forceVisualTab = false, workspaceId }: TerminalOutputProps & { workspaceId?: string | number }) {
   const [activeTab, setActiveTab] = useState<'terminal' | 'visual'>('terminal');
   const [plotTimestamp, setPlotTimestamp] = useState(Date.now());
+  const [selectedTerminalText, setSelectedTerminalText] = useState('');
+  const { addQuotedSnippet } = useWorkspaceStore();
+
+  useEffect(() => {
+    const handleSelection = () => {
+      if (activeTab !== 'terminal') return;
+      const text = window.getSelection()?.toString() || '';
+      setSelectedTerminalText(text);
+    };
+    document.addEventListener('selectionchange', handleSelection);
+    return () => document.removeEventListener('selectionchange', handleSelection);
+  }, [activeTab]);
 
   // Workspace'teki statik grafiği göstermek için URL
   const plotUrl = `/api/workspace/${workspaceId}/file/output_plot.png?t=${plotTimestamp}`;
@@ -82,7 +97,20 @@ export default function TerminalOutput({ output, isError, images = [], forceVisu
       </div>
       
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto relative">
+        {activeTab === 'terminal' && selectedTerminalText && (
+          <button 
+            onClick={() => {
+              addQuotedSnippet({ id: Date.now().toString(), type: 'terminal', content: selectedTerminalText });
+              toast.success('Hata logu bağlama eklendi', {
+                style: { background: '#333', color: '#fff', fontSize: '12px' }
+              });
+            }}
+            className="absolute right-4 top-4 z-10 bg-red-600/90 hover:bg-red-500 text-white px-3 py-1.5 text-[10px] font-bold tracking-widest rounded shadow-xl backdrop-blur-md flex items-center gap-1.5 border border-red-400/30 transition-all active:scale-95"
+          >
+            🚨 AI'a Sor
+          </button>
+        )}
         {activeTab === 'terminal' ? (
           <div className="p-4 h-full">
             {outputLines.length > 0 ? (

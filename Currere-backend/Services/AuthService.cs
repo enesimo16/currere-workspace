@@ -13,23 +13,28 @@ namespace Currere_backend.Services
     {
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AuthService> _logger;
 
-        public AuthService(AppDbContext context, IConfiguration configuration)
+        public AuthService(AppDbContext context, IConfiguration configuration, ILogger<AuthService> logger)
         {
             _context = context;
             _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task<string> RegisterAsync(RegisterDto request)
         {
-            string cleanEmail = request.Email.Trim().ToLower();
+            string cleanEmail = request.Email?.Trim().ToLower() ?? "";
 
             if (await _context.Users.AnyAsync(u => u.Email == cleanEmail))
             {
+                _logger.LogWarning("Kayıt Başarısız: Email zaten kullanımda ({Email})", cleanEmail);
                 throw new Exception("Bu email adresi zaten kullanımda.");
             }
 
-            string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+            // Şifrenin başında/sonunda yanlışlıkla boşluk kalmışsa (Kopyala/Yapıştır hatası) temizle
+            string safePassword = request.Password?.Trim() ?? "";
+            string passwordHash = BCrypt.Net.BCrypt.HashPassword(safePassword);
 
             UserRole assignedRole = UserRole.User; // varsayilan user
 
@@ -69,21 +74,33 @@ namespace Currere_backend.Services
 
         public async Task<string> LoginAsync(LoginDto request)
         {
-            string cleanEmail = request.Email.Trim().ToLower();
+            string cleanEmail = request.Email?.Trim().ToLower() ?? "";
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == cleanEmail);
 
             if (user == null)
             {
-                throw new Exception("Kullanıcı bulunamadı.");
+                _logger.LogWarning("Email veritabanında bulunamadı: {Email}", cleanEmail);
+                throw new UnauthorizedAccessException("Kullanıcı bulunamadı.");
             }
 
-            if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            string safePassword = request.Password?.Trim() ?? "";
+            if (!BCrypt.Net.BCrypt.Verify(safePassword, user.PasswordHash))
             {
-                throw new Exception("Hatalı şifre.");
+                _logger.LogWarning("Şifre eşleşmedi: {Email}. Gelen Şifre Uzunluğu: {Len1}, DB Hash Uzunluğu: {Len2}", 
+                                   cleanEmail, safePassword.Length, user.PasswordHash?.Length);
+                throw new UnauthorizedAccessException("Hatalı şifre.");
             }
 
-            return CreateToken(user);
+            try 
+            {
+                return CreateToken(user);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Token üretilirken hata oluştu. Lütfen appsettings.json içerisindeki JWT configlerini kontrol edin.");
+                throw new InvalidOperationException("Token üretilirken sistem hatası oluştu.");
+            }
         }
 
         private string CreateToken(User user)

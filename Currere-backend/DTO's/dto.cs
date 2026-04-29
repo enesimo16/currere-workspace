@@ -152,11 +152,23 @@ namespace Currere_backend.DTOs
 
     // AI INTEGRATION
 
+    public class QuotedSnippetDto
+    {
+        public string Type { get; set; } = string.Empty; // "code" or "terminal"
+        public string Content { get; set; } = string.Empty;
+    }
+
     public class GenerateCodeRequestDto
     {
         public int FileId { get; set; }
 
         public string Prompt { get; set; } = string.Empty;
+        
+        public string EnginePreference { get; set; } = "auto";
+        
+        public List<QuotedSnippetDto>? QuotedSnippets { get; set; } = new();
+        
+        public List<string>? ReferencedFiles { get; set; } = new();
     }
 
     // api integration

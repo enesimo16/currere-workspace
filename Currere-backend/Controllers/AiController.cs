@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 
 namespace Currere_backend.Controllers
 {
@@ -132,31 +133,85 @@ Asla açıklama, selamlama veya yorum yapma, sadece çalıştırılabilir kod ya
         [HttpPost("smart-chat")] // tek adres
         public async Task<IActionResult> SmartChat(int workspaceId, [FromBody] GenerateCodeRequestDto request)
         {
-            if (!await IsWorkspaceOwnerAsync(workspaceId)) return NotFound(new { error = "Çalışma alanı bulunamadı veya erişim yetkiniz yok." });
+            // Esnetilmiş Kural: WorkspaceId > 0 ise yetki kontrolü yap, 0 ise genel sohbet olarak kabul et.
+            if (workspaceId > 0 && !await IsWorkspaceOwnerAsync(workspaceId)) 
+                return NotFound(new { error = "Çalışma alanı bulunamadı veya erişim yetkiniz yok." });
 
-            var file = await _context.WorkspaceFiles
-                .FirstOrDefaultAsync(f => f.Id == request.FileId && f.WorkspaceId == workspaceId);
+            string profileJson = "";
+            string fileNameInWorkspace = "general.py";
 
-            if (file == null || string.IsNullOrEmpty(file.ProfileJson))
-                return BadRequest(new { error = "Dosya bulunamadı veya profili henüz çıkarılmamış." });
+            // Eğer geçerli bir dosya gönderilmişse özelliklerini çıkar
+            if (workspaceId > 0 && request.FileId > 0)
+            {
+                var file = await _context.WorkspaceFiles
+                    .FirstOrDefaultAsync(f => f.Id == request.FileId && f.WorkspaceId == workspaceId);
 
-            var fileNameInWorkspace = Path.GetFileName(file.FilePath);
+                if (file != null && !string.IsNullOrEmpty(file.ProfileJson))
+                {
+                    profileJson = file.ProfileJson;
+                    fileNameInWorkspace = Path.GetFileName(file.FilePath);
+                }
+            }
 
             try
             {
+                // Bağlamları Prompt'a Enjekte Etme Mantığı
+                string finalPrompt = request.Prompt;
+                if ((request.ReferencedFiles != null && request.ReferencedFiles.Any()) || 
+                    (request.QuotedSnippets != null && request.QuotedSnippets.Any()))
+                {
+                    var sb = new StringBuilder();
+                    sb.AppendLine("KULLANICI BAĞLAMI (CONTEXT):");
+                    
+                    if (request.ReferencedFiles != null && request.ReferencedFiles.Any())
+                    {
+                        sb.AppendLine("İlgili Dosyalar: " + string.Join(", ", request.ReferencedFiles));
+                    }
+                    
+                    if (request.QuotedSnippets != null)
+                    {
+                        foreach (var snippet in request.QuotedSnippets)
+                        {
+                            if (snippet.Type == "terminal")
+                            {
+                                sb.AppendLine("--- TERMINAL ÇIKTISI / HATASI ---");
+                                sb.AppendLine(snippet.Content);
+                                sb.AppendLine("---------------------------------");
+                            }
+                            else
+                            {
+                                sb.AppendLine("--- SEÇİLİ KOD ---");
+                                sb.AppendLine(snippet.Content);
+                                sb.AppendLine("------------------");
+                            }
+                        }
+                    }
+                    sb.AppendLine("\nKULLANICI TALEBİ:");
+                    sb.AppendLine(request.Prompt);
+                    finalPrompt = sb.ToString();
+                }
+
                 // kullanıcı istegi renderlama
-                var intent = await _aiService.DetermineIntentAsync(request.Prompt);
+                var intent = await _aiService.DetermineIntentAsync(finalPrompt);
 
                 if (intent == "SOHBET")
                 {
-                    string chatContext = $"Kullanıcının şu an üzerinde çalıştığı verinin özeti: {file.ProfileJson}. Kullanıcıya Veri Bilimi bağlamında, Türkçe ve kibarca yanıt ver.";
-                    var chatResponse = await _aiService.ChatAsync(request.Prompt, chatContext);
+                    string chatContext = string.IsNullOrEmpty(profileJson) 
+                        ? "Sen Currere AI adlı zeki bir Veri Bilimi asistanısın. Kullanıcıya genel kodlama ve analitik konularda Türkçe ve kibarca yanıt ver."
+                        : $"Kullanıcının şu an üzerinde çalıştığı verinin özeti: {profileJson}. Kullanıcıya Veri Bilimi bağlamında, Türkçe ve kibarca yanıt ver.";
+                        
+                    var chatResponse = await _aiService.ChatAsync(finalPrompt, chatContext);
 
                     return Ok(new { type = "chat", message = chatResponse });
                 }
                 else
                 {
-                    var generatedCode = await _aiService.GeneratePythonCodeAsync(request.Prompt, file.ProfileJson, fileNameInWorkspace);
+                    // Kod üretimi isteği
+                    string promptContext = string.IsNullOrEmpty(profileJson) 
+                        ? "Genel Python Kodlayıcı" 
+                        : profileJson;
+                        
+                    var generatedCode = await _aiService.GeneratePythonCodeAsync(finalPrompt, promptContext, fileNameInWorkspace);
 
                     return Ok(new { type = "code", code = generatedCode });
                 }
@@ -224,6 +279,9 @@ Raporun okunaklı, profesyonel ve analitik olmalıdır.";
         {
             if (!await IsWorkspaceOwnerAsync(workspaceId)) return NotFound(new { error = "Çalışma alanı bulunamadı veya erişim yetkiniz yok." });
 
+            if (request == null || request.FileId <= 0)
+                return BadRequest(new { error = "Geçerli bir dosya (FileId) belirtilmedi." });
+
             var file = await _context.WorkspaceFiles
                 .FirstOrDefaultAsync(f => f.Id == request.FileId && f.WorkspaceId == workspaceId);
 
@@ -234,6 +292,10 @@ Raporun okunaklı, profesyonel ve analitik olmalıdır.";
             {
                 // kodu dosyadan alıyoruz
                 string ipynbContent = await System.IO.File.ReadAllTextAsync(file.FilePath);
+
+                if (string.IsNullOrWhiteSpace(ipynbContent))
+                    return BadRequest(new { error = "Notebook içeriği boş veya geçersiz formatta." });
+
                 string rawPythonCode = await _notebookConverterService.ExtractRawPythonFromNotebookAsync(ipynbContent);
 
                 int maxRetries = 3;
@@ -310,6 +372,10 @@ HATALARI OLAN KOD:
                 }
 
                 return BadRequest();
+            }
+            catch (FormatException ex)
+            {
+                return BadRequest(new { error = ex.Message });
             }
             catch (Exception ex)
             {

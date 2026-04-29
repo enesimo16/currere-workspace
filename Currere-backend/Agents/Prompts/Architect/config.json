@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "description": "Kullanıcı isteğini analiz edip Type-Safe JSON formatında bir ExecutionPlan oluşturur.",
+  "execution_settings": {
+    "default": {
+      "max_tokens": 1000,
+      "temperature": 0.2,
+      "top_p": 0.9
+    }
+  },
+  "input_variables": [
+    {
+      "name": "profileJson",
+      "description": "Kullanıcının profil ve tercihleri",
+      "is_required": true
+    },
+    {
+      "name": "domainContext",
+      "description": "Uygulamanın bağlamı",
+      "is_required": true
+    },
+    {
+      "name": "userPrompt",
+      "description": "Kullanıcının doğal dildeki ham isteği",
+      "is_required": true
+    }
+  ]
+}
