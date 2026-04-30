@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import api from '@/services/api';
 import axios from 'axios';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
-import { FiLoader } from 'react-icons/fi';
+import { FiLoader, FiSave, FiCode, FiDownload, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import JupyterViewer from './JupyterViewer';
 import { useSync } from '@/hooks/useSync';
@@ -18,7 +18,7 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
   const isInitialMount = useRef(true);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const editorRef = useRef<any>(null);
-  const { activeFile, setActiveFile, pendingInjection, clearInjection, addQuotedSnippet } = useWorkspaceStore();
+  const { activeFile, setActiveFile, openFiles, removeOpenFile, pendingInjection, clearInjection, addQuotedSnippet } = useWorkspaceStore();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [selectedCode, setSelectedCode] = useState('');
   const [isConverting, setIsConverting] = useState(false);
@@ -175,41 +175,72 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
 
   return (
     <section className="h-full flex flex-col bg-[#1e1e1e] overflow-hidden">
-      {/* Editor Header / Tab */}
-      <div className="h-10 bg-[#2d2d2d] border-b border-[#1e1e1e] flex items-center justify-between px-4 shrink-0 shadow-sm">
-        <div className="flex items-center gap-2 text-zinc-300 text-xs font-mono bg-[#1e1e1e] px-4 py-1.5 rounded-t-md border-t border-emerald-500/50">
-          <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-          </svg>
-          {activeFile.name}
+      {/* Editor Header / Tab Bar */}
+      <div className="h-10 bg-[#0c0c0e] border-b border-zinc-800/50 flex items-end justify-between shrink-0 relative z-10">
+        <div className="flex items-end pl-2 overflow-x-auto overflow-y-hidden no-scrollbar scrollbar-hide max-w-[calc(100%-150px)]">
+          {openFiles.map((file) => {
+            const isActive = activeFile.name === file.name;
+            return (
+              <div 
+                key={file.name}
+                onClick={() => setActiveFile(file)}
+                className={`
+                  group flex items-center gap-2 text-xs font-medium px-4 py-2 cursor-pointer transition-all relative -bottom-[1px]
+                  ${isActive 
+                    ? 'bg-[#1e1e1e] text-zinc-200 border-t-2 border-t-emerald-500/70 border-x border-x-zinc-800/50 border-b border-b-[#1e1e1e] z-20' 
+                    : 'bg-transparent text-zinc-500 hover:bg-zinc-800/30 hover:text-zinc-300 border-b border-b-transparent'
+                  }
+                `}
+              >
+                <svg className={`w-3.5 h-3.5 ${isActive ? 'text-emerald-400/80' : 'text-zinc-500 group-hover:text-zinc-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                </svg>
+                <span className="truncate max-w-[120px]">{file.name}</span>
+                
+                {/* Close Button - Hide for main.py if it's the only one, or always allow if logic supports it */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeOpenFile(file.name);
+                  }}
+                  className={`
+                    p-0.5 rounded-sm transition-colors
+                    ${isActive ? 'hover:bg-zinc-800 text-zinc-400' : 'opacity-0 group-hover:opacity-100 hover:bg-zinc-800 text-zinc-500'}
+                  `}
+                >
+                  <FiX className="w-3 h-3" />
+                </button>
+              </div>
+            );
+          })}
         </div>
 
-        {isIpynb && (
-          <button
-            onClick={handleConvertNotebook}
-            disabled={isConverting}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded text-[10px] font-bold transition-all border ${
-              isConverting 
-                ? 'bg-emerald-900/30 text-emerald-500 border-emerald-500/30 cursor-wait opacity-70' 
-                : 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 active:scale-95 border border-emerald-500/30'
-            }`}
-          >
-            {isConverting ? (
-              <>
-                <FiLoader className="w-3 h-3 animate-spin" />
-                <span className="tracking-widest capitalize">İŞLENİYOR...</span>
-              </>
-            ) : (
-              <>
-                <span className="text-sm leading-none">🪄</span> 
-                <span className="tracking-widest">DÖNÜŞTÜR (.PY)</span>
-              </>
-            )}
-          </button>
-        )}
+        <div className="pb-1.5 pr-4 flex items-center gap-4">
+          {isIpynb && (
+            <button
+              onClick={handleConvertNotebook}
+              disabled={isConverting}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded text-[10px] font-bold transition-all border ${
+                isConverting 
+                  ? 'bg-emerald-900/30 text-emerald-500 border-emerald-500/30 cursor-wait opacity-70' 
+                  : 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 active:scale-95 border border-emerald-500/30'
+              }`}
+            >
+              {isConverting ? (
+                <>
+                  <FiLoader className="w-3 h-3 animate-spin" />
+                  <span className="tracking-widest capitalize">İŞLENİYOR...</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-sm leading-none">🪄</span> 
+                  <span className="tracking-widest">DÖNÜŞTÜR (.PY)</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
-
-
       
       <div className="flex-1 w-full relative">
         {!isIpynb && selectedCode && (
@@ -220,9 +251,9 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
                 style: { background: '#333', color: '#fff', fontSize: '12px' }
               });
             }}
-            className="absolute right-8 top-4 z-10 bg-emerald-600/90 hover:bg-emerald-500 text-white px-3 py-1.5 text-[10px] font-bold tracking-widest rounded shadow-xl backdrop-blur-md flex items-center gap-1.5 border border-emerald-400/30 transition-all active:scale-95"
+            className="absolute right-8 top-4 z-10 bg-zinc-800/90 hover:bg-zinc-700 text-zinc-100 px-3 py-1.5 text-[10px] font-bold tracking-widest rounded shadow-xl backdrop-blur-md flex items-center gap-1.5 border border-zinc-700/30 transition-all active:scale-95"
           >
-            🪄 AI'a Gönder
+            AI'A GÖNDER
           </button>
         )}
         {isIpynb ? (
@@ -247,6 +278,7 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
               scrollBeyondLastLine: false,
               smoothScrolling: true,
               cursorBlinking: "smooth",
+              backgroundColor: '#18181b',
               scrollbar: {
                 verticalScrollbarSize: 8,
                 horizontalScrollbarSize: 8,

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiTerminal, FiImage, FiActivity } from 'react-icons/fi';
+import { FiStar, FiActivity } from 'react-icons/fi';
 
 interface TerminalOutputProps {
   output: string;
@@ -48,84 +48,80 @@ export default function TerminalOutput({ output, isError, images = [], forceVisu
   const outputLines = output ? output.split('\n') : [];
 
   return (
-    <section className="h-full bg-[#0d0d0d] flex flex-col">
+    <section className="h-full bg-zinc-950/80 backdrop-blur-sm flex flex-col border-l border-zinc-800/50">
       {/* Tab Header */}
-      <div className="h-10 border-b border-zinc-800/70 flex items-center shrink-0 bg-[#141414] px-1 gap-0.5">
+      <div className="h-10 border-b border-zinc-900/50 flex items-end px-6 shrink-0 bg-transparent gap-8">
         <button 
           onClick={() => setActiveTab('terminal')}
-          className={`h-8 px-4 flex items-center gap-2 text-[10px] font-bold tracking-widest rounded-md transition-all ${
+          className={`pb-1.5 text-[10px] font-light tracking-[0.2em] uppercase transition-all border-b-2 ${
             activeTab === 'terminal' 
-              ? 'bg-zinc-800 text-emerald-400 shadow-inner' 
-              : 'text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800/40'
+              ? 'text-zinc-200 border-emerald-500/40' 
+              : 'text-zinc-500 hover:text-zinc-300 border-transparent'
           }`}
         >
-          <FiTerminal className="w-3.5 h-3.5" />
           TERMINAL
         </button>
         <button 
           onClick={() => setActiveTab('visual')}
-          className={`h-8 px-4 flex items-center gap-2 text-[10px] font-bold tracking-widest rounded-md transition-all relative ${
+          className={`pb-1.5 text-[10px] font-light tracking-[0.2em] uppercase transition-all border-b-2 relative ${
             activeTab === 'visual' 
-              ? 'bg-zinc-800 text-emerald-400 shadow-inner' 
-              : 'text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800/40'
+              ? 'text-zinc-200 border-emerald-500/40' 
+              : 'text-zinc-500 hover:text-zinc-300 border-transparent'
           }`}
         >
-          <FiImage className="w-3.5 h-3.5" />
           GÖRSEL ÇIKTI
           {images.length > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full flex items-center justify-center text-[7px] font-black text-black animate-pulse">
-              {images.length}
+            <span className="absolute -top-1 -right-4 w-2.5 h-2.5 bg-emerald-500/20 border border-emerald-500/40 rounded-full flex items-center justify-center text-[6px] font-bold text-emerald-400 animate-pulse">
             </span>
           )}
         </button>
 
         {/* Sağ: Durum */}
-        <div className="ml-auto pr-3 flex items-center gap-2">
+        <div className="ml-auto pb-1.5 pr-2 flex items-center gap-3">
           {isError && (
-            <span className="flex items-center gap-1 text-[9px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-              HATA
+            <span className="flex items-center gap-1.5 text-[8px] font-medium tracking-widest text-red-400/80 uppercase">
+              <span className="w-1 h-1 rounded-full bg-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></span>
+              ERROR
             </span>
           )}
           {!isError && output && !output.includes('Yürütülüyor') && (
-            <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              TAMAMLANDI
+            <span className="flex items-center gap-1.5 text-[8px] font-medium tracking-widest text-emerald-400/80 uppercase">
+              <span className="w-1 h-1 rounded-full bg-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+              SYNCED
             </span>
           )}
         </div>
       </div>
       
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto relative">
+      <div className="flex-1 overflow-y-auto relative custom-scrollbar">
         {activeTab === 'terminal' && selectedTerminalText && (
           <button 
             onClick={() => {
               addQuotedSnippet({ id: Date.now().toString(), type: 'terminal', content: selectedTerminalText });
-              toast.success('Hata logu bağlama eklendi', {
-                style: { background: '#333', color: '#fff', fontSize: '12px' }
+              toast.success('Analiz bağlamı eklendi', {
+                style: { background: '#09090b', color: '#a1a1aa', fontSize: '11px', border: '1px solid #27272a' }
               });
             }}
-            className="absolute right-4 top-4 z-10 bg-red-600/90 hover:bg-red-500 text-white px-3 py-1.5 text-[10px] font-bold tracking-widest rounded shadow-xl backdrop-blur-md flex items-center gap-1.5 border border-red-400/30 transition-all active:scale-95"
+            className="absolute right-6 top-6 z-10 bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 px-4 py-2 text-[10px] font-medium tracking-[0.1em] rounded-full shadow-2xl backdrop-blur-xl flex items-center gap-2 border border-zinc-800 transition-all active:scale-95"
           >
-            🚨 AI'a Sor
+            AI'A AKTAR
           </button>
         )}
         {activeTab === 'terminal' ? (
-          <div className="p-4 h-full">
+          <div className="p-6 h-full">
             {outputLines.length > 0 ? (
-              <div className="font-['JetBrains_Mono',monospace] text-[12px] space-y-0.5">
+              <div className="font-['JetBrains_Mono',monospace] text-[12px] space-y-1">
                 {outputLines.map((line, idx) => {
                   const isErrLine = isError || line.includes('Error') || line.includes('Traceback') || line.includes('error:');
                   const isHeaderLine = line.startsWith('---');
                   return (
-                    <div key={idx} className={`flex items-start gap-2 leading-relaxed px-2 rounded ${
-                      isErrLine ? 'text-red-400 bg-red-950/20 py-0.5 border-l-2 border-red-500/50' : isHeaderLine ? 'text-zinc-500 italic' : 'text-zinc-300'
-                    }`}>
-                      <span className="text-zinc-700 text-[10px] select-none w-7 text-right shrink-0 pt-0.5 font-mono">
+                    <div key={idx} className={`flex items-start gap-3 leading-relaxed px-3 rounded-sm transition-colors ${
+                      isErrLine ? 'text-red-400/90 bg-red-500/5 border-l border-red-500/30' : isHeaderLine ? 'text-zinc-600 italic' : 'text-zinc-400'
+                    } hover:bg-zinc-800/20`}>
+                      <span className="text-zinc-800 text-[9px] select-none w-8 text-right shrink-0 pt-1 font-mono tracking-tighter opacity-50">
                         {idx + 1}
                       </span>
-                      {isErrLine && <FiActivity className="w-3 h-3 text-red-500 shrink-0 mt-1" />}
                       <span className="whitespace-pre-wrap break-all">{line || ' '}</span>
                     </div>
                   );
@@ -133,10 +129,7 @@ export default function TerminalOutput({ output, isError, images = [], forceVisu
               </div>
             ) : (
               <div className="h-full flex items-center justify-center">
-                <div className="text-center space-y-3 opacity-40">
-                  <FiTerminal className="w-10 h-10 text-zinc-600 mx-auto" />
-                  <p className="text-zinc-500 text-xs tracking-wide">Çalıştırmak için Çalıştır butonuna bas</p>
-                </div>
+                <p className="text-zinc-600 text-xs font-light tracking-wide italic">Komut çıktısı burada gözükecektir...</p>
               </div>
             )}
           </div>
@@ -176,7 +169,7 @@ export default function TerminalOutput({ output, isError, images = [], forceVisu
             ) : (
               <div className="text-center space-y-4 max-w-[260px] opacity-40">
                 <div className="w-20 h-20 bg-zinc-900 rounded-3xl flex items-center justify-center mx-auto border border-zinc-800 shadow-inner">
-                  <FiImage className="w-10 h-10 text-zinc-700" />
+                  <FiAperture className="w-10 h-10 text-zinc-700" />
                 </div>
                 <div className="space-y-1.5">
                   <p className="text-zinc-400 font-semibold text-xs tracking-wide">Görsel Çıktı Bekleniyor</p>

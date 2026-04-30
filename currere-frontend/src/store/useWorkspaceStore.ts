@@ -40,6 +40,16 @@ interface WorkspaceState {
   addReferencedFile: (fileName: string) => void;
   removeReferencedFile: (fileName: string) => void;
   clearContext: () => void;
+  openFiles: ActiveFile[];
+  addOpenFile: (file: ActiveFile) => void;
+  removeOpenFile: (fileName: string) => void;
+  // Global tool states
+  isKaggleOpen: boolean;
+  setKaggleOpen: (open: boolean) => void;
+  isHistoryOpen: boolean;
+  setHistoryOpen: (open: boolean) => void;
+  isSyntheticOpen: boolean;
+  setSyntheticOpen: (open: boolean) => void;
 }
 
 export const useWorkspaceStore = create<WorkspaceState>()(
@@ -49,8 +59,8 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       activeFile: { name: 'main.py', type: 'code' },
       pendingInjection: null,
       viewMode: 'list',
-      setActiveWorkspace: (workspace: Workspace) => set({ activeWorkspace: workspace, activeFile: { name: 'main.py', type: 'code' } }),
-      clearActiveWorkspace: () => set({ activeWorkspace: null, activeFile: { name: 'main.py', type: 'code' } }),
+      setActiveWorkspace: (workspace: Workspace) => set({ activeWorkspace: workspace, activeFile: { name: 'main.py', type: 'code' }, openFiles: [{ name: 'main.py', type: 'code' }] }),
+      clearActiveWorkspace: () => set({ activeWorkspace: null, activeFile: { name: 'main.py', type: 'code' }, openFiles: [{ name: 'main.py', type: 'code' }] }),
       setActiveFile: (file: ActiveFile) => set({ activeFile: file }),
       injectCode: (code: string) => set({ pendingInjection: code }),
       clearInjection: () => set({ pendingInjection: null }),
@@ -62,6 +72,23 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       addReferencedFile: (fileName) => set((state) => ({ referencedFiles: state.referencedFiles.includes(fileName) ? state.referencedFiles : [...state.referencedFiles, fileName] })),
       removeReferencedFile: (fileName) => set((state) => ({ referencedFiles: state.referencedFiles.filter(f => f !== fileName) })),
       clearContext: () => set({ quotedSnippets: [], referencedFiles: [] }),
+      openFiles: [{ name: 'main.py', type: 'code' }],
+      addOpenFile: (file) => set((state) => {
+        if (!state.openFiles.some(f => f.name === file.name)) {
+          return { openFiles: [...state.openFiles, file] };
+        }
+        return state;
+      }),
+      removeOpenFile: (fileName) => set((state) => {
+        const newOpenFiles = state.openFiles.filter(f => f.name !== fileName);
+        return { openFiles: newOpenFiles.length > 0 ? newOpenFiles : [{ name: 'main.py', type: 'code' }] };
+      }),
+      isKaggleOpen: false,
+      setKaggleOpen: (open: boolean) => set({ isKaggleOpen: open }),
+      isHistoryOpen: false,
+      setHistoryOpen: (open: boolean) => set({ isHistoryOpen: open }),
+      isSyntheticOpen: false,
+      setSyntheticOpen: (open: boolean) => set({ isSyntheticOpen: open }),
     }),
     {
       name: 'workspace-storage',

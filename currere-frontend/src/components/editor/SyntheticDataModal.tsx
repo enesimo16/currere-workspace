@@ -69,24 +69,19 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
         onClick={() => !loading && onClose()}
       />
       
-      <div className="relative w-full max-w-lg bg-[#0f0f0f]/90 border border-emerald-500/20 rounded-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] overflow-hidden">
-        {/* Glow Effect */}
-        <div className="absolute -top-24 -left-24 w-48 h-48 bg-emerald-500/10 rounded-full blur-[80px]" />
-        
+      <div className="relative w-full max-w-lg bg-zinc-950/90 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden">
         {/* Header */}
-        <div className="relative p-6 border-b border-zinc-800/50 flex justify-between items-center bg-gradient-to-r from-emerald-500/5 to-transparent">
+        <div className="relative p-6 border-b border-white/5 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-500/10 rounded-xl">
-              <FiZap className="w-5 h-5 text-emerald-500 animate-pulse" />
-            </div>
+            <FiDatabase className="w-6 h-6 text-emerald-400" />
             <div>
-              <h3 className="text-lg font-black text-zinc-100 tracking-tight">VERİ FABRİKASI</h3>
-              <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Otonom Sentetik Veri Sentezleyici</p>
+              <h3 className="text-lg font-semibold text-zinc-100 tracking-wide">VERİ FABRİKASI</h3>
+              <p className="text-xs font-light tracking-wider text-zinc-500 uppercase">Otonom Sentetik Veri Sentezleyici</p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="p-2 text-zinc-500 hover:text-white hover:bg-zinc-800/50 rounded-xl transition-all"
+            className="p-2 text-zinc-500 hover:text-white hover:bg-white/5 rounded-lg transition-all"
             disabled={loading}
           >
             <FiX className="w-5 h-5" />
@@ -113,20 +108,20 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
           ) : (
             <>
               {/* Prompt Input */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-zinc-500 tracking-[0.2em] uppercase">Veri Seti Tanımı</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest block">Veri Seti Tanımı</label>
                 <textarea 
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   placeholder="Örn: 18-65 yaş arası, İstanbul'da yaşayan, teknoloji harcaması yapan kullanıcılar..."
-                  className="w-full h-32 bg-black/40 border border-zinc-800/50 rounded-2xl px-5 py-4 text-sm text-zinc-200 outline-none focus:border-emerald-500/50 focus:bg-emerald-500/5 transition-all resize-none placeholder:text-zinc-700"
+                  className="w-full h-32 bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all resize-none placeholder:text-zinc-700"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-6">
                 {/* Row Count */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-zinc-500 tracking-[0.2em] uppercase">Satır Sayısı</label>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest block">Satır Sayısı</label>
                   <div className="relative">
                     <input 
                       type="number" 
@@ -134,23 +129,23 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
                       max="1000"
                       value={rowCount}
                       onChange={(e) => setRowCount(Number(e.target.value))}
-                      className="w-full bg-black/40 border border-zinc-800/50 rounded-xl px-5 py-3 text-sm text-zinc-200 outline-none focus:border-emerald-500/50 transition-all font-mono"
+                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-200 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all font-mono"
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-zinc-600">ROWS</span>
                   </div>
                 </div>
 
                 {/* Mode Select */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-zinc-500 tracking-[0.2em] uppercase">Üretim Modu</label>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest block">Üretim Modu</label>
                   <div className="relative">
                     <select 
                       value={mode}
                       onChange={(e) => setMode(Number(e.target.value))}
-                      className="w-full bg-black/40 border border-zinc-800/50 rounded-xl px-4 py-3 text-sm text-zinc-200 outline-none focus:border-emerald-500/50 transition-all appearance-none cursor-pointer"
+                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-200 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all appearance-none cursor-pointer"
                     >
-                      <option value={1} className="bg-[#0f0f0f]">Standard (Hızlı)</option>
-                      <option value={2} className="bg-[#0f0f0f]">Detailed (Gerçekçi)</option>
+                      <option value={1} className="bg-zinc-950">Standard (Hızlı)</option>
+                      <option value={2} className="bg-zinc-950">Detailed (Gerçekçi)</option>
                     </select>
                     <FiSettings className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 pointer-events-none" />
                   </div>
@@ -158,13 +153,13 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
               </div>
 
               {/* Filename Input */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-zinc-500 tracking-[0.2em] uppercase">Kaydedilecek Dosya Adı</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest block">Kaydedilecek Dosya Adı</label>
                 <input 
                   type="text" 
                   value={fileName}
                   onChange={(e) => setFileName(e.target.value)}
-                  className="w-full bg-black/40 border border-zinc-800/50 rounded-xl px-5 py-3 text-sm text-zinc-200 outline-none focus:border-emerald-500/50 transition-all font-mono"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-200 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all font-mono"
                 />
               </div>
 
@@ -172,15 +167,15 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
               <div className="pt-4 flex gap-4">
                 <button 
                   onClick={onClose}
-                  className="flex-1 px-6 py-3.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 rounded-2xl text-[11px] font-black tracking-[0.2em] transition-all active:scale-95 border border-zinc-800"
+                  className="flex-1 px-6 py-3 bg-transparent text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 border border-zinc-800 rounded-lg text-xs font-medium transition-all"
                 >
                   İPTAL
                 </button>
                 <button 
                   onClick={handleSentezle}
-                  className="flex-[2] px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-[11px] font-black tracking-[0.2em] transition-all shadow-xl shadow-emerald-600/20 active:scale-95 flex items-center justify-center gap-2"
+                  className="flex-[2] px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium transition-all shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2"
                 >
-                  <FiZap className="w-3.5 h-3.5" />
+                  <FiDatabase className="w-4 h-4" />
                   SENTEZLEMEYİ BAŞLAT
                 </button>
               </div>

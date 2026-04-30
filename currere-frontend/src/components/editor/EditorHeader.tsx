@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Workspace, useWorkspaceStore } from '@/store/useWorkspaceStore';
 import { useRouter } from 'next/navigation';
-import { FiEdit2, FiTrash2, FiBox, FiCheck, FiX, FiMonitor, FiCopy, FiTerminal, FiExternalLink } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiBox, FiCheck, FiX, FiMonitor, FiCopy, FiTerminal, FiExternalLink, FiArrowLeft, FiZap, FiSearch, FiClock } from 'react-icons/fi';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -127,27 +127,22 @@ export default function EditorHeader({ activeWorkspace, isExecuting, onRun }: Ed
   };
 
   return (
-    <header className="h-14 border-b border-zinc-800/50 flex items-center justify-between px-6 shrink-0 bg-[#0a0a0a]/80 backdrop-blur-md shadow-2xl z-40 relative">
-      <div className="flex items-center gap-4">
+    <header className="h-14 border-b border-slate-200 flex items-center justify-between px-6 shrink-0 bg-white shadow-sm z-40 relative">
+      <div className="flex items-center">
+        {/* Dashboard'a Dön Button */}
         <button
           onClick={() => router.push('/dashboard')}
-          className="group flex items-center gap-2 text-[10px] font-black text-zinc-500 hover:text-white transition-all tracking-[0.2em] outline-none"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors outline-none"
         >
-          <svg className="w-3.5 h-3.5 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
-          </svg>
-          DASHBOARD
+          <FiArrowLeft className="w-4 h-4" />
+          Dashboard
         </button>
+
+        <div className="h-4 w-px bg-slate-200 mx-2"></div>
         
-        <div className="h-6 w-px bg-zinc-800/80"></div>
-        
-        <div className="flex items-center gap-3 group">
-          <div className="p-1.5 bg-emerald-500/10 rounded-md">
-            <FiBox className="w-3.5 h-3.5 text-emerald-500" />
-          </div>
-          
+        <div className="flex items-center group ml-1">
           {isRenaming ? (
-            <div className="flex items-center gap-1.5 animate-in fade-in slide-in-from-left-2 duration-300">
+            <div className="flex items-center gap-1.5 animate-in fade-in slide-in-from-left-2 duration-200">
               <input
                 autoFocus
                 type="text"
@@ -157,20 +152,23 @@ export default function EditorHeader({ activeWorkspace, isExecuting, onRun }: Ed
                   if (e.key === 'Enter') handleRenameSubmit();
                   if (e.key === 'Escape') setIsRenaming(false);
                 }}
-                className="bg-zinc-900/50 border border-emerald-500/30 rounded-md px-3 py-1 text-xs text-zinc-100 outline-none w-56 focus:border-emerald-500/60 transition-all font-mono"
+                className="bg-white border border-slate-300 rounded-md px-2 py-0.5 text-sm text-slate-800 outline-none w-48 focus:border-emerald-500 transition-colors font-bold"
               />
-              <button onClick={handleRenameSubmit} className="p-1.5 text-emerald-400 hover:bg-emerald-400/10 rounded-md transition-all"><FiCheck className="w-3.5 h-3.5" /></button>
-              <button onClick={() => setIsRenaming(false)} className="p-1.5 text-zinc-500 hover:bg-zinc-500/10 rounded-md transition-all"><FiX className="w-3.5 h-3.5" /></button>
+              <button onClick={handleRenameSubmit} className="p-1 text-emerald-500 hover:bg-emerald-50 rounded-md transition-colors"><FiCheck className="w-4 h-4" /></button>
+              <button onClick={() => setIsRenaming(false)} className="p-1 text-slate-400 hover:bg-slate-100 rounded-md transition-colors"><FiX className="w-4 h-4" /></button>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-bold text-zinc-100 tracking-tight flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-slate-900 font-bold text-lg tracking-tight">
                 {activeWorkspace.title || activeWorkspace.name || 'İsimsiz Proje'}
-                <span className="text-[9px] px-1.5 py-0.5 bg-zinc-800 text-zinc-500 rounded uppercase tracking-widest font-black border border-zinc-700/50">SANDBOX</span>
               </span>
-              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all">
-                <button onClick={() => setIsRenaming(true)} className="p-1.5 text-zinc-500 hover:text-blue-400 transition-colors rounded-md hover:bg-zinc-800/50"><FiEdit2 className="w-3 h-3" /></button>
-                <button onClick={handleDelete} className="p-1.5 text-zinc-500 hover:text-red-400 transition-colors rounded-md hover:bg-red-400/5"><FiTrash2 className="w-3 h-3" /></button>
+              <span className="bg-slate-100 text-slate-500 text-[11px] px-2 py-0.5 rounded-full font-medium uppercase tracking-wider">
+                Sandbox
+              </span>
+              
+              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+                <button onClick={() => setIsRenaming(true)} className="p-1.5 text-slate-400 hover:text-slate-600 transition-colors rounded-md hover:bg-slate-100"><FiEdit2 className="w-3.5 h-3.5" /></button>
+                <button onClick={handleDelete} className="p-1.5 text-slate-400 hover:text-red-500 transition-colors rounded-md hover:bg-red-50"><FiTrash2 className="w-3.5 h-3.5" /></button>
               </div>
             </div>
           )}
@@ -181,36 +179,71 @@ export default function EditorHeader({ activeWorkspace, isExecuting, onRun }: Ed
         {/* VS Code Connect Button */}
         <button
           onClick={openSyncModal}
-          className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-bold text-zinc-400 hover:text-emerald-400 hover:bg-emerald-400/5 border border-zinc-800 hover:border-emerald-500/30 transition-all tracking-wider"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-[13px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors duration-200"
         >
-          <FiMonitor className="w-3.5 h-3.5" />
-          VS CODE'A BAĞLAN
+          <FiMonitor className="w-4 h-4" />
+          VS Code'a Bağlan
         </button>
 
         <button
           onClick={() => setIsPushModalOpen(true)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold text-zinc-400 hover:text-amber-400 hover:bg-amber-400/5 border border-zinc-800 hover:border-amber-500/30 transition-all tracking-wider"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-[13px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors duration-200"
         >
-          <SiHuggingface className="w-3.5 h-3.5" />
-          PUSH TO HUB
+          <SiHuggingface className="w-4 h-4" />
+          Push to Hub
         </button>
 
-        <div className="w-px h-6 bg-zinc-800/80 mx-1"></div>
+        <div className="w-px h-5 bg-slate-200 mx-1"></div>
+
+        {/* Global Tools Group */}
+        <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200/60">
+          <button
+            onClick={() => useWorkspaceStore.getState().setSyntheticOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-md transition-all"
+            title="Sentetik Veri Üret"
+          >
+            <FiZap className="w-4 h-4" />
+            <span className="hidden lg:inline">Veri Üret</span>
+          </button>
+          
+          <div className="h-4 w-px bg-slate-200 mx-0.5"></div>
+          
+          <button
+            onClick={() => useWorkspaceStore.getState().setKaggleOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-md transition-all"
+            title="Kaggle Dataset Arama"
+          >
+            <FiSearch className="w-4 h-4" />
+            <span className="hidden lg:inline">Kaggle</span>
+          </button>
+          
+          <div className="h-4 w-px bg-slate-200 mx-0.5"></div>
+          
+          <button
+            onClick={() => useWorkspaceStore.getState().setHistoryOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-md transition-all"
+            title="Snapshot Geçmişi"
+          >
+            <FiClock className="w-4 h-4" />
+            <span className="hidden lg:inline">Yedekler</span>
+          </button>
+        </div>
+
+        <div className="w-px h-5 bg-slate-200 mx-1"></div>
 
         <button
           onClick={onRun}
           disabled={isExecuting}
-          className="relative flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:border-zinc-700 border border-emerald-500/50 text-white px-6 py-1.5 rounded-lg font-black text-[11px] tracking-[0.1em] transition-all shadow-xl active:scale-95 disabled:cursor-not-allowed group overflow-hidden"
+          className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white px-4 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-200"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
           {isExecuting ? (
-            <div className="w-3.5 h-3.5 border-[3px] border-white/20 border-t-white rounded-full animate-spin"></div>
+            <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
           ) : (
-            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
             </svg>
           )}
-          {isExecuting ? 'YÜRÜTÜLÜYOR...' : 'KODU ÇALIŞTIR'}
+          {isExecuting ? 'Yürütülüyor...' : 'Kodu Çalıştır'}
         </button>
       </div>
 

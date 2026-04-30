@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSend, FiX, FiCopy, FiArrowRight, FiCheck, FiCpu, FiActivity } from 'react-icons/fi';
+import { FiSend, FiX, FiCopy, FiArrowRight, FiCheck, FiStar, FiActivity, FiChevronDown } from 'react-icons/fi';
 import api from '@/services/api';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 import ReactMarkdown from 'react-markdown';
@@ -22,6 +22,7 @@ export default function CurrereAI() {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showFileMenu, setShowFileMenu] = useState(false);
+  const [showEngineMenu, setShowEngineMenu] = useState(false);
   const [workspaceFiles, setWorkspaceFiles] = useState<{ id: number; fileName: string }[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [injectedIds, setInjectedIds] = useState<Set<string>>(new Set());
@@ -168,7 +169,7 @@ export default function CurrereAI() {
                 </button>
                 <button 
                   onClick={() => handleInject(Date.now().toString(), codeString)} 
-                  className="flex items-center gap-1.5 hover:text-blue-400 transition-colors"
+                  className="flex items-center gap-1.5 bg-zinc-800 hover:bg-emerald-500/20 hover:text-emerald-400 text-zinc-400 transition-all border border-white/5 px-2 py-1 rounded-md"
                   title="IDE'ye Ekle"
                 >
                   <FiArrowRight className="w-3.5 h-3.5" />
@@ -208,28 +209,28 @@ export default function CurrereAI() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: 20 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="absolute bottom-20 right-0 w-[340px] md:w-[480px] h-[550px] max-h-[75vh] bg-black/50 backdrop-blur-xl border border-zinc-800/50 rounded-2xl shadow-2xl flex flex-col overflow-hidden pointer-events-auto"
+              className="absolute bottom-20 right-0 w-[340px] md:w-[480px] h-[550px] max-h-[75vh] bg-zinc-950/80 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl shadow-black/50 flex flex-col overflow-hidden pointer-events-auto"
               style={{
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05) inset'
               }}
             >
-              <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/50 bg-[#1e1e1e]/60">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
-                    <FiCpu className="text-emerald-400 w-3.5 h-3.5 animate-pulse" />
+              <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-zinc-900/40">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                    <FiStar className="text-emerald-400 w-3.5 h-3.5 animate-pulse" />
                   </div>
-                  <span className="font-bold text-zinc-200 text-sm tracking-tight font-sans">Currere AI Assistant</span>
+                  <span className="font-medium text-zinc-100 text-sm tracking-wide">Currere AI Assistant</span>
                 </div>
                 <button 
                   onClick={() => setIsOpen(false)}
-                  className="p-1 hover:bg-zinc-800/50 rounded-md text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                  className="p-1.5 hover:bg-white/5 rounded-lg text-zinc-500 hover:text-white transition-colors cursor-pointer"
                 >
-                  <FiX className="w-4 h-4" />
+                  <FiX className="w-4.5 h-4.5" />
                 </button>
               </div>
 
               <div 
-                className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar"
+                className="flex-1 overflow-y-auto p-5 space-y-5 custom-scrollbar"
                 onPointerDownCapture={(e) => e.stopPropagation()}
               >
                 {messages.map((msg) => (
@@ -238,12 +239,12 @@ export default function CurrereAI() {
                     className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div 
-                      className={`max-w-[90%] rounded-2xl text-sm leading-relaxed shadow-sm overflow-hidden ${
+                      className={`max-w-[92%] rounded-2xl text-sm leading-relaxed shadow-sm overflow-hidden ${
                         msg.sender === 'user' 
-                          ? 'bg-emerald-600/80 text-emerald-50 border border-emerald-500/30 rounded-br-sm px-4 py-2.5' 
+                          ? 'bg-emerald-600/60 text-emerald-50 border border-emerald-500/20 rounded-br-sm px-4 py-3' 
                           : msg.type === 'error'
-                            ? 'bg-red-500/20 text-red-200 border border-red-500/30 rounded-bl-sm px-4 py-2.5'
-                            : 'bg-[#2d2d2d]/80 text-zinc-200 border border-zinc-700/30 rounded-bl-sm px-4 py-2.5 w-full'
+                            ? 'bg-red-500/10 text-red-300 border border-red-500/20 rounded-bl-sm px-4 py-3'
+                            : 'bg-zinc-800/40 text-zinc-200 border border-zinc-700/20 rounded-bl-sm px-4 py-3 w-full'
                       }`}
                     >
                       {msg.sender === 'user' || msg.type === 'error' ? (
@@ -259,48 +260,71 @@ export default function CurrereAI() {
                   </div>
                 ))}
                 {isTyping && (
-                   <div className="text-[10px] text-emerald-500/80 animate-pulse font-black tracking-widest pl-2">AI IS THINKING...</div>
+                   <div className="flex items-center gap-2 pl-2">
+                     <div className="w-1 h-1 bg-emerald-500 rounded-full animate-bounce"></div>
+                     <div className="w-1 h-1 bg-emerald-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                     <div className="w-1 h-1 bg-emerald-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                     <span className="text-[10px] text-zinc-500 font-medium tracking-widest uppercase ml-1">AI Thinking...</span>
+                   </div>
                 )}
                 <div ref={messagesEndRef} />
               </div>
 
               <div 
-                className="p-3 bg-[#111111]/95 border-t border-zinc-800/50 backdrop-blur-md flex flex-col gap-2"
+                className="p-4 bg-zinc-950/40 border-t border-white/5 backdrop-blur-md flex flex-col gap-3"
                 onPointerDownCapture={(e) => e.stopPropagation()}
               >
-                {/* Segmented Control for Engine Selection */}
-                <div className="flex items-center justify-between bg-zinc-900/80 p-1 rounded-lg border border-zinc-800/50">
+                {/* Engine Selector Dropdown */}
+                <div className="relative">
                   <button 
-                    onClick={() => setEnginePreference('auto')}
-                    className={`flex-1 text-[10px] font-medium py-1.5 rounded-md transition-all ${enginePreference === 'auto' ? 'bg-zinc-800 text-zinc-200 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    onClick={() => setShowEngineMenu(!showEngineMenu)}
+                    className="w-full flex items-center justify-between bg-zinc-900/50 px-4 py-2 rounded-xl border border-zinc-800/30 text-[10px] font-medium text-zinc-300 hover:text-white transition-all shadow-sm"
                   >
-                    Auto (Hybrid)
+                    <span className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-white/40"></span>
+                      MODEL: {enginePreference === 'auto' ? 'Auto (Hybrid)' : enginePreference === 'groq' ? 'Cloud (Groq)' : 'Local (Ollama)'}
+                    </span>
+                    <FiChevronDown className={`w-3.5 h-3.5 transition-transform ${showEngineMenu ? 'rotate-180' : ''}`} />
                   </button>
-                  <button 
-                    onClick={() => setEnginePreference('groq')}
-                    className={`flex-1 text-[10px] font-medium py-1.5 rounded-md transition-all ${enginePreference === 'groq' ? 'bg-zinc-800 text-zinc-200 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
-                  >
-                    Cloud (Groq)
-                  </button>
-                  <button 
-                    onClick={() => setEnginePreference('ollama')}
-                    className={`flex-1 text-[10px] font-medium py-1.5 rounded-md transition-all ${enginePreference === 'ollama' ? 'bg-zinc-800 text-zinc-200 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
-                  >
-                    Local (Ollama)
-                  </button>
+
+                  <AnimatePresence>
+                    {showEngineMenu && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute bottom-full left-0 w-full mb-2 bg-zinc-900/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden z-30 shadow-2xl"
+                      >
+                        {[
+                          { id: 'auto', label: 'Auto (Hybrid)', desc: 'Best of both worlds' },
+                          { id: 'groq', label: 'Cloud (Groq)', desc: 'Ultra-fast Llama 3' },
+                          { id: 'ollama', label: 'Local (Ollama)', desc: 'Private & Secure' }
+                        ].map((engine) => (
+                          <button 
+                            key={engine.id}
+                            onClick={() => { setEnginePreference(engine.id as any); setShowEngineMenu(false); }}
+                            className={`w-full text-left px-4 py-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 ${enginePreference === engine.id ? 'bg-white/5' : ''}`}
+                          >
+                            <div className="text-[10px] font-bold text-zinc-100">{engine.label}</div>
+                            <div className="text-[9px] text-zinc-500 font-medium tracking-tight">{engine.desc}</div>
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {/* Context Zone */}
                 {(quotedSnippets.length > 0 || referencedFiles.length > 0) && (
-                  <div className="flex flex-wrap gap-2 p-2 bg-zinc-900/60 border border-zinc-800/50 rounded-lg max-h-32 overflow-y-auto custom-scrollbar">
+                  <div className="flex flex-wrap gap-2 p-2 bg-zinc-900/30 border border-zinc-800/20 rounded-xl max-h-32 overflow-y-auto custom-scrollbar">
                     {referencedFiles.map(file => (
-                      <div key={file} className="flex items-center gap-1.5 bg-zinc-800 text-zinc-300 px-2 py-1 rounded border border-zinc-700 text-[10px]">
+                      <div key={file} className="flex items-center gap-1.5 bg-zinc-800/50 text-zinc-400 px-2.5 py-1 rounded-lg border border-zinc-700/30 text-[10px]">
                         <span>📄 {file}</span>
                         <button onClick={() => removeReferencedFile(file)} className="hover:text-red-400 ml-1"><FiX className="w-3 h-3" /></button>
                       </div>
                     ))}
                     {quotedSnippets.map(snippet => (
-                      <div key={snippet.id} className={`flex items-center gap-1.5 px-2 py-1 rounded border border-zinc-700 bg-zinc-800 text-zinc-300 text-[10px] border-l-2 ${snippet.type === 'terminal' ? 'border-l-red-500' : 'border-l-blue-500'}`}>
+                      <div key={snippet.id} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-zinc-700/30 bg-zinc-800/50 text-zinc-400 text-[10px] border-l-2 ${snippet.type === 'terminal' ? 'border-l-red-500/50' : 'border-l-blue-500/50'}`}>
                         <span className="truncate max-w-[150px]">{snippet.type === 'terminal' ? 'Terminal' : 'Code'}: {snippet.content}</span>
                         <button onClick={() => removeQuotedSnippet(snippet.id)} className="hover:text-red-400 ml-1"><FiX className="w-3 h-3" /></button>
                       </div>
@@ -309,32 +333,40 @@ export default function CurrereAI() {
                 )}
 
                 <div className="relative flex items-center">
-                  {showFileMenu && (
-                    <div className="absolute left-2 bottom-full mb-2 w-48 bg-[#1a1a1a] border border-zinc-700/50 rounded-lg shadow-2xl overflow-hidden z-20">
-                      <div className="p-2 border-b border-zinc-800 text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
-                        BAĞLAMA DOSYA EKLE
-                        <button onClick={() => setShowFileMenu(false)} className="float-right hover:text-zinc-300">✕</button>
-                      </div>
-                      <div className="max-h-32 overflow-y-auto custom-scrollbar">
-                        {workspaceFiles.length === 0 ? (
-                          <div className="p-3 text-xs text-zinc-500 text-center">Dosya bulunamadı.</div>
-                        ) : (
-                          workspaceFiles.map(f => (
-                            <button 
-                              key={f.id}
-                              onClick={() => {
-                                addReferencedFile(f.fileName);
-                                setShowFileMenu(false);
-                              }}
-                              className="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-emerald-500/20 hover:text-emerald-400 transition-colors"
-                            >
-                              📄 {f.fileName}
-                            </button>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  <AnimatePresence>
+                    {showFileMenu && (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                        className="absolute left-0 bottom-full mb-3 w-56 bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-20"
+                      >
+                        <div className="p-3 border-b border-white/5 text-[9px] text-zinc-500 font-bold uppercase tracking-widest flex justify-between items-center bg-white/5">
+                          Bağlama Ekle
+                          <button onClick={() => setShowFileMenu(false)} className="hover:text-zinc-300">✕</button>
+                        </div>
+                        <div className="max-h-48 overflow-y-auto custom-scrollbar p-1">
+                          {workspaceFiles.length === 0 ? (
+                            <div className="p-4 text-[10px] text-zinc-500 text-center italic">Dosya bulunamadı.</div>
+                          ) : (
+                            workspaceFiles.map(f => (
+                              <button 
+                                key={f.id}
+                                onClick={() => {
+                                  addReferencedFile(f.fileName);
+                                  setShowFileMenu(false);
+                                }}
+                                className="w-full text-left px-3 py-2.5 text-[11px] text-zinc-300 hover:bg-white/5 hover:text-emerald-400 rounded-lg transition-all flex items-center gap-2 group"
+                              >
+                                <span className="opacity-40 group-hover:opacity-100 transition-opacity">📄</span>
+                                <span className="truncate">{f.fileName}</span>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   <button 
                     onClick={async () => {
@@ -351,10 +383,10 @@ export default function CurrereAI() {
                          console.error(e);
                        }
                     }}
-                    className="absolute left-2 p-1.5 text-zinc-400 hover:text-emerald-400 transition-colors z-10 bg-zinc-800/50 rounded-lg"
+                    className="absolute left-2.5 p-1.5 text-zinc-500 hover:text-emerald-400 transition-colors z-10 bg-zinc-800/30 rounded-lg"
                     title="Bağlama Dosya Ekle"
                   >
-                    <span className="text-lg font-bold leading-none">+</span>
+                    <span className="text-base font-medium leading-none">+</span>
                   </button>
                   <input 
                     type="text" 
@@ -362,15 +394,15 @@ export default function CurrereAI() {
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                     disabled={isTyping}
-                    placeholder="Ask about your code (Type @ for files)..."
-                    className="w-full bg-[#1a1a1a] text-zinc-200 text-xs rounded-xl pl-9 pr-10 py-3 outline-none border border-zinc-800 focus:border-emerald-500/40 transition-all placeholder:opacity-30"
+                    placeholder="Ask Currere AI..."
+                    className="w-full bg-zinc-900/50 text-zinc-200 text-xs rounded-2xl pl-10 pr-10 py-3.5 outline-none border border-zinc-800 focus:border-emerald-500/30 transition-all placeholder:text-zinc-600"
                   />
                   <button 
                     onClick={handleSend}
                     disabled={!input.trim() || isTyping}
-                    className="absolute right-2 p-1.5 text-emerald-500 hover:text-emerald-400 transition-colors"
+                    className="absolute right-2.5 p-1.5 text-emerald-500/70 hover:text-emerald-400 transition-colors"
                   >
-                    <FiSend className="w-4 h-4" />
+                    <FiSend className="w-4.5 h-4.5" />
                   </button>
                 </div>
               </div>
@@ -381,16 +413,16 @@ export default function CurrereAI() {
         {/* Floating Bubble Button */}
         <motion.button
           onClick={() => setIsOpen(!isOpen)}
-          whileHover={{ scale: 1.1, rotate: 5 }}
-          whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.05, rotate: 2 }}
+          whileTap={{ scale: 0.95 }}
           type="button"
-          className="w-14 h-14 rounded-full bg-emerald-600 flex items-center justify-center shadow-2xl border border-emerald-400/30 text-white cursor-pointer group relative z-50 pointer-events-auto"
+          className="w-14 h-14 rounded-full bg-emerald-600 flex items-center justify-center shadow-2xl border border-emerald-400/20 text-white cursor-pointer group relative z-50 pointer-events-auto"
           style={{
             boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.4), 0 0 0 1px rgba(255,255,255,0.1) inset'
           }}
         >
-          <FiCpu className="w-6 h-6 group-hover:animate-pulse" />
-          <div className="absolute inset-0 rounded-full bg-emerald-400/20 animate-ping duration-1000"></div>
+          <FiStar className="w-6 h-6 group-hover:scale-110 transition-transform" />
+          <div className="absolute inset-0 rounded-full bg-emerald-400/10 animate-ping duration-[2000ms]"></div>
         </motion.button>
       </motion.div>
     </>
