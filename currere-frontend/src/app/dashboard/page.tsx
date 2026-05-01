@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useWorkspaceStore, Workspace } from '@/store/useWorkspaceStore';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
+import { FiAperture, FiLogOut } from 'react-icons/fi';
 import api from '@/services/api';
 import axios from 'axios';
 
@@ -21,6 +22,10 @@ export default function DashboardPage() {
   const [newWorkspaceTitle, setNewWorkspaceTitle] = useState('');
   const [newWorkspaceFormat, setNewWorkspaceFormat] = useState(1); // 1 = Python
   const [newWorkspaceRuntime, setNewWorkspaceRuntime] = useState(1); // 1 = CPU
+
+  // Temporary User Profile State (To be replaced with real auth data)
+  const userName = "Enes Yel";
+  const userInitials = "EY";
 
   const loadWorkspaces = useCallback(async () => {
     try {
@@ -118,18 +123,31 @@ export default function DashboardPage() {
       {/* Navbar */}
       <header className="px-6 py-4 bg-white border-b border-zinc-200 flex justify-between items-center sticky top-0 z-10 shadow-sm">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-zinc-900 text-white rounded-lg flex items-center justify-center font-bold text-lg">C</div>
-          <span className="text-xl font-medium tracking-tight">Currere</span>
+          <div className="bg-zinc-900 text-white p-1.5 rounded-lg shadow-sm w-8 h-8 flex items-center justify-center">
+            <FiAperture className="w-5 h-5" />
+          </div>
+          <span className="text-xl font-semibold tracking-tight text-zinc-900">Currere</span>
         </div>
-        <button
-          onClick={() => {
-            logout();
-            router.push('/login');
-          }}
-          className="text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors"
-        >
-          Çıkış Yap
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-zinc-200 text-zinc-700 flex items-center justify-center text-xs font-bold">
+              {userInitials}
+            </div>
+            <span className="text-sm font-medium text-zinc-700 hidden sm:inline">{userName}</span>
+          </div>
+          <div className="h-4 w-px bg-zinc-300"></div>
+          <button
+            onClick={() => {
+              logout();
+              router.push('/login');
+            }}
+            className="text-zinc-500 hover:text-red-600 hover:bg-red-50 px-2 py-1.5 rounded-md transition-colors flex items-center gap-2 text-sm"
+            title="Çıkış Yap"
+          >
+            <FiLogOut className="w-4 h-4" />
+            <span className="hidden sm:inline">Çıkış</span>
+          </button>
+        </div>
       </header>
 
       {/* Main Content */}
@@ -145,7 +163,7 @@ export default function DashboardPage() {
               setIsCreatingModalOpen(true);
             }}
             disabled={isCreating}
-            className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm hover:shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-5 py-2.5 rounded-xl font-medium shadow-md hover:shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             Yeni Çalışma Alanı
@@ -185,7 +203,7 @@ export default function DashboardPage() {
               <div
                 key={workspace.id}
                 onClick={() => handleCardClick(workspace)}
-                className="group cursor-pointer bg-white border border-gray-200 rounded-2xl p-5 hover:border-gray-300 hover:shadow-md hover:-translate-y-1 transition-all flex flex-col justify-between h-48 relative overflow-hidden"
+                className="group cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-zinc-300 border border-zinc-200 bg-white rounded-xl p-5 flex flex-col justify-between h-48 relative overflow-hidden"
               >
                 {/* Subtle top color bar */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-zinc-200 to-zinc-300 group-hover:from-blue-400 group-hover:to-indigo-500 transition-all"></div>
@@ -204,8 +222,13 @@ export default function DashboardPage() {
                 </div>
                 
                 <div className="flex justify-between items-center pt-4 border-t border-zinc-100">
-                  <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Workspace</span>
-                  <div className="w-8 h-8 rounded-full bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-600 group-hover:bg-zinc-900 group-hover:text-white group-hover:border-zinc-900 transition-colors">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Workspace</span>
+                    <span className="text-[11px] text-zinc-400 mt-0.5">
+                      {workspace.createdAt ? `Oluşturulma: ${new Date(workspace.createdAt).toLocaleDateString('tr-TR')}` : 'Son güncelleme: Bugün'}
+                    </span>
+                  </div>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 group-hover:bg-zinc-100 group-hover:text-zinc-900 transition-colors">
                     <svg className="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                   </div>
                 </div>

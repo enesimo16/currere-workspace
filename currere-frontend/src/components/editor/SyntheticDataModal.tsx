@@ -28,7 +28,7 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
     }
 
     setLoading(true);
-    const toastId = toast.loading('Veri fabrikası çalışıyor...');
+    const toastId = toast.loading('Veri kümesi oluşturuluyor...');
 
     try {
       const response = await api.post(`/workspace/${workspaceId}/SyntheticData/generate`, {
@@ -39,7 +39,7 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
         columns: "" // Backend prompt üzerinden otomatik belirleyecek
       });
 
-      toast.success('Veri fabrikası başarıyla üretim yaptı!', { id: toastId });
+      toast.success('Veri kümesi başarıyla oluşturuldu.', { id: toastId });
       
       // Listeyi yenile
       onSuccess();
@@ -55,7 +55,7 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
       
       onClose();
     } catch (err: any) {
-      const errMsg = err.response?.data?.error || 'Sentezleme işlemi başarısız oldu.';
+      const errMsg = err.response?.data?.error || 'Üretim işlemi başarısız oldu.';
       toast.error(errMsg, { id: toastId });
     } finally {
       setLoading(false);
@@ -73,10 +73,10 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
         {/* Header */}
         <div className="relative p-6 border-b border-white/5 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <FiDatabase className="w-6 h-6 text-emerald-400" />
+            <FiDatabase className="w-6 h-6 text-zinc-400" />
             <div>
-              <h3 className="text-lg font-semibold text-zinc-100 tracking-wide">VERİ FABRİKASI</h3>
-              <p className="text-xs font-light tracking-wider text-zinc-500 uppercase">Otonom Sentetik Veri Sentezleyici</p>
+              <h3 className="text-lg font-semibold text-zinc-100 tracking-wide">VERİ ÜRETİCİSİ</h3>
+              <p className="text-xs font-light tracking-wider text-zinc-500 uppercase">Gelişmiş Veri Üretim Modülü</p>
             </div>
           </div>
           <button 
@@ -93,16 +93,16 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
           {loading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-6 animate-in zoom-in-95 duration-500">
               <div className="relative">
-                <div className="w-20 h-20 border-4 border-emerald-500/10 border-t-emerald-500 rounded-full animate-spin" />
+                <div className="w-20 h-20 border-4 border-zinc-700 border-t-zinc-400 rounded-full animate-spin" />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <FiDatabase className="w-8 h-8 text-emerald-500/50 animate-bounce" />
+                  <FiDatabase className="w-8 h-8 text-zinc-500/50 animate-bounce" />
                 </div>
               </div>
               <div className="text-center space-y-2">
-                <p className="text-sm font-bold text-emerald-400 animate-pulse tracking-wide">
-                  Yapay zeka verileri moleküllerine ayırıyor ve sentezliyor...
+                <p className="text-sm font-bold text-zinc-400 animate-pulse tracking-wide">
+                  Kayıtlar işleniyor ve veritabanı oluşturuluyor...
                 </p>
-                <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em]">Lütfen bekleyin, fabrikada üretim sürüyor.</p>
+                <p className="text-[10px] text-zinc-500 uppercase tracking-[0.2em]">Lütfen bekleyin, yapılandırma sürüyor.</p>
               </div>
             </div>
           ) : (
@@ -114,7 +114,7 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   placeholder="Örn: 18-65 yaş arası, İstanbul'da yaşayan, teknoloji harcaması yapan kullanıcılar..."
-                  className="w-full h-32 bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all resize-none placeholder:text-zinc-700"
+                  className="w-full h-32 bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 outline-none focus:border-zinc-500/50 focus:ring-1 focus:ring-zinc-500/50 transition-all resize-none placeholder:text-zinc-700"
                 />
               </div>
 
@@ -129,7 +129,7 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
                       max="1000"
                       value={rowCount}
                       onChange={(e) => setRowCount(Number(e.target.value))}
-                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-200 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all font-mono"
+                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-200 outline-none focus:border-zinc-500/50 focus:ring-1 focus:ring-zinc-500/50 transition-all font-mono"
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-zinc-600">ROWS</span>
                   </div>
@@ -142,7 +142,7 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
                     <select 
                       value={mode}
                       onChange={(e) => setMode(Number(e.target.value))}
-                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-200 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all appearance-none cursor-pointer"
+                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-200 outline-none focus:border-zinc-500/50 focus:ring-1 focus:ring-zinc-500/50 transition-all appearance-none cursor-pointer"
                     >
                       <option value={1} className="bg-zinc-950">Standard (Hızlı)</option>
                       <option value={2} className="bg-zinc-950">Detailed (Gerçekçi)</option>
@@ -159,7 +159,7 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
                   type="text" 
                   value={fileName}
                   onChange={(e) => setFileName(e.target.value)}
-                  className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-200 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all font-mono"
+                  className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-200 outline-none focus:border-zinc-500/50 focus:ring-1 focus:ring-zinc-500/50 transition-all font-mono"
                 />
               </div>
 
@@ -173,10 +173,10 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
                 </button>
                 <button 
                   onClick={handleSentezle}
-                  className="flex-[2] px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium transition-all shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2"
+                  className="flex-[2] px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-lg text-xs font-medium transition-all shadow-lg shadow-black/20 flex items-center justify-center gap-2"
                 >
                   <FiDatabase className="w-4 h-4" />
-                  SENTEZLEMEYİ BAŞLAT
+                  VERİ ÜRETMEYİ BAŞLAT
                 </button>
               </div>
             </>

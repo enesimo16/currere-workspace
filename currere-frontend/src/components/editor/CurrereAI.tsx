@@ -157,11 +157,11 @@ export default function CurrereAI() {
         return (
           <div className="flex flex-col my-3">
             <div className="flex items-center justify-between px-3 py-1.5 bg-[#1e1e1e] border border-zinc-800/50 border-b-0 rounded-t-md text-xs text-zinc-400">
-              <span className="font-medium text-emerald-500/80 uppercase tracking-tighter">{match[1] || 'Code'}</span>
+              <span className="font-medium text-zinc-400 uppercase tracking-tighter">{match[1] || 'Code'}</span>
               <div className="flex items-center gap-3">
                 <button 
                   onClick={() => copyToClipboard(codeString)} 
-                  className="flex items-center gap-1.5 hover:text-emerald-400 transition-colors"
+                  className="flex items-center gap-1.5 hover:text-zinc-300 transition-colors"
                   title="Kopyala"
                 >
                   <FiCopy className="w-3.5 h-3.5" />
@@ -169,7 +169,7 @@ export default function CurrereAI() {
                 </button>
                 <button 
                   onClick={() => handleInject(Date.now().toString(), codeString)} 
-                  className="flex items-center gap-1.5 bg-zinc-800 hover:bg-emerald-500/20 hover:text-emerald-400 text-zinc-400 transition-all border border-white/5 px-2 py-1 rounded-md"
+                  className="flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-600/40 hover:text-zinc-300 text-zinc-400 transition-all border border-white/5 px-2 py-1 rounded-md"
                   title="IDE'ye Ekle"
                 >
                   <FiArrowRight className="w-3.5 h-3.5" />
@@ -186,7 +186,7 @@ export default function CurrereAI() {
         );
       }
       return (
-        <code className="px-1.5 py-0.5 rounded-md bg-black/30 text-emerald-300 font-mono text-[13px]" {...props}>
+        <code className="px-1.5 py-0.5 rounded-md bg-black/30 text-zinc-300 font-mono text-[13px]" {...props}>
           {children}
         </code>
       );
@@ -216,8 +216,8 @@ export default function CurrereAI() {
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-zinc-900/40">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                    <FiStar className="text-emerald-400 w-3.5 h-3.5 animate-pulse" />
+                  <div className="w-7 h-7 rounded-full bg-zinc-500/10 flex items-center justify-center border border-zinc-500/20">
+                    <FiStar className="text-zinc-400 w-3.5 h-3.5 animate-pulse" />
                   </div>
                   <span className="font-medium text-zinc-100 text-sm tracking-wide">Currere AI Assistant</span>
                 </div>
@@ -241,7 +241,7 @@ export default function CurrereAI() {
                     <div 
                       className={`max-w-[92%] rounded-2xl text-sm leading-relaxed shadow-sm overflow-hidden ${
                         msg.sender === 'user' 
-                          ? 'bg-emerald-600/60 text-emerald-50 border border-emerald-500/20 rounded-br-sm px-4 py-3' 
+                          ? 'bg-zinc-700/60 text-zinc-100 border border-zinc-600/30 rounded-br-sm px-4 py-3' 
                           : msg.type === 'error'
                             ? 'bg-red-500/10 text-red-300 border border-red-500/20 rounded-bl-sm px-4 py-3'
                             : 'bg-zinc-800/40 text-zinc-200 border border-zinc-700/20 rounded-bl-sm px-4 py-3 w-full'
@@ -261,9 +261,9 @@ export default function CurrereAI() {
                 ))}
                 {isTyping && (
                    <div className="flex items-center gap-2 pl-2">
-                     <div className="w-1 h-1 bg-emerald-500 rounded-full animate-bounce"></div>
-                     <div className="w-1 h-1 bg-emerald-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                     <div className="w-1 h-1 bg-emerald-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                     <div className="w-1 h-1 bg-zinc-500 rounded-full animate-bounce"></div>
+                     <div className="w-1 h-1 bg-zinc-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                     <div className="w-1 h-1 bg-zinc-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
                      <span className="text-[10px] text-zinc-500 font-medium tracking-widest uppercase ml-1">AI Thinking...</span>
                    </div>
                 )}
@@ -356,7 +356,7 @@ export default function CurrereAI() {
                                   addReferencedFile(f.fileName);
                                   setShowFileMenu(false);
                                 }}
-                                className="w-full text-left px-3 py-2.5 text-[11px] text-zinc-300 hover:bg-white/5 hover:text-emerald-400 rounded-lg transition-all flex items-center gap-2 group"
+                                className="w-full text-left px-3 py-2.5 text-[11px] text-zinc-300 hover:bg-white/5 hover:text-zinc-100 rounded-lg transition-all flex items-center gap-2 group"
                               >
                                 <span className="opacity-40 group-hover:opacity-100 transition-opacity">📄</span>
                                 <span className="truncate">{f.fileName}</span>
@@ -383,7 +383,7 @@ export default function CurrereAI() {
                          console.error(e);
                        }
                     }}
-                    className="absolute left-2.5 p-1.5 text-zinc-500 hover:text-emerald-400 transition-colors z-10 bg-zinc-800/30 rounded-lg"
+                    className="absolute left-2.5 p-1.5 text-zinc-500 hover:text-zinc-300 transition-colors z-10 bg-zinc-800/30 rounded-lg"
                     title="Bağlama Dosya Ekle"
                   >
                     <span className="text-base font-medium leading-none">+</span>
@@ -395,12 +395,12 @@ export default function CurrereAI() {
                     onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                     disabled={isTyping}
                     placeholder="Ask Currere AI..."
-                    className="w-full bg-zinc-900/50 text-zinc-200 text-xs rounded-2xl pl-10 pr-10 py-3.5 outline-none border border-zinc-800 focus:border-emerald-500/30 transition-all placeholder:text-zinc-600"
+                    className="w-full bg-zinc-900/50 text-zinc-200 text-xs rounded-2xl pl-10 pr-10 py-3.5 outline-none border border-zinc-800 focus:border-zinc-500/30 transition-all placeholder:text-zinc-600"
                   />
                   <button 
                     onClick={handleSend}
                     disabled={!input.trim() || isTyping}
-                    className="absolute right-2.5 p-1.5 text-emerald-500/70 hover:text-emerald-400 transition-colors"
+                    className="absolute right-2.5 p-1.5 text-zinc-500 hover:text-zinc-300 transition-colors"
                   >
                     <FiSend className="w-4.5 h-4.5" />
                   </button>
@@ -416,13 +416,10 @@ export default function CurrereAI() {
           whileHover={{ scale: 1.05, rotate: 2 }}
           whileTap={{ scale: 0.95 }}
           type="button"
-          className="w-14 h-14 rounded-full bg-emerald-600 flex items-center justify-center shadow-2xl border border-emerald-400/20 text-white cursor-pointer group relative z-50 pointer-events-auto"
-          style={{
-            boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.4), 0 0 0 1px rgba(255,255,255,0.1) inset'
-          }}
+          className="w-14 h-14 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center border border-zinc-700 shadow-lg shadow-black/40 text-zinc-300 cursor-pointer group relative z-50 pointer-events-auto transition-colors"
         >
           <FiStar className="w-6 h-6 group-hover:scale-110 transition-transform" />
-          <div className="absolute inset-0 rounded-full bg-emerald-400/10 animate-ping duration-[2000ms]"></div>
+          <div className="absolute inset-0 rounded-full bg-zinc-500/10 animate-ping duration-[2000ms]"></div>
         </motion.button>
       </motion.div>
     </>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Workspace, useWorkspaceStore } from '@/store/useWorkspaceStore';
 import { useRouter } from 'next/navigation';
-import { FiEdit2, FiTrash2, FiBox, FiCheck, FiX, FiMonitor, FiCopy, FiTerminal, FiExternalLink, FiArrowLeft, FiZap, FiSearch, FiClock } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiBox, FiCheck, FiX, FiMonitor, FiCopy, FiTerminal, FiExternalLink, FiArrowLeft, FiDatabase, FiSearch, FiArchive, FiPlay } from 'react-icons/fi';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -26,7 +26,7 @@ export default function EditorHeader({ activeWorkspace, isExecuting, onRun }: Ed
   // Push to Hub Modal States
   const [isPushModalOpen, setIsPushModalOpen] = useState(false);
   const [repoName, setRepoName] = useState(activeWorkspace.title?.toLowerCase().replace(/\s+/g, '-') || '');
-  const [commitMsg, setCommitMsg] = useState('Otonom Currere AI tarafından aktarıldı');
+  const [commitMsg, setCommitMsg] = useState('Currere IDE üzerinden aktarıldı');
   const [isPrivate, setIsPrivate] = useState(false);
   const [isPushing, setIsPushing] = useState(false);
 
@@ -127,7 +127,7 @@ export default function EditorHeader({ activeWorkspace, isExecuting, onRun }: Ed
   };
 
   return (
-    <header className="h-14 border-b border-slate-200 flex items-center justify-between px-6 shrink-0 bg-white shadow-sm z-40 relative">
+    <header className="h-14 border-b border-slate-300 flex items-center justify-between px-6 shrink-0 bg-white shadow-md shadow-black/10 z-40 relative">
       <div className="flex items-center">
         {/* Dashboard'a Dön Button */}
         <button
@@ -162,7 +162,7 @@ export default function EditorHeader({ activeWorkspace, isExecuting, onRun }: Ed
               <span className="text-slate-900 font-bold text-lg tracking-tight">
                 {activeWorkspace.title || activeWorkspace.name || 'İsimsiz Proje'}
               </span>
-              <span className="bg-slate-100 text-slate-500 text-[11px] px-2 py-0.5 rounded-full font-medium uppercase tracking-wider">
+              <span className="ml-3 bg-slate-100 text-slate-500 text-[11px] px-2 py-0.5 rounded-full font-medium uppercase tracking-wider">
                 Sandbox
               </span>
               
@@ -179,7 +179,7 @@ export default function EditorHeader({ activeWorkspace, isExecuting, onRun }: Ed
         {/* VS Code Connect Button */}
         <button
           onClick={openSyncModal}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-[13px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors duration-200"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-[13px] font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-colors duration-200"
         >
           <FiMonitor className="w-4 h-4" />
           VS Code'a Bağlan
@@ -187,7 +187,7 @@ export default function EditorHeader({ activeWorkspace, isExecuting, onRun }: Ed
 
         <button
           onClick={() => setIsPushModalOpen(true)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-[13px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors duration-200"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-[13px] font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-colors duration-200"
         >
           <SiHuggingface className="w-4 h-4" />
           Push to Hub
@@ -195,53 +195,44 @@ export default function EditorHeader({ activeWorkspace, isExecuting, onRun }: Ed
 
         <div className="w-px h-5 bg-slate-200 mx-1"></div>
 
-        {/* Global Tools Group */}
-        <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200/60">
-          <button
-            onClick={() => useWorkspaceStore.getState().setSyntheticOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-md transition-all"
-            title="Sentetik Veri Üret"
-          >
-            <FiZap className="w-4 h-4" />
-            <span className="hidden lg:inline">Veri Üret</span>
-          </button>
-          
-          <div className="h-4 w-px bg-slate-200 mx-0.5"></div>
-          
-          <button
-            onClick={() => useWorkspaceStore.getState().setKaggleOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-md transition-all"
-            title="Kaggle Dataset Arama"
-          >
-            <FiSearch className="w-4 h-4" />
-            <span className="hidden lg:inline">Kaggle</span>
-          </button>
-          
-          <div className="h-4 w-px bg-slate-200 mx-0.5"></div>
-          
-          <button
-            onClick={() => useWorkspaceStore.getState().setHistoryOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-md transition-all"
-            title="Snapshot Geçmişi"
-          >
-            <FiClock className="w-4 h-4" />
-            <span className="hidden lg:inline">Yedekler</span>
-          </button>
-        </div>
+        <button
+          onClick={() => useWorkspaceStore.getState().setSyntheticOpen(true)}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-[13px] font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-colors duration-200"
+          title="Sentetik Veri Üret"
+        >
+          <FiDatabase className="w-4 h-4" />
+          <span className="hidden lg:inline">Veri</span>
+        </button>
+
+        <button
+          onClick={() => useWorkspaceStore.getState().setKaggleOpen(true)}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-[13px] font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-colors duration-200"
+          title="Kaggle Dataset Arama"
+        >
+          <FiSearch className="w-4 h-4" />
+          <span className="hidden lg:inline">Kaggle</span>
+        </button>
+
+        <button
+          onClick={() => useWorkspaceStore.getState().setHistoryOpen(true)}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md text-[13px] font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-colors duration-200"
+          title="Snapshot Geçmişi"
+        >
+          <FiArchive className="w-4 h-4" />
+          <span className="hidden lg:inline">Yedekler</span>
+        </button>
 
         <div className="w-px h-5 bg-slate-200 mx-1"></div>
 
         <button
           onClick={onRun}
           disabled={isExecuting}
-          className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white px-4 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-200"
+          className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 disabled:bg-zinc-800/50 disabled:text-zinc-500 disabled:cursor-not-allowed text-zinc-100 px-4 py-1.5 rounded-md text-[13px] font-medium transition-colors duration-200 shadow-sm"
         >
           {isExecuting ? (
-            <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
+            <div className="w-4 h-4 border-2 border-zinc-100/40 border-t-zinc-100 rounded-full animate-spin"></div>
           ) : (
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-            </svg>
+            <FiPlay className="w-4 h-4" />
           )}
           {isExecuting ? 'Yürütülüyor...' : 'Kodu Çalıştır'}
         </button>
@@ -257,8 +248,8 @@ export default function EditorHeader({ activeWorkspace, isExecuting, onRun }: Ed
             <div className="p-6 border-b border-zinc-800/50 flex justify-between items-start">
               <div className="flex flex-col gap-1">
                 <h3 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
-                  <span className="p-2 bg-emerald-500/10 rounded-lg">
-                    <FiMonitor className="w-5 h-5 text-emerald-500" />
+                  <span className="p-2 bg-zinc-800 rounded-lg border border-zinc-700">
+                    <FiMonitor className="w-5 h-5 text-zinc-400" />
                   </span>
                   VS Code Sync Hub
                 </h3>
@@ -282,25 +273,25 @@ export default function EditorHeader({ activeWorkspace, isExecuting, onRun }: Ed
               </div>
 
               <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/20 to-blue-500/20 rounded-xl blur opacity-30 group-hover:opacity-50 transition-all duration-500"></div>
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-zinc-500/10 to-zinc-600/10 rounded-xl blur opacity-30 group-hover:opacity-50 transition-all duration-500"></div>
                 <div className="relative bg-black/40 border border-zinc-800 rounded-xl p-4 font-mono text-[11px] flex items-center justify-between gap-4">
-                  <code className="text-emerald-400 tracking-tight">
+                  <code className="text-zinc-300 tracking-tight">
                     <span className="text-zinc-600">currere-cli</span> connect <span className="text-zinc-600">--token</span> {syncToken}
                   </code>
                   <button 
                     onClick={() => copyToClipboard(`currere-cli connect --token ${syncToken}`)}
-                    className="p-2 bg-zinc-800 hover:bg-emerald-500/20 text-zinc-400 hover:text-emerald-400 transition-all rounded-lg shrink-0 border border-zinc-700/50"
+                    className="p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-all rounded-lg shrink-0 border border-zinc-700/50"
                   >
                     <FiCopy className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
-              <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-4 flex items-center gap-4">
-                <FiTerminal className="w-5 h-5 text-emerald-500/60" />
+              <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-xl p-4 flex items-center gap-4">
+                <FiTerminal className="w-5 h-5 text-zinc-500" />
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-emerald-500/80 font-bold uppercase tracking-widest leading-none">Bağlantı Türü</span>
-                  <span className="text-xs text-zinc-400">WebSocket / SSH Tunneling</span>
+                  <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest leading-none">Bağlantı Türü</span>
+                  <span className="text-xs text-zinc-500">WebSocket / SSH Tunneling</span>
                 </div>
               </div>
             </div>
@@ -309,15 +300,15 @@ export default function EditorHeader({ activeWorkspace, isExecuting, onRun }: Ed
             <div className="px-8 py-6 bg-zinc-900/30 border-t border-zinc-800/50 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-zinc-500 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-zinc-400"></span>
                 </span>
                 <span className="text-[10px] font-bold text-zinc-500 tracking-wider">YEREL BAĞLANTI BEKLENİYOR...</span>
               </div>
               <a 
                 href="https://docs.currere.ai/cli" 
                 target="_blank" 
-                className="text-[10px] font-bold text-emerald-500 hover:text-emerald-400 transition-colors flex items-center gap-1.5"
+                className="text-[10px] font-bold text-zinc-400 hover:text-zinc-300 transition-colors flex items-center gap-1.5"
               >
                 CLI REHBERİ <FiExternalLink className="w-3 h-3" />
               </a>
@@ -334,7 +325,7 @@ export default function EditorHeader({ activeWorkspace, isExecuting, onRun }: Ed
           <div className="relative w-full max-w-sm max-h-[85vh] overflow-y-auto bg-[#0f0f0f] border border-zinc-800 rounded-2xl shadow-[0_0_100px_rgba(0,0,0,0.9)] p-6 custom-scrollbar scale-in-center animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-zinc-100 font-bold flex items-center gap-2 tracking-tight">
-                <SiHuggingface className="text-amber-400 w-5 h-5" />
+                <SiHuggingface className="text-zinc-300 w-5 h-5" />
                 Hugging Face'e Aktar
               </h3>
               <button 
@@ -354,7 +345,7 @@ export default function EditorHeader({ activeWorkspace, isExecuting, onRun }: Ed
                   value={repoName}
                   onChange={(e) => setRepoName(e.target.value)}
                   placeholder="örn: my-awesome-model"
-                  className="w-full bg-black/40 border border-zinc-800 rounded-lg px-4 py-2 text-sm text-zinc-200 outline-none focus:border-amber-500/50 transition-all font-mono"
+                  className="w-full bg-black/40 border border-zinc-800 rounded-lg px-4 py-2 text-sm text-zinc-200 outline-none focus:border-zinc-500 transition-all font-mono"
                 />
               </div>
 
@@ -364,7 +355,7 @@ export default function EditorHeader({ activeWorkspace, isExecuting, onRun }: Ed
                   type="text" 
                   value={commitMsg}
                   onChange={(e) => setCommitMsg(e.target.value)}
-                  className="w-full bg-black/40 border border-zinc-800 rounded-lg px-4 py-2 text-sm text-zinc-200 outline-none focus:border-amber-500/50 transition-all"
+                  className="w-full bg-black/40 border border-zinc-800 rounded-lg px-4 py-2 text-sm text-zinc-200 outline-none focus:border-zinc-500 transition-all"
                 />
               </div>
 
@@ -375,22 +366,22 @@ export default function EditorHeader({ activeWorkspace, isExecuting, onRun }: Ed
                  </div>
                  <button 
                    onClick={() => setIsPrivate(!isPrivate)}
-                   className={`relative w-10 h-5 rounded-full transition-all duration-300 ${isPrivate ? 'bg-amber-500/20 border border-amber-500/40' : 'bg-zinc-800 border border-zinc-700'}`}
+                   className={`relative w-10 h-5 rounded-full transition-all duration-300 ${isPrivate ? 'bg-zinc-600 border border-zinc-500' : 'bg-zinc-800 border border-zinc-700'}`}
                  >
-                   <div className={`absolute top-1 w-2.5 h-2.5 rounded-full transition-all duration-300 ${isPrivate ? 'right-1.5 bg-amber-500' : 'left-1.5 bg-zinc-500'}`} />
+                   <div className={`absolute top-1 w-2.5 h-2.5 rounded-full transition-all duration-300 ${isPrivate ? 'right-1.5 bg-zinc-200' : 'left-1.5 bg-zinc-500'}`} />
                  </button>
               </div>
 
-              <div className="p-3 bg-emerald-500/5 border border-emerald-500/10 rounded-xl">
+              <div className="p-3 bg-zinc-800/30 border border-zinc-700/50 rounded-xl">
                 <p className="text-[10px] text-zinc-400 leading-relaxed text-center">
-                  <span className="font-bold text-emerald-500">{activeFile.name}</span> dosyası Hub'a yeni bir versiyon olarak yüklenecek.
+                  <span className="font-bold text-zinc-300">{activeFile.name}</span> dosyası Hub'a yeni bir versiyon olarak yüklenecek.
                 </p>
               </div>
 
               <button 
                 onClick={handlePushToHub}
                 disabled={isPushing}
-                className="w-full bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-800 text-black font-black py-3 rounded-xl text-xs tracking-widest transition-all shadow-lg shadow-amber-500/10 flex items-center justify-center gap-2 active:scale-95"
+                className="w-full bg-zinc-800 hover:bg-zinc-700 disabled:bg-zinc-900 text-zinc-100 font-bold py-3 rounded-xl text-xs tracking-widest transition-all shadow-md border border-zinc-700/50 flex items-center justify-center gap-2 active:scale-95"
               >
                 {isPushing ? (
                   <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>

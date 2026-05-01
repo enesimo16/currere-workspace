@@ -53,9 +53,9 @@ export default function TerminalOutput({ output, isError, images = [], forceVisu
       <div className="h-10 border-b border-zinc-900/50 flex items-end px-6 shrink-0 bg-transparent gap-8">
         <button 
           onClick={() => setActiveTab('terminal')}
-          className={`pb-1.5 text-[10px] font-light tracking-[0.2em] uppercase transition-all border-b-2 ${
+          className={`pb-1.5 text-[10px] font-mono tracking-[0.2em] uppercase transition-all border-b-2 ${
             activeTab === 'terminal' 
-              ? 'text-zinc-200 border-emerald-500/40' 
+              ? 'text-zinc-200 border-zinc-400' 
               : 'text-zinc-500 hover:text-zinc-300 border-transparent'
           }`}
         >
@@ -63,15 +63,15 @@ export default function TerminalOutput({ output, isError, images = [], forceVisu
         </button>
         <button 
           onClick={() => setActiveTab('visual')}
-          className={`pb-1.5 text-[10px] font-light tracking-[0.2em] uppercase transition-all border-b-2 relative ${
+          className={`pb-1.5 text-[10px] font-mono tracking-[0.2em] uppercase transition-all border-b-2 relative ${
             activeTab === 'visual' 
-              ? 'text-zinc-200 border-emerald-500/40' 
+              ? 'text-zinc-200 border-zinc-400' 
               : 'text-zinc-500 hover:text-zinc-300 border-transparent'
           }`}
         >
           GÖRSEL ÇIKTI
           {images.length > 0 && (
-            <span className="absolute -top-1 -right-4 w-2.5 h-2.5 bg-emerald-500/20 border border-emerald-500/40 rounded-full flex items-center justify-center text-[6px] font-bold text-emerald-400 animate-pulse">
+            <span className="absolute -top-1 -right-4 w-2.5 h-2.5 bg-zinc-500/20 border border-zinc-500/40 rounded-full flex items-center justify-center text-[6px] font-bold text-zinc-400 animate-pulse">
             </span>
           )}
         </button>
@@ -85,8 +85,8 @@ export default function TerminalOutput({ output, isError, images = [], forceVisu
             </span>
           )}
           {!isError && output && !output.includes('Yürütülüyor') && (
-            <span className="flex items-center gap-1.5 text-[8px] font-medium tracking-widest text-emerald-400/80 uppercase">
-              <span className="w-1 h-1 rounded-full bg-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+            <span className="flex items-center gap-1.5 text-[8px] font-medium tracking-widest text-zinc-400/80 uppercase">
+              <span className="w-1 h-1 rounded-full bg-zinc-500/50 shadow-[0_0_8px_rgba(161,161,170,0.5)]"></span>
               SYNCED
             </span>
           )}
@@ -111,7 +111,7 @@ export default function TerminalOutput({ output, isError, images = [], forceVisu
         {activeTab === 'terminal' ? (
           <div className="p-6 h-full">
             {outputLines.length > 0 ? (
-              <div className="font-['JetBrains_Mono',monospace] text-[12px] space-y-1">
+              <div className="font-mono text-[12px] space-y-1">
                 {outputLines.map((line, idx) => {
                   const isErrLine = isError || line.includes('Error') || line.includes('Traceback') || line.includes('error:');
                   const isHeaderLine = line.startsWith('---');
@@ -143,14 +143,14 @@ export default function TerminalOutput({ output, isError, images = [], forceVisu
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
                       src={plotUrl} 
-                      alt="Otonom Grafik Çıktısı" 
+                      alt="Grafik Çıktısı" 
                       className="w-full h-auto"
                       onError={(e) => (e.currentTarget.style.display = 'none')}
                       onLoad={(e) => (e.currentTarget.style.display = 'block')}
                     />
-                    <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                    <div className="absolute inset-0 bg-zinc-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
                    </div>
-                   <p className="text-center text-[10px] text-emerald-500/60 mt-3 font-bold tracking-widest uppercase">Workspace: output_plot.png</p>
+                   <p className="text-center text-[10px] text-zinc-500/80 mt-3 font-bold tracking-widest uppercase">Workspace: output_plot.png</p>
                 </div>
 
                 {/* 2. Base64 Gelenler */}

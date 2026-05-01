@@ -185,14 +185,14 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
                 key={file.name}
                 onClick={() => setActiveFile(file)}
                 className={`
-                  group flex items-center gap-2 text-xs font-medium px-4 py-2 cursor-pointer transition-all relative -bottom-[1px]
+                  group flex items-center gap-2 text-xs font-mono px-4 py-2 cursor-pointer transition-all relative -bottom-[1px]
                   ${isActive 
-                    ? 'bg-[#1e1e1e] text-zinc-200 border-t-2 border-t-emerald-500/70 border-x border-x-zinc-800/50 border-b border-b-[#1e1e1e] z-20' 
+                    ? 'bg-[#1e1e1e] text-zinc-200 border-t-2 border-t-zinc-400/50 border-x border-x-zinc-800/50 border-b border-b-[#1e1e1e] z-20' 
                     : 'bg-transparent text-zinc-500 hover:bg-zinc-800/30 hover:text-zinc-300 border-b border-b-transparent'
                   }
                 `}
               >
-                <svg className={`w-3.5 h-3.5 ${isActive ? 'text-emerald-400/80' : 'text-zinc-500 group-hover:text-zinc-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className={`w-3.5 h-3.5 ${isActive ? 'text-zinc-300' : 'text-zinc-500 group-hover:text-zinc-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                 </svg>
                 <span className="truncate max-w-[120px]">{file.name}</span>
@@ -222,8 +222,8 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
               disabled={isConverting}
               className={`flex items-center gap-2 px-3 py-1.5 rounded text-[10px] font-bold transition-all border ${
                 isConverting 
-                  ? 'bg-emerald-900/30 text-emerald-500 border-emerald-500/30 cursor-wait opacity-70' 
-                  : 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 active:scale-95 border border-emerald-500/30'
+                  ? 'bg-zinc-800/50 text-zinc-400 border-zinc-600/30 cursor-wait opacity-70' 
+                  : 'bg-zinc-800/30 text-zinc-300 hover:bg-zinc-700/50 active:scale-95 border border-zinc-700/50'
               }`}
             >
               {isConverting ? (

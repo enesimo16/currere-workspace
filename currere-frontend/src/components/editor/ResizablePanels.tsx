@@ -60,8 +60,8 @@ export default function ResizablePanels({
       {/* Resize Handle — 2px divider only */}
       <div
         onMouseDown={handleMouseDown}
-        className={`w-[2px] shrink-0 cursor-col-resize group transition-colors duration-150 ${
-          isDragging ? 'bg-emerald-500' : 'bg-[#2a2a2a] hover:bg-emerald-500/60'
+        className={`w-[2px] shrink-0 cursor-col-resize group transition-colors duration-150 z-10 ${
+          isDragging ? 'bg-zinc-500' : 'bg-zinc-800/80 hover:bg-zinc-600'
         }`}
       />
 

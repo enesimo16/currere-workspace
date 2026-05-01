@@ -215,17 +215,27 @@ except:
         onRun={handleRun}
       />
       
-      <main className="flex-1 flex overflow-hidden">
-        <FileExplorer workspaceId={activeWorkspace.id} />
+      <main className="flex-1 flex overflow-hidden relative z-0 after:absolute after:inset-x-0 after:top-0 after:h-4 after:bg-gradient-to-b after:from-black/[0.06] after:to-transparent after:pointer-events-none after:z-50">
         <ResizablePanels
-          leftPanel={
-            activeFile.name.endsWith('.csv') ? (
-              <CsvTable csvData={code} fileName={activeFile.name} />
-            ) : (
-              <CodeEditor workspaceId={activeWorkspace.id} code={code} setCode={handleCodeChange} />
-            )
+          defaultLeftPercent={18}
+          minLeftPercent={10}
+          maxLeftPercent={35}
+          leftPanel={<FileExplorer workspaceId={activeWorkspace.id} />}
+          rightPanel={
+            <ResizablePanels
+              defaultLeftPercent={62}
+              minLeftPercent={25}
+              maxLeftPercent={80}
+              leftPanel={
+                activeFile.name.endsWith('.csv') ? (
+                  <CsvTable csvData={code} fileName={activeFile.name} />
+                ) : (
+                  <CodeEditor workspaceId={activeWorkspace.id} code={code} setCode={handleCodeChange} />
+                )
+              }
+              rightPanel={<TerminalOutput output={terminalOutput} isError={isError} images={outputImages} forceVisualTab={forceVisualTab} workspaceId={activeWorkspace.id} />}
+            />
           }
-          rightPanel={<TerminalOutput output={terminalOutput} isError={isError} images={outputImages} forceVisualTab={forceVisualTab} workspaceId={activeWorkspace.id} />}
         />
       </main>
       

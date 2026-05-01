@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import api from '@/services/api';
-import { FiUpload, FiFile, FiImage, FiPlus, FiSettings, FiSearch, FiDownload, FiX, FiEdit, FiTrash2, FiList, FiGrid, FiChevronDown, FiArrowRight, FiBox, FiLoader, FiFileText, FiDatabase, FiClock, FiFilePlus } from 'react-icons/fi';
+import { FiUpload, FiFile, FiImage, FiPlus, FiSettings, FiSearch, FiDownload, FiX, FiEdit, FiTrash2, FiList, FiGrid, FiChevronDown, FiArrowRight, FiBox, FiLoader, FiFileText, FiDatabase, FiClock, FiFilePlus, FiArchive } from 'react-icons/fi';
 import { DiPython } from 'react-icons/di';
 import { BsFiletypeCsv, BsFiletypeJson, BsFiletypeSql } from 'react-icons/bs';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
@@ -78,7 +78,7 @@ const FileItem = ({
          }
       }}
       style={{ paddingLeft: `${level === 0 ? 28 : 44}px` }}
-      className={`group flex items-center gap-1.5 py-1 pr-2 cursor-pointer text-[13px] transition-colors ${bgClass}`}
+      className={`group flex items-center gap-1.5 py-1 pr-2 cursor-pointer text-[13px] font-mono transition-colors ${bgClass}`}
     >
       <div className="shrink-0 flex items-center justify-center w-[18px] h-[18px]">
         {isMain ? <DiPython className="text-[#60a5fa] w-full h-full" /> : getFileIcon(fileName)}
@@ -144,7 +144,7 @@ const FolderGroup = ({ title, icon, files, isOpen, onToggle, fileProps }: { titl
     <div className="flex flex-col">
       <div 
         onClick={onToggle}
-        className="flex items-center gap-1 py-1.5 pr-2 pl-2 text-[11px] font-bold text-zinc-500 hover:bg-zinc-900/30 hover:text-zinc-300 cursor-pointer select-none transition-colors uppercase tracking-widest"
+        className="flex items-center gap-1 py-1.5 pr-2 pl-2 text-[11px] font-mono font-bold text-zinc-500 hover:bg-zinc-900/30 hover:text-zinc-300 cursor-pointer select-none transition-colors uppercase tracking-widest"
       >
         <FiChevronDown className={`w-3.5 h-3.5 transition-transform ${isOpen ? '' : '-rotate-90'}`} />
         <span className="ml-0.5">{title}</span>
@@ -535,7 +535,7 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
   };
   return (
     <>
-    <div className="w-16 md:w-64 h-full bg-[#0c0c0e] border-r border-zinc-800/50 flex flex-col shrink-0 transition-all duration-300">
+    <div className="w-full h-full bg-[#0c0c0e] border-r border-zinc-800/50 flex flex-col shrink-0 transition-all duration-300">
       <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileChange} accept=".csv,.xlsx,.json,.txt,.py,.ipynb" />
       
       <div className="flex flex-col border-b border-zinc-800/50 shrink-0 text-zinc-400">
@@ -675,7 +675,7 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
       </div>
 
       <div className="mt-auto p-3 border-t border-zinc-800/50 flex justify-center md:justify-start bg-[#0c0c0e] relative z-10">
-        <button onClick={() => setIsSettingsOpen(true)} className="flex items-center gap-2 text-zinc-500 hover:text-zinc-200 transition-colors w-full p-2 rounded-lg hover:bg-zinc-900/50 border border-transparent hover:border-zinc-800 shadow-sm">
+        <button onClick={() => setIsSettingsOpen(true)} className="flex items-center gap-2 text-zinc-400 hover:text-zinc-100 transition-colors w-full p-2 rounded-lg hover:bg-zinc-800/50 border border-transparent hover:border-zinc-700 shadow-sm">
           <FiSettings className="w-4 h-4 shrink-0" />
           <span className="hidden md:block text-[11px] font-bold tracking-widest uppercase">Ayarlar</span>
         </button>
@@ -720,29 +720,29 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
             <div className="space-y-4">
                <div>
                   <label className="block text-[11px] text-zinc-500 mb-1.5 tracking-wider font-semibold uppercase">KAGGLE USERNAME</label>
-                  <input type="text" value={kaggleUsername} onChange={e => setKaggleUsername(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 transition-all shadow-sm" placeholder="Kaggle kullanıcı adınız" />
+                  <input type="text" value={kaggleUsername} onChange={e => setKaggleUsername(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 transition-all shadow-sm" placeholder="Kaggle kullanıcı adınız" />
                </div>
                 <div>
                   <label className="block text-[11px] text-zinc-500 mb-1.5 tracking-wider font-semibold uppercase">KAGGLE API KEY</label>
-                  <input type="password" value={kaggleKey} onChange={e => setKaggleKey(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 transition-all shadow-sm" placeholder="Kaggle API Key" />
+                  <input type="password" value={kaggleKey} onChange={e => setKaggleKey(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 transition-all shadow-sm" placeholder="Kaggle API Key" />
                </div>
                <div className="pt-4 border-t border-zinc-800">
-                  <label className="block text-[11px] text-emerald-500 mb-1.5 tracking-wider font-semibold uppercase flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                  <label className="block text-[11px] text-zinc-400 mb-1.5 tracking-wider font-semibold uppercase flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full"></span>
                     Hugging Face Access Token
                   </label>
                   <input 
                     type="password" 
                     value={hfTokenInput} 
                     onChange={e => setHfTokenInput(e.target.value)} 
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 transition-all shadow-sm" 
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 transition-all shadow-sm" 
                     placeholder="hf_..." 
                   />
                   <p className="text-[10px] text-zinc-500 mt-2 leading-relaxed">
                     Model Hub'a aktarım yapmak için <b className="text-zinc-300">Write</b> yetkili bir token gereklidir.
                   </p>
                </div>
-               <button disabled={isSavingSettings} onClick={handleSaveSettings} className="w-full mt-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl py-3 text-sm font-bold transition-colors disabled:opacity-50 shadow-md">
+               <button disabled={isSavingSettings} onClick={handleSaveSettings} className="w-full mt-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-100 rounded-xl py-3 text-sm font-bold transition-colors disabled:opacity-50 shadow-md">
                   {isSavingSettings ? 'Kaydediliyor...' : 'AYARLARI KAYDET'}
                </button>
             </div>
@@ -755,7 +755,7 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-zinc-950/40 backdrop-blur-sm px-4 animate-in fade-in duration-300">
           <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
             <h3 className="text-zinc-100 font-bold mb-2 flex items-center gap-2 text-lg">
-              <FiClock className="text-emerald-500" /> Yedek İsmi
+              <FiArchive className="text-zinc-300" /> Yedek İsmi
             </h3>
             <p className="text-zinc-500 text-xs mb-5">Bu yedeği daha sonra hatırlamanıza yardımcı olacak kısa bir isim verin.</p>
             
@@ -766,7 +766,7 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
               onChange={(e) => setSnapName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleTakeSnapshot()}
               placeholder="Örn: Veri Temizliği Tamamlandı" 
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-100 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 transition-all mb-6 shadow-sm"
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-100 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 transition-all mb-6 shadow-sm"
             />
 
             <div className="flex gap-3">
@@ -778,7 +778,7 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
               </button>
               <button 
                 onClick={handleTakeSnapshot} 
-                className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl py-2.5 text-sm font-semibold shadow-md shadow-emerald-500/20 transition-all"
+                className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-xl py-2.5 text-sm font-semibold shadow-md shadow-black/20 transition-all"
               >
                 YEDEK AL
               </button>
@@ -801,7 +801,7 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
            <div className="w-full max-w-2xl bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
               <div className="p-5 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
                  <h3 className="text-zinc-100 font-bold flex items-center gap-2">
-                   <FiDatabase className="text-emerald-500" />
+                   <FiSearch className="text-zinc-300" />
                    Kaggle Dataset Keşfet
                  </h3>
                  <button onClick={() => setKaggleOpen(false)} className="p-1 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-zinc-200 transition-colors"><FiX className="w-5 h-5" /></button>
@@ -813,15 +813,15 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
                       value={kaggleSearch}
                       onChange={(e) => setKaggleSearch(e.target.value)}
                       placeholder="Veri kümesi ara (örn: Titanic, Netflix, Stocks)..." 
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-sm text-zinc-100 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all shadow-inner"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-3 text-sm text-zinc-100 focus:ring-2 focus:ring-zinc-500/20 outline-none transition-all shadow-inner"
                     />
                     <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 w-4 h-4" />
-                    <button type="submit" className="absolute right-2 top-1.5 bottom-1.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-colors">ARA</button>
+                    <button type="submit" className="absolute right-2 top-1.5 bottom-1.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-lg text-xs font-bold transition-colors">ARA</button>
                  </form>
 
                  <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-2">
                     {isSearchingKaggle ? (
-                       <div className="h-full flex flex-col items-center justify-center gap-4 text-emerald-500">
+                       <div className="h-full flex flex-col items-center justify-center gap-4 text-zinc-500">
                           <div className="w-8 h-8 border-4 border-current border-t-transparent rounded-full animate-spin" />
                           <span className="text-xs font-bold tracking-[0.2em] uppercase text-zinc-500">Kaggle Aranıyor...</span>
                        </div>
@@ -840,7 +840,7 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
                                 <button 
                                   disabled={downloadingDataset === kr.ref}
                                   onClick={() => handleKaggleDownload(kr.ref)}
-                                  className="bg-zinc-900 hover:bg-emerald-500 hover:text-white text-emerald-500 border border-emerald-500/20 px-4 py-2 rounded-lg text-xs font-black tracking-widest transition-all disabled:opacity-50 shrink-0"
+                                  className="bg-zinc-900 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 px-4 py-2 rounded-lg text-xs font-black tracking-widest transition-all disabled:opacity-50 shrink-0"
                                 >
                                   {downloadingDataset === kr.ref ? <FiLoader className="w-4 h-4 animate-spin" /> : 'İNDİR'}
                                 </button>
@@ -867,11 +867,11 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
            <div className="w-full max-w-xl bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
               <div className="p-5 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
                  <h3 className="text-zinc-100 font-bold flex items-center gap-2">
-                   <FiClock className="text-emerald-500" />
+                   <FiArchive className="text-zinc-300" />
                    Çalışma Alanı Yedekleri
                  </h3>
                  <div className="flex items-center gap-2">
-                    <button onClick={() => setIsSnapModalOpen(true)} className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-500 hover:text-white border border-emerald-500/20 rounded-lg text-[10px] font-black tracking-widest transition-all">YENİ YEDEK</button>
+                    <button onClick={() => setIsSnapModalOpen(true)} className="px-3 py-1.5 bg-zinc-800/50 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 rounded-lg text-[10px] font-black tracking-widest transition-all">YENİ YEDEK</button>
                     <button onClick={() => setHistoryOpen(false)} className="p-1 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-zinc-200 transition-colors"><FiX className="w-5 h-5" /></button>
                  </div>
               </div>
@@ -887,7 +887,7 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
                           <div className="flex justify-between items-center">
                              <div className="flex flex-col min-w-0 pr-4">
                                 <div className="flex items-center gap-2 mb-1.5">
-                                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                                   <div className="w-1.5 h-1.5 rounded-full bg-zinc-500 shadow-[0_0_8px_rgba(161,161,170,0.5)]"></div>
                                    <span className="text-[10px] uppercase font-black text-zinc-500 tracking-widest">
                                      {new Date(snap.createdAt).toLocaleString('tr-TR')}
                                    </span>
@@ -899,7 +899,7 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
                              <div className="flex items-center gap-2 shrink-0">
                                 <button 
                                   onClick={() => handleRestoreSnapshot(snap.id)}
-                                  className="px-3 py-1.5 bg-zinc-900 hover:bg-emerald-500 text-emerald-500 hover:text-white rounded-lg text-[10px] font-black transition-all"
+                                  className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-700 text-zinc-300 rounded-lg text-[10px] font-black transition-all"
                                 >
                                   DÖN
                                 </button>
