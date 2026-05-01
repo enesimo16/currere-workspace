@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import api from '@/services/api';
 import axios from 'axios';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
-import { FiLoader, FiSave, FiCode, FiDownload, FiX } from 'react-icons/fi';
+import { FiLoader, FiSave, FiCode, FiDownload, FiX, FiRefreshCw } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import JupyterViewer from './JupyterViewer';
 import { useSync } from '@/hooks/useSync';
@@ -220,21 +220,17 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
             <button
               onClick={handleConvertNotebook}
               disabled={isConverting}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded text-[10px] font-bold transition-all border ${
-                isConverting 
-                  ? 'bg-zinc-800/50 text-zinc-400 border-zinc-600/30 cursor-wait opacity-70' 
-                  : 'bg-zinc-800/30 text-zinc-300 hover:bg-zinc-700/50 active:scale-95 border border-zinc-700/50'
-              }`}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-zinc-900 hover:bg-zinc-100 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md hover:shadow-lg font-bold text-xs disabled:opacity-50 disabled:cursor-wait"
             >
               {isConverting ? (
                 <>
-                  <FiLoader className="w-3 h-3 animate-spin" />
-                  <span className="tracking-widest capitalize">İŞLENİYOR...</span>
+                  <FiLoader className="w-4 h-4 animate-spin" />
+                  <span className="tracking-wide">İŞLENİYOR...</span>
                 </>
               ) : (
                 <>
-                  <span className="text-sm leading-none">🪄</span> 
-                  <span className="tracking-widest">DÖNÜŞTÜR (.PY)</span>
+                  <FiRefreshCw className="w-4 h-4" />
+                  <span className="tracking-wide">DÖNÜŞTÜR (.PY)</span>
                 </>
               )}
             </button>

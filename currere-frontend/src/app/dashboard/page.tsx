@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useWorkspaceStore, Workspace } from '@/store/useWorkspaceStore';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
-import { FiAperture, FiLogOut } from 'react-icons/fi';
+import { FiAperture, FiLogOut, FiTrash2 } from 'react-icons/fi';
 import api from '@/services/api';
 import axios from 'axios';
 
@@ -22,6 +22,8 @@ export default function DashboardPage() {
   const [newWorkspaceTitle, setNewWorkspaceTitle] = useState('');
   const [newWorkspaceFormat, setNewWorkspaceFormat] = useState(1); // 1 = Python
   const [newWorkspaceRuntime, setNewWorkspaceRuntime] = useState(1); // 1 = CPU
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [workspaceToDelete, setWorkspaceToDelete] = useState<Workspace | null>(null);
 
   // Temporary User Profile State (To be replaced with real auth data)
   const userName = "Enes Yel";
@@ -89,13 +91,19 @@ export default function DashboardPage() {
     }
   };
 
-  const handleDeleteWorkspace = async (id: string | number, e: React.MouseEvent) => {
+  const handleDeleteWorkspace = (workspace: Workspace, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('Bu çalışma alanını silmek istediğinize emin misiniz?')) return;
-    
+    setWorkspaceToDelete(workspace);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!workspaceToDelete) return;
     try {
-      await api.delete(`/workspace/${id}`);
-      setWorkspaces(prev => prev.filter(w => w.id !== id));
+      await api.delete(`/workspace/${workspaceToDelete.id}`);
+      setWorkspaces(prev => prev.filter(w => w.id !== workspaceToDelete.id));
+      setIsDeleteModalOpen(false);
+      setWorkspaceToDelete(null);
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         alert(err.response?.data?.message || 'Silme işlemi başarısız.');
@@ -212,11 +220,11 @@ export default function DashboardPage() {
                   <div className="flex items-start justify-between">
                     <h3 className="text-lg font-medium text-zinc-800 line-clamp-2 pr-8">{workspace.title || workspace.name || 'Yeni Çalışma Alanı'}</h3>
                     <button
-                      onClick={(e) => handleDeleteWorkspace(workspace.id, e)}
-                      className="text-zinc-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-xl transition-all absolute top-4 right-4 opacity-0 group-hover:opacity-100"
+                      onClick={(e) => handleDeleteWorkspace(workspace, e)}
+                      className="text-zinc-400 hover:text-red-600 bg-white border border-zinc-100 hover:border-red-200 hover:bg-red-50/30 p-2 rounded-lg shadow-sm transition-all absolute top-4 right-4 opacity-0 group-hover:opacity-100"
                       title="Sil"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      <FiTrash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -297,6 +305,41 @@ export default function DashboardPage() {
                   {isCreating ? 'Oluşturuluyor...' : 'Hemen Başla'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && workspaceToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 backdrop-blur-sm">
+          <div className="bg-white p-6 rounded-2xl shadow-xl border border-zinc-100 max-w-sm w-full mx-4 transform transition-all animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-500 shrink-0">
+                <FiTrash2 className="w-5 h-5" />
+              </div>
+              <h2 className="text-lg font-semibold text-zinc-900">Çalışma Alanını Sil</h2>
+            </div>
+            
+            <p className="text-sm text-zinc-500 mb-6 leading-relaxed">
+              <strong className="font-medium text-zinc-700">{workspaceToDelete.title || workspaceToDelete.name}</strong> adlı çalışma alanını silmek istediğinize emin misiniz? Bu işlem geri alınamaz ve içindeki tüm veriler kaybolur.
+            </p>
+            
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setWorkspaceToDelete(null);
+                }}
+                className="px-4 py-2 text-sm font-medium text-zinc-600 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition-colors"
+              >
+                İptal
+              </button>
+              <button 
+                onClick={confirmDelete}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors"
+              >
+                Sil
+              </button>
             </div>
           </div>
         </div>

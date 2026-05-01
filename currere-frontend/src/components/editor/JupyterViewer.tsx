@@ -228,43 +228,43 @@ export default function JupyterViewer({ content, workspaceId, activeFileName }: 
       {/* Kernel Toolbar */}
       <div className="sticky top-0 z-20 bg-[#1a1a1a]/95 backdrop-blur-xl border-b border-zinc-800/50 px-4 py-2 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wider border ${
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] font-bold tracking-wider border shadow-sm ${
             isKernelAlive 
-              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-              : 'bg-zinc-800 text-zinc-500 border-zinc-700'
+              ? 'bg-white/10 text-white border-white/20' 
+              : 'bg-zinc-900 text-zinc-500 border-zinc-800'
           }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${isKernelAlive ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-600'}`} />
+            <span className={`w-2 h-2 rounded-full ${isKernelAlive ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)] animate-pulse' : 'bg-zinc-700'}`} />
             {isKernelAlive ? 'KERNEL AKTİF' : 'KERNEL KAPALI'}
           </div>
 
-          <span className="text-[10px] text-zinc-600 font-mono">{notebook.cells.length} hücre</span>
+          <span className="text-[11px] text-zinc-500 font-mono tracking-wider">{notebook.cells.length} HÜCRE</span>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => addCell('code', notebook.cells.length - 1)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold tracking-wider text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
           >
-            <FiPlus className="w-3 h-3" /> KOD
+            <FiPlus className="w-3.5 h-3.5" /> KOD
           </button>
           <button
             onClick={() => addCell('markdown', notebook.cells.length - 1)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold tracking-wider text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
           >
-            <FiType className="w-3 h-3" /> MARKDOWN
+            <FiType className="w-3.5 h-3.5" /> MARKDOWN
           </button>
-          <div className="w-px h-5 bg-zinc-800" />
+          <div className="w-px h-5 bg-zinc-800 mx-1" />
           <button
             onClick={restartKernel}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold tracking-wider text-orange-400 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
           >
-            <FiRefreshCw className="w-3 h-3" /> RESTART
+            <FiRefreshCw className="w-3.5 h-3.5" /> RESTART / START
           </button>
         </div>
       </div>
 
       {/* Cells */}
-      <div className="max-w-4xl mx-auto py-6 px-4 md:px-8 space-y-4 pb-32">
+      <div className="max-w-5xl mx-auto py-8 px-4 md:px-8 space-y-6 pb-32">
         {notebook.cells.map((cell, idx) => {
           const isCode = cell.cell_type === 'code';
           const isFocused = focusedCell === idx;
@@ -275,34 +275,30 @@ export default function JupyterViewer({ content, workspaceId, activeFileName }: 
           return (
             <div
               key={idx}
-              className={`group relative rounded-xl border transition-all duration-200 ${
+              className={`group relative transition-all duration-200 rounded-xl border ${
                 isFocused 
-                  ? isCode ? 'border-emerald-500/40 shadow-lg shadow-emerald-500/5' : 'border-blue-500/40 shadow-lg shadow-blue-500/5'
-                  : 'border-zinc-800/50 hover:border-zinc-700'
+                  ? 'border-zinc-600 bg-[#121212] shadow-lg shadow-black/40'
+                  : 'bg-[#0f0f11] border-zinc-800 hover:border-zinc-700'
               }`}
               onClick={() => setFocusedCell(idx)}
             >
+              {isFocused && <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-zinc-400 rounded-l-xl z-10" />}
+              
               {/* Cell Header */}
-              <div className={`flex items-center justify-between px-3 py-1.5 rounded-t-xl border-b ${
-                isCode ? 'bg-[#1a1a1a] border-zinc-800/50' : 'bg-blue-500/5 border-blue-500/10'
-              }`}>
+              <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-black/20">
                 <div className="flex items-center gap-2">
                   {isCode ? (
-                    <>
-                      <DiPython className="text-emerald-400 w-4 h-4" />
-                      <span className="text-[10px] font-bold text-zinc-500 tracking-widest">
-                        [{idx + 1}]
-                      </span>
-                    </>
+                    <span className="text-xs font-mono text-zinc-600">
+                      [{idx + 1}]
+                    </span>
                   ) : (
-                    <>
-                      <FiType className="text-blue-400 w-3.5 h-3.5" />
-                      <span className="text-[10px] font-bold text-blue-400/60 tracking-widest">MARKDOWN</span>
-                    </>
+                    <span className="text-xs font-mono text-zinc-600">
+                      [M]
+                    </span>
                   )}
                   {isRunning && (
-                    <span className="ml-2 flex items-center gap-1.5 text-[9px] font-bold text-amber-400 tracking-widest animate-pulse">
-                      <span className="w-2 h-2 border border-amber-400 border-t-transparent rounded-full animate-spin" />
+                    <span className="ml-2 flex items-center gap-1.5 text-xs font-mono text-zinc-400 animate-pulse">
+                      <span className="w-2 h-2 border border-zinc-400 border-t-transparent rounded-full animate-spin" />
                       ÇALIŞIYOR...
                     </span>
                   )}
@@ -313,7 +309,7 @@ export default function JupyterViewer({ content, workspaceId, activeFileName }: 
                     <button
                       onClick={(e) => { e.stopPropagation(); executeCell(idx); }}
                       disabled={isRunning}
-                      className="p-1.5 rounded-md text-emerald-400 hover:bg-emerald-500/20 disabled:opacity-30 transition-all"
+                      className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-all disabled:opacity-30"
                       title="Çalıştır (Ctrl+Enter)"
                     >
                       <FiPlay className="w-3.5 h-3.5" />
@@ -325,14 +321,14 @@ export default function JupyterViewer({ content, workspaceId, activeFileName }: 
                   <button onClick={() => moveCell(idx, 'down')} className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-all" title="Aşağı Taşı">
                     <FiChevronDown className="w-3 h-3" />
                   </button>
-                  <button onClick={() => deleteCell(idx)} className="p-1.5 rounded-md text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-all" title="Sil">
+                  <button onClick={() => deleteCell(idx)} className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-all" title="Sil">
                     <FiTrash2 className="w-3 h-3" />
                   </button>
                 </div>
               </div>
 
               {/* Cell Body — Editable Textarea */}
-              <div className={`${isCode ? 'bg-[#111111]' : 'bg-[#0f1520]'}`}>
+              <div className="px-4 py-2">
                 <textarea
                   ref={(el) => { textareaRefs.current[idx] = el; if (el) autoResize(el); }}
                   value={sourceText}
@@ -345,9 +341,7 @@ export default function JupyterViewer({ content, workspaceId, activeFileName }: 
                     }
                   }}
                   spellCheck={false}
-                  className={`w-full resize-none outline-none p-4 font-mono text-[13px] leading-relaxed bg-transparent ${
-                    isCode ? 'text-emerald-300/90' : 'text-blue-200/80'
-                  }`}
+                  className="w-full resize-none outline-none py-2 font-mono text-[14px] leading-relaxed bg-transparent text-zinc-300 placeholder:text-zinc-600 placeholder:italic"
                   style={{ minHeight: '40px' }}
                   placeholder={isCode ? '# Kod yazın...' : 'Markdown yazın...'}
                 />
@@ -371,25 +365,25 @@ export default function JupyterViewer({ content, workspaceId, activeFileName }: 
               {isCode && isRunning && !output?.text && (
                 <div className="border-t border-zinc-800/50 bg-[#0a0a0a] px-4 py-3 rounded-b-xl">
                   <div className="flex items-center gap-2 text-[11px] text-zinc-500">
-                    <span className="w-3 h-3 border-2 border-zinc-600 border-t-emerald-500 rounded-full animate-spin" />
+                    <span className="w-3 h-3 border-2 border-zinc-600 border-t-zinc-300 rounded-full animate-spin" />
                     Çalıştırılıyor...
                   </div>
                 </div>
               )}
 
               {/* Add Cell Between */}
-              <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all z-10 flex gap-1">
+              <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all z-20 flex gap-2">
                 <button
                   onClick={() => addCell('code', idx)}
-                  className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg transition-all"
+                  className="flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-mono font-bold text-zinc-300 bg-zinc-800 border border-zinc-600 hover:text-white hover:bg-zinc-700 hover:scale-105 shadow-xl transition-all"
                 >
-                  + Kod
+                  <FiPlus className="w-3 h-3" /> KOD
                 </button>
                 <button
                   onClick={() => addCell('markdown', idx)}
-                  className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-600 text-white hover:bg-blue-500 shadow-lg transition-all"
+                  className="flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-mono font-bold text-zinc-300 bg-zinc-800 border border-zinc-600 hover:text-white hover:bg-zinc-700 hover:scale-105 shadow-xl transition-all"
                 >
-                  + MD
+                  <FiType className="w-3 h-3" /> MD
                 </button>
               </div>
             </div>
@@ -400,10 +394,10 @@ export default function JupyterViewer({ content, workspaceId, activeFileName }: 
           <div className="text-center py-20">
             <p className="text-zinc-500 text-sm mb-4 italic">Bu notebook henüz bir hücre içermiyor.</p>
             <div className="flex gap-3 justify-center">
-              <button onClick={() => addCell('code', -1)} className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold">
+              <button onClick={() => addCell('code', -1)} className="px-4 py-2 rounded border border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 transition-colors text-xs font-mono">
                 <FiCode className="inline mr-1.5" /> Kod Hücresi Ekle
               </button>
-              <button onClick={() => addCell('markdown', -1)} className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold">
+              <button onClick={() => addCell('markdown', -1)} className="px-4 py-2 rounded border border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 transition-colors text-xs font-mono">
                 <FiType className="inline mr-1.5" /> Markdown Ekle
               </button>
             </div>
