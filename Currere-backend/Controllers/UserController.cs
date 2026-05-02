@@ -1,10 +1,11 @@
 using System.Security.Claims;
 using Currere_backend.Data;
+using Currere_backend.DTOs;
 using Currere_backend.Models;
+using Currere_backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
 
 namespace Currere_backend.Controllers
 {
@@ -14,15 +15,37 @@ namespace Currere_backend.Controllers
     public class UserController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IEncryptionService _encryptionService;
 
-        public UserController(AppDbContext context)
+        public UserController(AppDbContext context, IEncryptionService encryptionService)
         {
             _context = context;
+            _encryptionService = encryptionService;
         }
 
         private int GetUserId()
         {
             return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        }
+
+        [HttpGet("kaggle")]
+        public async Task<IActionResult> GetKaggleSettings()
+        {
+            var userId = GetUserId();
+
+            var integration = await _context.UserIntegrations
+                .FirstOrDefaultAsync(i => i.UserId == userId);
+
+            if (integration == null || string.IsNullOrEmpty(integration.KaggleUsername))
+            {
+                return Ok(new { isConfigured = false, username = "" });
+            }
+
+            return Ok(new
+            {
+                isConfigured = !string.IsNullOrEmpty(integration.KaggleKey),
+                username = integration.KaggleUsername
+            });
         }
 
         [HttpPost("kaggle")]
@@ -39,7 +62,7 @@ namespace Currere_backend.Controllers
                 {
                     UserId = userId,
                     KaggleUsername = dto.Username,
-                    KaggleKey = dto.Key,
+                    KaggleKey = _encryptionService.Encrypt(dto.Key),
                     UpdatedAt = DateTime.UtcNow
                 };
                 _context.UserIntegrations.Add(integration);
@@ -47,7 +70,7 @@ namespace Currere_backend.Controllers
             else
             {
                 integration.KaggleUsername = dto.Username;
-                integration.KaggleKey = dto.Key;
+                integration.KaggleKey = _encryptionService.Encrypt(dto.Key);
                 integration.UpdatedAt = DateTime.UtcNow;
             }
 
@@ -55,14 +78,5 @@ namespace Currere_backend.Controllers
 
             return Ok(new { message = "Kaggle ayarları başarıyla kaydedildi." });
         }
-    }
-
-    public class KaggleSettingsDto
-    {
-        [JsonPropertyName("username")]
-        public string Username { get; set; } = string.Empty;
-
-        [JsonPropertyName("key")]
-        public string Key { get; set; } = string.Empty;
     }
 }

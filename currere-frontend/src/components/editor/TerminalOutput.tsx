@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiStar, FiActivity } from 'react-icons/fi';
+import { FiStar, FiActivity, FiAperture } from 'react-icons/fi';
 
 interface TerminalOutputProps {
   output: string;
@@ -39,7 +39,7 @@ export default function TerminalOutput({ output, isError, images = [], forceVisu
 
   // Görsel çıktı varsa otomatik sekme geçişi
   useEffect(() => {
-    if (forceVisualTab && images.length > 0) {
+    if (forceVisualTab && images && images.length > 0) {
       const t = setTimeout(() => setActiveTab('visual'), 0);
       return () => clearTimeout(t);
     }
@@ -137,34 +137,41 @@ export default function TerminalOutput({ output, isError, images = [], forceVisu
           <div className="p-6 h-full flex flex-col items-center justify-center w-full overflow-y-auto">
             {images.length > 0 || workspaceId ? (
               <div className="w-full space-y-6 py-4 max-w-2xl">
-                {/* 1. Statik output_plot.png (Her zaman dene) */}
-                <div className="bg-[#141414] rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 p-2 group transition-all">
-                   <div className="relative overflow-hidden rounded-xl">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img 
-                      src={plotUrl} 
-                      alt="Grafik Çıktısı" 
-                      className="w-full h-auto"
-                      onError={(e) => (e.currentTarget.style.display = 'none')}
-                      onLoad={(e) => (e.currentTarget.style.display = 'block')}
-                    />
-                    <div className="absolute inset-0 bg-zinc-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-                   </div>
-                   <p className="text-center text-[10px] text-zinc-500/80 mt-3 font-bold tracking-widest uppercase">Workspace: output_plot.png</p>
-                </div>
-
-                {/* 2. Base64 Gelenler */}
-                {images.map((img, idx) => (
-                  <div key={idx} className="bg-[#141414] rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 p-2 transition-all">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img 
-                      src={`data:image/png;base64,${img}`} 
-                      alt={`Görsel Çıktı ${idx + 1}`} 
-                      className="w-full h-auto rounded-xl" 
-                    />
-                    <p className="text-center text-[10px] text-zinc-500 mt-2 font-mono">Hafıza Grafik #{idx + 1}</p>
+                {images.length > 0 ? (
+                  /* 1. ÖNCELİK: Base64 Gelenler */
+                  images.map((img, idx) => (
+                    <div key={idx} className="bg-[#141414] rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 p-2 transition-all">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img 
+                        src={`data:image/png;base64,${img}`} 
+                        alt={`Görsel Çıktı ${idx + 1}`} 
+                        className="w-full h-auto rounded-xl" 
+                      />
+                      <p className="text-center text-[10px] text-zinc-500 mt-2 font-mono">Hafıza Grafik #{idx + 1}</p>
+                    </div>
+                  ))
+                ) : (
+                  /* 2. ÖNCELİK (Fallback): Statik output_plot.png */
+                  <div className="bg-[#141414] rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 p-2 group transition-all">
+                     <div className="relative overflow-hidden rounded-xl">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img 
+                        src={plotUrl} 
+                        alt="Grafik Çıktısı" 
+                        className="w-full h-auto"
+                        onError={(e) => (e.currentTarget.style.display = 'none')}
+                        onLoad={(e) => {
+                          e.currentTarget.style.display = 'block';
+                          if (forceVisualTab) {
+                            setActiveTab('visual');
+                          }
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-zinc-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                     </div>
+                     <p className="text-center text-[10px] text-zinc-500/80 mt-3 font-bold tracking-widest uppercase">Workspace: output_plot.png (Statik Fallback)</p>
                   </div>
-                ))}
+                )}
               </div>
             ) : (
               <div className="text-center space-y-4 max-w-[260px] opacity-40">

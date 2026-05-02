@@ -1,4 +1,4 @@
-﻿using System.IO.Compression;
+using System.IO.Compression;
 using System.Net.Http.Headers;
 using System.Text;
 using Currere_backend.Data;
@@ -38,7 +38,17 @@ namespace Currere_backend.Services
             if (integration == null || string.IsNullOrEmpty(integration.KaggleUsername) || string.IsNullOrEmpty(integration.KaggleKey))
                 throw new Exception("Kaggle entegrasyonu bulunamadı. Lütfen önce API Key'inizi kaydedin.");
 
-            var decryptedKey = _encryptionService.Decrypt(integration.KaggleKey);
+            string decryptedKey;
+            try
+            {
+                decryptedKey = _encryptionService.Decrypt(integration.KaggleKey);
+            }
+            catch (Exception)
+            {
+                // Eski kullanıcıların düz metin (plain text) key'leri şifre çözülemez.
+                // Kullanıcıya yeniden kayıt yaptırması gerektiğini bildir.
+                throw new Exception("Kaggle API anahtarınız eski formatta kayıtlı. Lütfen Ayarlar'dan anahtarınızı tekrar kaydedin.");
+            }
             var authString = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{integration.KaggleUsername}:{decryptedKey}"));
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authString);

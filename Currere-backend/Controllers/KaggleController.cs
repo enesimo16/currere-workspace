@@ -35,7 +35,7 @@ namespace Currere_backend.Controllers
                 var integration = await _context.UserIntegrations.FirstOrDefaultAsync(i => i.UserId == userId);
                 if (integration == null || string.IsNullOrEmpty(integration.KaggleUsername) || string.IsNullOrEmpty(integration.KaggleKey))
                 {
-                    _logger.LogError("Kaggle credentials not found for user {UserId}", userId);
+                    _logger.LogError("Kaggle credentials not found or mapped incorrectly for user {UserId}", userId);
                     return BadRequest(new { error = "Kaggle entegrasyonu bulunamadı. Lütfen önce API Key'inizi kaydedin." });
                 }
 

@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Currere_backend.Data;
 using Currere_backend.DTOs;
 using Currere_backend.Models;
@@ -30,7 +30,7 @@ namespace Currere_backend.Controllers
         /// Kullanıcının Kaggle API bilgilerini şifreleyerek kaydeder.
         /// </summary>
         [HttpPost("kaggle")]
-        public async Task<IActionResult> SaveKaggleIntegration([FromBody] KaggleIntegrationDto request)
+        public async Task<IActionResult> SaveKaggleIntegration([FromBody] KaggleSettingsDto request)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
@@ -44,7 +44,7 @@ namespace Currere_backend.Controllers
 
             // Username düz metin, API Key ise AES-256 ile şifreli kaydetme
             integration.KaggleUsername = request.Username;
-            integration.KaggleKey = _encryptionService.Encrypt(request.ApiKey);
+            integration.KaggleKey = _encryptionService.Encrypt(request.Key);
             integration.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();

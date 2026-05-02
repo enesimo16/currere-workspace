@@ -182,6 +182,7 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
   const [isSyntheticModalOpen, setIsSyntheticModalOpen] = useState(false);
   const [kaggleUsername, setKaggleUsername] = useState('');
   const [kaggleKey, setKaggleKey] = useState('');
+  const [isKaggleConfigured, setIsKaggleConfigured] = useState(false);
   const [hfTokenInput, setHfTokenInput] = useState(huggingFaceToken || '');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [kaggleSearch, setKaggleSearch] = useState('');
@@ -228,6 +229,29 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
        fetchSnapshots();
     }
   }, [workspaceId, fetchFiles, fetchSnapshots]);
+
+  useEffect(() => {
+    if (isSettingsOpen) {
+      const fetchKaggleSettings = async () => {
+        try {
+          const res = await api.get('/user/settings/kaggle');
+          if (res.data) {
+            if (res.data.username) {
+              setKaggleUsername(res.data.username);
+            }
+            if (res.data.isConfigured) {
+              setIsKaggleConfigured(true);
+            } else {
+              setIsKaggleConfigured(false);
+            }
+          }
+        } catch (error) {
+          console.error("Kaggle ayarları getirilemedi:", error);
+        }
+      };
+      fetchKaggleSettings();
+    }
+  }, [isSettingsOpen]);
 
   const handleFileUploadClick = () => {
     if (!isUploading) fileInputRef.current?.click();
@@ -724,7 +748,7 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
                </div>
                 <div>
                   <label className="block text-[11px] text-zinc-500 mb-1.5 tracking-wider font-semibold uppercase">KAGGLE API KEY</label>
-                  <input type="password" value={kaggleKey} onChange={e => setKaggleKey(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 transition-all shadow-sm" placeholder="Kaggle API Key" />
+                  <input type="password" value={kaggleKey} onChange={e => setKaggleKey(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 transition-all shadow-sm" placeholder={isKaggleConfigured ? "•••••••••••• (Kayıtlı)" : "Kaggle API Key"} />
                </div>
                <div className="pt-4 border-t border-zinc-800">
                   <label className="block text-[11px] text-zinc-400 mb-1.5 tracking-wider font-semibold uppercase flex items-center gap-2">

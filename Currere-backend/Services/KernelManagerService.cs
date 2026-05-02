@@ -81,7 +81,7 @@ namespace Currere_backend.Services
             var args = new StringBuilder();
             args.Append("run -i --rm --network none ");
             args.Append("--memory 512m --cpus 0.5 ");
-            args.Append("--user 1000:1000 --read-only --tmpfs /tmp:rw,noexec,nosuid,size=64m ");
+            args.Append("--user 1000:1000 --read-only --tmpfs /tmp:rw,noexec,nosuid,size=64m --tmpfs /workspace:rw,noexec,nosuid,size=32m,uid=1000,gid=1000 ");
             args.Append("--security-opt no-new-privileges --cap-drop ALL ");
             args.Append("--pids-limit 50 ");
             args.Append("--ipc none ");

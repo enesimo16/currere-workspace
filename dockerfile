@@ -10,6 +10,9 @@ ENV PYTHONUNBUFFERED=1
 # Senin eski dosyandaki gibi veri bilimi kütüphanelerini de kuralım, lazım olacak.
 RUN pip install --no-cache-dir pandas numpy matplotlib faker
 
+ENV MPLCONFIGDIR=/tmp/matplotlib
+ENV MPLBACKEND=Agg
+
 # Kısıtlı kullanıcı oluştur
 RUN groupadd -g 1000 currere && \
     useradd -u 1000 -g currere -m -s /bin/bash currere

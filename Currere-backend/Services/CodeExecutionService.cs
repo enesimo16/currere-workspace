@@ -90,7 +90,10 @@ namespace Currere_backend.Services
                 if (!code.Contains("matplotlib.use("))
                     code = matplotlibHeader + code;
 
-                code = code.Replace("plt.show()",
+                // plt.show() varyantlarını yakala (boşluklu, fig.show(), vb.)
+                code = System.Text.RegularExpressions.Regex.Replace(
+                    code,
+                    @"plt\.show\s*\(\s*\)",
                     "plt.savefig('/workspace/output/output_plot.png', bbox_inches='tight', dpi=150)\nplt.close()");
 
                 var codeBytes = new UTF8Encoding(false).GetBytes(code);
@@ -128,7 +131,7 @@ namespace Currere_backend.Services
                 var args = new StringBuilder();
                 args.Append("run --rm --network none ");
                 args.Append("--memory 512m --cpus 0.5 ");
-                args.Append("--user 1000:1000 --read-only --tmpfs /tmp:rw,noexec,nosuid,size=64m ");
+                args.Append("--user 1000:1000 --read-only --tmpfs /tmp:rw,noexec,nosuid,size=64m --tmpfs /workspace:rw,noexec,nosuid,size=32m,uid=1000,gid=1000 --tmpfs /home/currere/.config:rw,nosuid,noexec,size=64m,uid=1000,gid=1000 --tmpfs /home/currere/.cache:rw,nosuid,noexec,size=64m,uid=1000,gid=1000 ");
                 args.Append("--security-opt no-new-privileges --cap-drop ALL ");
                 args.Append("--pids-limit 50 ");
                 args.Append("--ipc none ");
@@ -273,10 +276,14 @@ namespace Currere_backend.Services
                         artifactUrls.Add($"/artifacts/{job.JobId}/{fileName}");
 
                         var ext = Path.GetExtension(file).ToLowerInvariant();
-                        if (ext is ".png" or ".jpg" or ".jpeg" or ".svg")
+                        if (ext is ".png" or ".jpg" or ".jpeg" or ".svg" or ".csv" or ".xlsx" or ".json" or ".txt")
                         {
                             var bytes = await File.ReadAllBytesAsync(file);
                             base64Images.Add(Convert.ToBase64String(bytes));
+
+                            // Frontend'in statik fallback URL'si üzerinden erişebilmesi için ana dizine kopyala
+                            var destPath = Path.Combine(hostWorkspacePath, fileName);
+                            File.Copy(file, destPath, true);
                         }
                     }
                 }

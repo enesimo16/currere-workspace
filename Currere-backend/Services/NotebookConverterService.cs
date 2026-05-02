@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -155,7 +156,7 @@ namespace Currere_backend.Services
         // gereksiz notebook kalıntılarını kaldırır ve üretime hazır hale getirir.
         public async Task<string> CleanAndOptimizePythonCodeAsync(string rawPythonCode)
         {
-            string systemPrompt = @"Sen kıdemli bir Python Geliştiricisi ve Veri Bilimcisin.
+            string systemPromptBase = @"Sen kıdemli bir Python Geliştiricisi ve Veri Bilimcisin.
 Aşağıda, bir Jupyter Notebook'tan çıkarılmış ham Python kodu var.
  
 GÖREVİN: Bu kodu baştan sona hatasız çalışacak, temiz ve üretime hazır TEK BİR .py scripti haline getirmektir.
@@ -171,30 +172,94 @@ KATI KURALLAR:
 
             try
             {
-                var cleanedCode = await _aiService.ChatAsync(rawPythonCode, systemPrompt);
-                return StripMarkdownFences(cleanedCode);
+                if (rawPythonCode.Length <= 8000)
+                {
+                    var cleanedCode = await _aiService.ChatAsync(rawPythonCode, systemPromptBase);
+                    return StripMarkdownFences(cleanedCode);
+                }
+
+                // KOD BÜYÜK: Chunking Uygula
+                var lines = rawPythonCode.Split('\n');
+                var chunks = new List<string>();
+                var currentChunk = new StringBuilder();
+                
+                foreach (var line in lines)
+                {
+                    currentChunk.AppendLine(line);
+                    // Ortalama 50-60 satıra / güvenli bir karaktere denk gelir
+                    if (currentChunk.Length > 4000)
+                    {
+                        chunks.Add(currentChunk.ToString());
+                        currentChunk.Clear();
+                    }
+                }
+                if (currentChunk.Length > 0)
+                {
+                    chunks.Add(currentChunk.ToString());
+                }
+
+                var finalScript = new StringBuilder();
+                string previousContext = "";
+
+                foreach (var chunk in chunks)
+                {
+                    string chunkPrompt = systemPromptBase;
+                    if (!string.IsNullOrEmpty(previousContext))
+                    {
+                        chunkPrompt += $"\n\nKRİTİK BAĞLAM (Scope Koruması): Bir önceki kod parçasında şu importlar ve temel değişkenler tanımlandı:\n```python\n{previousContext}\n```\nLütfen bu parçayı (chunk) temizlerken bu bağlamı göz önünde bulundur ve eksik import/tanımsız değişken hatası yapma. Zaten tanımlananları gereksiz yere tekrar tanımlama.";
+                    }
+
+                    var cleanedChunkResponse = await _aiService.ChatAsync(chunk, chunkPrompt);
+                    var cleanedChunk = StripMarkdownFences(cleanedChunkResponse);
+                    
+                    finalScript.AppendLine(cleanedChunk);
+                    finalScript.AppendLine();
+
+                    // Bir sonraki chunk için importları ve temel değişkenleri (ilk = atamalarını) yakala
+                    var chunkLines = cleanedChunk.Split('\n');
+                    var contextLines = chunkLines.Where(l => {
+                        var trimmed = l.TrimStart();
+                        return trimmed.StartsWith("import ") || 
+                               trimmed.StartsWith("from ") || 
+                               (Regex.IsMatch(trimmed, @"^[a-zA-Z_][a-zA-Z0-9_]*\s*=") && !trimmed.StartsWith("#"));
+                    }).Take(15);
+
+                    previousContext = string.Join("\n", contextLines);
+                }
+
+                return finalScript.ToString().TrimEnd();
             }
             catch (Exception ex)
             {
                 throw new Exception($"Yapay zeka kod temizleme sırasında hata oluştu: {ex.Message}");
             }
         }
+
         // AI'ın döndürdüğü yanıttan ```python ... ``` veya ``` ... ``` bloğunu soyar.
         public static string StripMarkdownFences(string aiResponse)
         {
             if (string.IsNullOrWhiteSpace(aiResponse))
                 return aiResponse;
 
-            // ```python\n...\n``` veya ```\n...\n``` formatlarını yakala
-            var match = Regex.Match(
+            // Tüm kod bloklarını yakala (Regex.Matches)
+            var matches = Regex.Matches(
                 aiResponse,
                 @"```(?:python)?\s*\n([\s\S]*?)\n?```",
                 RegexOptions.IgnoreCase
             );
 
-            return match.Success
-                ? match.Groups[1].Value.Trim()
-                : aiResponse.Trim();
+            if (matches.Count > 0)
+            {
+                var codeBlocks = new List<string>();
+                foreach (Match match in matches)
+                {
+                    codeBlocks.Add(match.Groups[1].Value.Trim());
+                }
+                return string.Join("\n\n", codeBlocks);
+            }
+
+            // Hiç block yoksa metnin tamamını kod olarak kabul et
+            return aiResponse.Trim();
         }
     }
 }

@@ -20,6 +20,9 @@ def _timeout_handler(signum, frame):
         'error_type': 'TimeoutError',
         'message': 'Runner dahili timeout: Kod 40 saniye içinde tamamlanamadı.'
     }), flush=True)
+    sys.stdout.flush()
+    import time
+    time.sleep(0.5)
     sys.exit(1)
 
 # SIGALRM sadece Unix/Linux'ta çalışır (Docker Linux konteyneri)

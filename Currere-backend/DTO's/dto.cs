@@ -172,10 +172,13 @@ namespace Currere_backend.DTOs
     }
 
     // api integration
-    public class KaggleIntegrationDto
+    public class KaggleSettingsDto
     {
+        [System.Text.Json.Serialization.JsonPropertyName("username")]
         public string Username { get; set; } = string.Empty;
-        public string ApiKey { get; set; } = string.Empty;
+
+        [System.Text.Json.Serialization.JsonPropertyName("key")]
+        public string Key { get; set; } = string.Empty;
     }
 
     // kaggle 
