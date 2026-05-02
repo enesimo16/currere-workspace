@@ -8,7 +8,7 @@ WORKDIR /workspace
 ENV PYTHONUNBUFFERED=1
 
 # Senin eski dosyandaki gibi veri bilimi kütüphanelerini de kuralım, lazım olacak.
-RUN pip install --no-cache-dir pandas numpy matplotlib
+RUN pip install --no-cache-dir pandas numpy matplotlib faker
 
 # Kısıtlı kullanıcı oluştur
 RUN groupadd -g 1000 currere && \

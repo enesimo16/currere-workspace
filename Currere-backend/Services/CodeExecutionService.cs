@@ -237,6 +237,11 @@ namespace Currere_backend.Services
                         finalOutput = jsonResult.GetProperty("message").GetString() ?? "";
                         errorType = isSuccess ? "" : (jsonResult.TryGetProperty("error_type", out var et) ? et.GetString() : "PythonError");
                         _logger.LogWarning("[Adım 8.1] JSON parse OK. isSuccess: {S}", isSuccess);
+
+                        if (!isSuccess)
+                        {
+                            _logger.LogError("[Adım 8.1] Python Hatası: {Error}", finalOutput);
+                        }
                     }
                     catch
                     {

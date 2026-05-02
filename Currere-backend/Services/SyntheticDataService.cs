@@ -1,4 +1,4 @@
-﻿using Currere_backend.Data;
+using Currere_backend.Data;
 using Currere_backend.DTOs;
 using Currere_backend.Models;
 using Hangfire;
@@ -42,12 +42,12 @@ namespace Currere_backend.Services
             switch (request.Mode)
             {
                 case GenerationMode.FastAndFake:
-                    systemPrompt = "Sen bir Python veri üreticisisin. SADECE çalıştırılabilir Python kodu yaz. Markdown veya açıklama KULLANMA.";
+                    systemPrompt = "Sen bir Python veri üreticisisin. SADECE çalıştırılabilir Python kodu yaz. Markdown veya açıklama KULLANMA. Kodlarında SADECE built-in python kütüphaneleri ile pandas, numpy ve faker kütüphanelerini kullanabilirsin. Başka hiçbir 3. parti kütüphane import etme. Ağ bağlantısı (internet) olmadığını unutma.";
                     userPrompt = $"Bana {request.RowCount} satırlık '{request.Prompt}' konulu bir veri seti üret. İstenen Sütunlar: {request.Columns}. Faker kütüphanesini ve Pandas'ı kullan. Veriyi '{request.FileName}' adıyla kaydet.";
                     break;
 
                 case GenerationMode.ZeroShotRealistic:
-                    systemPrompt = "Sen kıdemli bir Veri Bilimci ve İstatistikçisin. SADECE çalıştırılabilir Python kodu yaz. Markdown kullanma.";
+                    systemPrompt = "Sen kıdemli bir Veri Bilimci ve İstatistikçisin. SADECE çalıştırılabilir Python kodu yaz. Markdown kullanma. Kodlarında SADECE built-in python kütüphaneleri ile pandas, numpy ve faker kütüphanelerini kullanabilirsin. Başka hiçbir 3. parti kütüphane import etme. Ağ bağlantısı (internet) olmadığını unutma.";
                     userPrompt = $"Bana {request.RowCount} satırlık '{request.Prompt}' konulu GERÇEKÇİ bir veri seti üret. İstenen Sütunlar: {request.Columns}. Numpy ve Scipy kullanarak istatistiksel dağılımlar (Gaussian vb.) ve sütunlar arası mantıksal korelasyonlar (covariance) kur. Veriyi '{request.FileName}' adıyla kaydet.";
                     break;
 
@@ -57,7 +57,7 @@ namespace Currere_backend.Services
                     var sourceFile = await _context.WorkspaceFiles.FirstOrDefaultAsync(f => f.Id == request.SourceFileId && f.WorkspaceId == workspaceId);
                     if (sourceFile == null) throw new Exception("Referans alınacak kaynak dosya bulunamadı.");
 
-                    systemPrompt = "Sen bir Veri Klonlama (Digital Twin) uzmanısın. SADECE çalıştırılabilir Python kodu yaz. Markdown kullanma.";
+                    systemPrompt = "Sen bir Veri Klonlama (Digital Twin) uzmanısın. SADECE çalıştırılabilir Python kodu yaz. Markdown kullanma. Kodlarında SADECE built-in python kütüphaneleri ile pandas, numpy ve faker kütüphanelerini kullanabilirsin. Başka hiçbir 3. parti kütüphane import etme. Ağ bağlantısı (internet) olmadığını unutma.";
                     userPrompt = $"Çalışma dizininde '{sourceFile.FileName}' adında bir dosya var. Pandas ile bu dosyayı oku, sütunların istatistiksel dağılımlarını (ortalama, varyans, kategorik olasılıklar) ve aralarındaki korelasyonları analiz et. Ardından bu matematiğe %100 sadık kalarak {request.RowCount} satırlık YENİ bir sentetik veri üret ve '{request.FileName}' adıyla kaydet.";
                     break;
             }
@@ -72,7 +72,7 @@ namespace Currere_backend.Services
             var executionResult = await _codeExecutionService.ExecutePythonCodeAsync(new ExecutionJob { WorkspaceId = workspaceId, Code = cleanCode });
 
             if (!executionResult.IsSuccess)
-                throw new Exception($"Yapay zeka veriyi üretirken bir hata oluştu: {executionResult.Error}");
+                throw new Exception(executionResult.Error);
 
             // dosya kontrolü 
             // cidden var mı
