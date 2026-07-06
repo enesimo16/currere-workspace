@@ -12,24 +12,88 @@ interface CodeEditorProps {
   workspaceId?: string | number;
   code: string;
   setCode: (val: string) => void;
+  isReadyToSaveRef: { current: boolean }; // Parent'tan gelen kilit — tab geçişinde false, veri hazır olunca true
 }
 
-export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorProps) {
-  const isInitialMount = useRef(true);
+export default function CodeEditor({ workspaceId, code, setCode, isReadyToSaveRef }: CodeEditorProps) {
+  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // AI Completion ref'leri — component scope'ta yaşar, unmount'ta tam temizlenir (Bug #3)
+  const completionDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const completionAbortRef = useRef<AbortController | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const editorRef = useRef<any>(null);
+  const currentCodeRef = useRef(code);
+  const providerRef = useRef<any>(null);
   const { activeFile, setActiveFile, openFiles, removeOpenFile, pendingInjection, clearInjection, addQuotedSnippet } = useWorkspaceStore();
+  const activeFileNameRef = useRef(activeFile?.name);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [selectedCode, setSelectedCode] = useState('');
   const [isConverting, setIsConverting] = useState(false);
   
   // VS Code Sync
-  const { sendUpdate } = useSync(workspaceId);
+  const { sendUpdate, isRemoteUpdateRef } = useSync(workspaceId);
 
   // Monaco Editor yüklendiğinde referansı kaydet
-  const handleEditorDidMount = (editor: any) => {
+  const handleEditorDidMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
     
+    if (providerRef.current) {
+      providerRef.current.dispose();
+    }
+
+    // ── GHOST TEXT (INLINE COMPLETIONS) ENTEGRASYONU ── (Bug #2 + #3 Fix)
+    providerRef.current = monaco.languages.registerInlineCompletionsProvider('*', {
+      provideInlineCompletions: (model: any, position: any, context: any, token: any) => {
+        // Önceki timer ve uçuştaki isteği anında temizle
+        if (completionDebounceRef.current) clearTimeout(completionDebounceRef.current);
+        if (completionAbortRef.current) completionAbortRef.current.abort();
+
+        return new Promise((resolve) => {
+          // KRİTİK: Monaco bu completion'ı iptal ederse Promise anında kapanır.
+          // Böylece kuyruğun birikmesi ve 429 spam önlenir. (Bug #2)
+          token.onCancellationRequested(() => resolve({ items: [] }));
+
+          completionDebounceRef.current = setTimeout(async () => {
+            if (token.isCancellationRequested || !workspaceId) {
+              return resolve({ items: [] });
+            }
+
+            completionAbortRef.current = new AbortController();
+
+            try {
+              const codeValue = model.getValue();
+              if (!codeValue || codeValue.trim() === '') return resolve({ items: [] });
+
+              const response = await api.post(`/workspace/${workspaceId}/ai/inline-complete`, {
+                code: codeValue,
+                cursorLine: position.lineNumber,
+                cursorCol: position.column
+              }, {
+                signal: completionAbortRef.current.signal
+              });
+
+              const completionText = response.data?.completion;
+              if (completionText) {
+                resolve({
+                  items: [{
+                    insertText: completionText,
+                    range: new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column)
+                  }]
+                });
+              } else {
+                resolve({ items: [] });
+              }
+            } catch {
+              // Hata veya Abort durumunda sessizce boş dön
+              resolve({ items: [] });
+            }
+          }, 750);
+        });
+      },
+      freeInlineCompletions: () => {}
+    });
+    // ────────────────────────────────────────────────
+
     editor.onDidChangeCursorSelection(() => {
       const selection = editor.getSelection();
       const model = editor.getModel();
@@ -40,6 +104,26 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
       }
     });
   };
+
+  // Cleanup: Monaco Provider + AI Completion zamanlayıcı ve isteği (Bug #3 Fix)
+  useEffect(() => {
+    return () => {
+      // 1. Bekleyen debounce timer'ı temizle
+      if (completionDebounceRef.current) clearTimeout(completionDebounceRef.current);
+      // 2. Havada uçan API isteğini iptal et
+      if (completionAbortRef.current) completionAbortRef.current.abort();
+      // 3. Monaco provider'ı dispose et
+      if (providerRef.current) providerRef.current.dispose();
+    };
+  }, []);
+
+  // Aktif dosya ismi referansı (Closure fix)
+  useEffect(() => {
+    activeFileNameRef.current = activeFile?.name;
+  }, [activeFile?.name]);
+
+  // NOT: isReadyToSave useEffect'leri KALDIRILDI (Bug #1 Fix)
+  // Kilit yönetimi artık parent editor/page.tsx içinde isReadyToSaveRef ile yapılıyor.
 
   // Sync Update Listener
   useEffect(() => {
@@ -88,38 +172,7 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
-  // Debounced Sync & Auto-save
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
 
-    if (!workspaceId || !activeFile.name || code === undefined) return;
-
-    // .ipynb dosyaları JupyterViewer tarafından kaydedilir, CodeEditor karışmamalı
-    if (activeFile.name.endsWith('.ipynb')) return;
-
-    const timeoutId = setTimeout(async () => {
-      try {
-        if (activeFile.name === 'main.py') {
-          await api.put(`/workspace/${workspaceId}/code`, { code });
-        } else {
-          const blob = new Blob([code], { type: 'text/plain' });
-          const formData = new FormData();
-          formData.append('file', blob, activeFile.name);
-          await api.put(`/workspace/${workspaceId}/file/${activeFile.name}`, formData);
-        }
-        setHasUnsavedChanges(false);
-        // VS Code'a gönder
-        sendUpdate(activeFile.name, code);
-      } catch (error) {
-        console.error('Kayıt Hatası:', error);
-      }
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [code, workspaceId, activeFile.name, sendUpdate]);
 
   const handleConvertNotebook = async () => {
     if (!activeFile.id || !workspaceId) {
@@ -151,13 +204,13 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
       
       toast.success('Dönüştürme işlemi başarılı!', { id: toastId });
       
+      // O-3 Fix: window.location.reload() yerine state reset kullanılıyor.
+      // setActiveFile → parent'ın useEffect [activeFile.name] tetiklenir → içerik yeniden yüklenir.
       setActiveFile({
-        id: response.data.newFileId || null, // Backend might return it, but for safety:
+        id: response.data.newFileId || null,
         name: newFileName,
         type: 'code'
       });
-      
-      window.location.reload();
       
     } catch {
       toast.error('Dosya dönüştürüleme hatası.', { id: toastId });
@@ -262,8 +315,49 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
             value={code}
             onMount={handleEditorDidMount}
             onChange={(val) => {
-              setCode(val || '');
+              // Kilit kontrolü — parent'tan gelen isReadyToSaveRef (Bug #1 Fix)
+              if (!isReadyToSaveRef.current) return;
+
+              const currentVal = val || '';
+              setCode(currentVal);
+              currentCodeRef.current = currentVal;
               setHasUnsavedChanges(true);
+
+              const fileToSave = activeFileNameRef.current;
+
+              if (!workspaceId || !fileToSave || currentCodeRef.current.trim() === '') return;
+              if (fileToSave.endsWith('.ipynb')) return;
+
+              if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+
+              saveTimerRef.current = setTimeout(async () => {
+                const codeToSave = currentCodeRef.current;
+                const finalFileToSave = activeFileNameRef.current; // State'ten değil, ref'ten oku!
+
+                // Çift güvence: timer ateşlendiğinde kilit hâlâ kapalıysa kaydetme
+                if (!finalFileToSave || !isReadyToSaveRef.current) return;
+
+                try {
+                  if (finalFileToSave === 'main.py') {
+                    await api.put(`/workspace/${workspaceId}/code`, { code: codeToSave });
+                  } else {
+                    const blob = new Blob([codeToSave], { type: 'text/plain' });
+                    const formData = new FormData();
+                    formData.append('file', blob, finalFileToSave);
+                    await api.put(`/workspace/${workspaceId}/file/${finalFileToSave}`, formData);
+                  }
+                  setHasUnsavedChanges(false);
+                  // O-2 Fix: Remote update ise (SignalR'dan gelen) sendUpdate'i ATLA.
+                  // isRemoteUpdateRef.current, useSync'te ReceiveCodeUpdate sırasında true yapılır.
+                  // Bu kontrol Ping-Pong (echo loop) döngüsünü kırar.
+                  if (!isRemoteUpdateRef.current) {
+                    sendUpdate(finalFileToSave, codeToSave);
+                  }
+                  isRemoteUpdateRef.current = false; // Her durumda sıfırla
+                } catch (error) {
+                  console.error('Kayıt Hatası:', error);
+                }
+              }, 300);
             }}
             options={{
               minimap: { enabled: false },
@@ -274,7 +368,8 @@ export default function CodeEditor({ workspaceId, code, setCode }: CodeEditorPro
               scrollBeyondLastLine: false,
               smoothScrolling: true,
               cursorBlinking: "smooth",
-              backgroundColor: '#18181b',
+              // backgroundColor kaldırıldı — Monaco IStandaloneEditorConstructionOptions'da yok
+              // Arkaplan rengi theme="vs-dark" ile kontrol edilir
               scrollbar: {
                 verticalScrollbarSize: 8,
                 horizontalScrollbarSize: 8,

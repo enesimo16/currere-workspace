@@ -1,7 +1,11 @@
 """
-Currere Runner v2.1 — DEBUG VERSION
-====================================
+Currere Runner v3.0 — Plot-Aware Edition
+=========================================
 Her adımda [DEBUG] logu basarak konteynerin hangi satırda takıldığını gösterir.
+v3.0 değişiklikler:
+  - Matplotlib monkey-patch: plt.show() / fig.show() artık /workspace/output/*.png kaydeder
+  - Output dizini garantili oluşturulur
+  - Grafik dosyaları JSON yanıtında 'plots' listesiyle raporlanır
 """
 import sys
 import json
@@ -12,25 +16,23 @@ import re
 import signal
 
 # ── ZORUNLU TIMEOUT SİGORTASI ────────────────────────────────────────────────
-# Eğer exec() sonsuz döngüye girerse veya asılı kalırsa, bu sinyal 40 saniye
-# sonra prosesi zorla öldürür (C# tarafındaki 45sn timeout'tan önce).
 def _timeout_handler(signum, frame):
     print(json.dumps({
         'success': False,
         'error_type': 'TimeoutError',
-        'message': 'Runner dahili timeout: Kod 40 saniye içinde tamamlanamadı.'
+        'message': 'Runner dahili timeout: Kod 40 saniye içinde tamamlanamadı.',
+        'plots': []
     }), flush=True)
     sys.stdout.flush()
     import time
     time.sleep(0.5)
     sys.exit(1)
 
-# SIGALRM sadece Unix/Linux'ta çalışır (Docker Linux konteyneri)
 if hasattr(signal, 'SIGALRM'):
     signal.signal(signal.SIGALRM, _timeout_handler)
     signal.alarm(40)
 
-print("[DEBUG] Runner v2.1 başlatıldı", flush=True)
+print("[DEBUG] Runner v3.0 başlatıldı", flush=True)
 
 # ── ADIM 1: ÇALIŞMA DİZİNİNİ SABİTLE ────────────────────────────────────────
 print("[DEBUG] os.chdir('/workspace') çağrılıyor...", flush=True)
@@ -40,7 +42,19 @@ try:
 except Exception as e:
     print(f"[ERROR] os.chdir başarısız: {e}", flush=True)
 
-# ── ADIM 2: SYMLINK KÖPRÜSÜ ─────────────────────────────────────────────────
+# ── ADIM 2: OUTPUT DİZİNİNİ HAZIRLA (KRİTİK) ────────────────────────────────
+OUTPUT_DIR = '/workspace/output'
+try:
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    print(f"[DEBUG] Output dizini hazır: {OUTPUT_DIR}", flush=True)
+except Exception as e:
+    print(f"[ERROR] Output dizini oluşturulamadı: {e}", flush=True)
+    # /tmp fallback
+    OUTPUT_DIR = '/tmp/output'
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    print(f"[DEBUG] Fallback output dizini: {OUTPUT_DIR}", flush=True)
+
+# ── ADIM 3: SYMLINK KÖPRÜSÜ ─────────────────────────────────────────────────
 DATA_DIR = '/workspace/data'
 GUID_PREFIX_PATTERN = re.compile(r'^[a-f0-9]{8}_(.+)$')
 
@@ -60,16 +74,12 @@ if os.path.isdir(DATA_DIR):
     for filename in entries:
         full_path = os.path.join(DATA_DIR, filename)
 
-        # SADECE düz dosyalar — klasörleri ve alt dizinleri ATLA
         if not os.path.isfile(full_path):
             print(f"[DEBUG] Atlanıyor (dosya değil): {filename}", flush=True)
             continue
 
         match = GUID_PREFIX_PATTERN.match(filename)
-        if match:
-            original_name = match.group(1)
-        else:
-            original_name = filename
+        original_name = match.group(1) if match else filename
 
         try:
             mtime = os.path.getmtime(full_path)
@@ -80,7 +90,6 @@ if os.path.isdir(DATA_DIR):
             best_candidates[original_name] = (full_path, mtime)
             print(f"[DEBUG] Aday dosya: {filename} → {original_name}", flush=True)
 
-    # Symlink'leri oluştur
     for original_name, (source_path, _) in best_candidates.items():
         link_path = os.path.join('/workspace', original_name)
         try:
@@ -90,19 +99,99 @@ if os.path.isdir(DATA_DIR):
             print(f"[DEBUG] Symlink oluşturuldu: {original_name} → {source_path}", flush=True)
         except OSError as e:
             print(f"[ERROR] Symlink başarısız ({original_name}): {e}", flush=True)
-            # Kodu kırma, sonraki dosyaya geç
 
     print(f"[DEBUG] Symlink adımı tamamlandı. Toplam: {len(best_candidates)} dosya", flush=True)
 else:
     print("[DEBUG] Data klasörü yok, symlink adımı atlanıyor", flush=True)
 
-# ── ADIM 3: PYTHONPATH ───────────────────────────────────────────────────────
+# ── ADIM 4: PYTHONPATH ───────────────────────────────────────────────────────
 site_packages_dir = '/workspace/site-packages'
 if os.path.isdir(site_packages_dir) and site_packages_dir not in sys.path:
     sys.path.insert(0, site_packages_dir)
     print(f"[DEBUG] site-packages eklendi: {site_packages_dir}", flush=True)
 
-# ── ADIM 4: KULLANICI KODUNU ÇALIŞTIR ────────────────────────────────────────
+# ── ADIM 5: MATPLOTLİB MONKEY-PATCH ─────────────────────────────────────────
+# plt.show() ve fig.show() çağrılarını yakalayıp dosyaya kaydet.
+# Bu patch, exec() ÖNCE yapılmalı ki kullanıcı kodu bunu görsün.
+_plot_counter = [0]  # mutable liste, closure'da değiştirilebilir
+_saved_plots = []    # kaydedilen dosya yolları
+
+def _setup_matplotlib_patch():
+    """
+    Matplotlib yüklüyse:
+      - Backend'i 'Agg' (headless) olarak zorla
+      - plt.show() ve Figure.show() metodlarını override et
+      - plt.savefig() çağrılarını output dizinine yönlendir
+    """
+    try:
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+
+        # Orijinal fonksiyonları sakla
+        _orig_show = plt.show
+        _orig_savefig = plt.savefig
+
+        def _patched_show(*args, **kwargs):
+            """plt.show() çağrısını yakalar, grafiği output'a kaydeder."""
+            try:
+                _plot_counter[0] += 1
+                out_path = os.path.join(OUTPUT_DIR, f'plot_{_plot_counter[0]:03d}.png')
+                plt.savefig(out_path, bbox_inches='tight', dpi=150)
+                plt.close('all')
+                _saved_plots.append(out_path)
+                print(f"[DEBUG] plt.show() yakalandı → {out_path}", file=sys.__stdout__, flush=True)
+            except Exception as e:
+                print(f"[ERROR] _patched_show hata: {e}", file=sys.__stdout__, flush=True)
+
+        def _patched_savefig(fname, *args, **kwargs):
+            """plt.savefig() çağrılarını output dizinine yönlendir."""
+            try:
+                # Eğer kullanıcı mutlak bir yol vermişse output'a kopyala
+                if not os.path.isabs(str(fname)):
+                    fname = os.path.join(OUTPUT_DIR, os.path.basename(str(fname)))
+                _orig_savefig(fname, *args, **kwargs)
+                if str(fname) not in _saved_plots:
+                    _saved_plots.append(str(fname))
+                print(f"[DEBUG] plt.savefig() yakalandı → {fname}", file=sys.__stdout__, flush=True)
+            except Exception as e:
+                print(f"[ERROR] _patched_savefig hata: {e}", file=sys.__stdout__, flush=True)
+                # Orijinal fonksiyonu dene
+                try:
+                    _orig_savefig(fname, *args, **kwargs)
+                except Exception:
+                    pass
+
+        plt.show = _patched_show
+        plt.savefig = _patched_savefig
+
+        # Figure.show() için de patch ekle
+        try:
+            from matplotlib.figure import Figure
+            _orig_fig_show = Figure.show
+            def _patched_fig_show(self, *args, **kwargs):
+                try:
+                    _plot_counter[0] += 1
+                    out_path = os.path.join(OUTPUT_DIR, f'plot_{_plot_counter[0]:03d}.png')
+                    self.savefig(out_path, bbox_inches='tight', dpi=150)
+                    _saved_plots.append(out_path)
+                    print(f"[DEBUG] fig.show() yakalandı → {out_path}", file=sys.__stdout__, flush=True)
+                except Exception as e:
+                    print(f"[ERROR] _patched_fig_show hata: {e}", file=sys.__stdout__, flush=True)
+            Figure.show = _patched_fig_show
+        except Exception as e:
+            print(f"[DEBUG] Figure.show patch atlandı: {e}", file=sys.__stdout__, flush=True)
+
+        print("[DEBUG] Matplotlib monkey-patch başarıyla uygulandı", flush=True)
+        return True
+
+    except ImportError:
+        print("[DEBUG] Matplotlib bulunamadı, patch atlandı", flush=True)
+        return False
+
+_matplotlib_patched = _setup_matplotlib_patch()
+
+# ── ADIM 6: KULLANICI KODUNU ÇALIŞTIR ────────────────────────────────────────
 print("[DEBUG] Kullanıcı kodu çözümleniyor...", flush=True)
 
 old_stdout = sys.stdout
@@ -118,7 +207,6 @@ try:
     user_code = base64.b64decode(base64_code).decode('utf-8')
     print(f"[DEBUG] Kod çözüldü ({len(user_code)} karakter). exec() başlatılıyor...", flush=True)
 
-    # Stdout/stderr yönlendirmesi — DEBUG logları BURADAN SONRA kullanıcı çıktısına karışmaz
     sys.stdout = redirected_output
     sys.stderr = redirected_error
 
@@ -129,7 +217,6 @@ try:
 
     exec(user_code, sandbox_globals)
 
-    # Geri yükle
     sys.stdout = old_stdout
     sys.stderr = old_stderr
     print("[DEBUG] exec() başarıyla tamamlandı", flush=True)
@@ -139,13 +226,27 @@ try:
 
     combined_output = user_output.strip()
     if user_errors.strip():
-        combined_output = combined_output + "\n" + user_errors.strip() if combined_output else user_errors.strip()
+        combined_output = (combined_output + "\n" + user_errors.strip()) if combined_output else user_errors.strip()
 
-    # Başarılı JSON
+    # Output dizinini tara — exec() sırasında kaydedilen ek dosyaları da yakala
+    try:
+        if os.path.isdir(OUTPUT_DIR):
+            for fname in os.listdir(OUTPUT_DIR):
+                fpath = os.path.join(OUTPUT_DIR, fname)
+                if fpath not in _saved_plots and os.path.isfile(fpath):
+                    ext = os.path.splitext(fname)[1].lower()
+                    if ext in ('.png', '.jpg', '.jpeg', '.svg'):
+                        _saved_plots.append(fpath)
+                        print(f"[DEBUG] Ek grafik tespit edildi: {fpath}", flush=True)
+        print(f"[DEBUG] Toplam kaydedilen grafik: {len(_saved_plots)}", flush=True)
+    except Exception as e:
+        print(f"[ERROR] Output dizini tarama hatası: {e}", flush=True)
+
     result = json.dumps({
         'success': True,
         'error_type': None,
-        'message': combined_output
+        'message': combined_output,
+        'plots': _saved_plots
     })
     print(result, flush=True)
 
@@ -159,7 +260,8 @@ except Exception as e:
     result = json.dumps({
         'success': False,
         'error_type': error_type,
-        'message': error_msg
+        'message': error_msg,
+        'plots': _saved_plots
     })
     print(result, flush=True)
 

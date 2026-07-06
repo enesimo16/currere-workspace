@@ -43,32 +43,42 @@ export default function JupyterViewer({ content, workspaceId, activeFileName }: 
 
   // ── PARSE NOTEBOOK ──────────────────────────────────────────────────────
   useEffect(() => {
+    const defaultNotebook: JupyterNotebook = {
+      cells: [{ cell_type: 'code', source: [''], metadata: {}, outputs: [], execution_count: null }],
+      metadata: {}, nbformat: 4, nbformat_minor: 5
+    };
+
     try {
       if (!content?.trim()) {
-        setNotebook({
-          cells: [{ cell_type: 'code', source: [''], metadata: {}, outputs: [] }],
-          metadata: {}, nbformat: 4, nbformat_minor: 5
-        });
+        setNotebook(defaultNotebook);
         return;
       }
       const parsed = JSON.parse(content);
-      // source'ları normalize et (string → string[])
-      if (parsed.cells) {
-        parsed.cells = parsed.cells.map((c: JupyterCell) => ({
-          ...c,
-          source: Array.isArray(c.source) ? c.source : [c.source || ''],
-          outputs: c.outputs || [],
-          metadata: c.metadata || {}
-        }));
+      
+      // Eğer JSON geçerli ama formatı Jupyter değilse (örn: boş obje, dizi vs.)
+      if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.cells)) {
+         setNotebook(defaultNotebook);
+         return;
       }
+
+      // source'ları normalize et (string → string[])
+      parsed.cells = parsed.cells.map((c: JupyterCell) => ({
+        ...c,
+        source: Array.isArray(c.source) ? c.source : [c.source || ''],
+        outputs: c.outputs || [],
+        metadata: c.metadata || {}
+      }));
+      
       setNotebook(parsed);
       setError(null);
     } catch {
-      setError('Notebook formatı geçersiz veya bozuk.');
+      // Bozuk veya boş format durumunda varsayılan yapıyı yükle
+      setNotebook(defaultNotebook);
+      setError(null);
     }
   }, [content]);
 
-  // ── KERNEL STATUS ───────────────────────────────────────────────────────
+  // ── KERNEL STATUS (Y-2 Fix: her 30 saniyede poll — tek seferlik değil) ────
   useEffect(() => {
     const checkKernel = async () => {
       try {
@@ -77,6 +87,9 @@ export default function JupyterViewer({ content, workspaceId, activeFileName }: 
       } catch { setIsKernelAlive(false); }
     };
     checkKernel();
+    // Kernel crash'i UI'a yansısın: 30 sn'de bir kontrol
+    const intervalId = setInterval(checkKernel, 30_000);
+    return () => clearInterval(intervalId);
   }, [workspaceId]);
 
   // ── NOTEBOOK KAYDET (Auto-save, FormData/Blob) ─────────────────────────

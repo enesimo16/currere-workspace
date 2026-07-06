@@ -19,11 +19,29 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
   const [mode, setMode] = useState<number>(1); // 1: FastAndFake (Standard), 2: ZeroShotRealistic (Detailed)
   const [loading, setLoading] = useState(false);
 
+  const [columns, setColumns] = useState([{ name: '', type: '' }]);
+
   if (!isOpen) return null;
 
+  const handleAddColumn = () => {
+    setColumns([...columns, { name: '', type: '' }]);
+  };
+
+  const handleRemoveColumn = (index: number) => {
+    const newCols = [...columns];
+    newCols.splice(index, 1);
+    setColumns(newCols);
+  };
+
+  const updateColumn = (index: number, field: 'name' | 'type', value: string) => {
+    const newCols = [...columns];
+    newCols[index][field] = value;
+    setColumns(newCols);
+  };
+
   const handleSentezle = async () => {
-    if (!prompt.trim()) {
-      toast.error('Lütfen ne tür bir veri istediğinizi açıklayın.');
+    if (!prompt.trim() && mode === 2) {
+      toast.error('Gelişmiş AI modu için ne tür bir veri istediğinizi açıklayın.');
       return;
     }
 
@@ -31,12 +49,14 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
     const toastId = toast.loading('Veri kümesi oluşturuluyor...');
 
     try {
-      const response = await api.post(`/workspace/${workspaceId}/SyntheticData/generate`, {
+      const columnsString = columns.filter(c => c.name.trim() !== '').map(c => `${c.name.trim()}:${c.type.trim() || 'string'}`).join(',');
+
+      const response = await api.post(`/workspace/${workspaceId}/data/generate`, {
         prompt: prompt.trim(),
         rowCount: rowCount,
         fileName: fileName.endsWith('.csv') ? fileName : `${fileName}.csv`,
         mode: mode,
-        columns: "" // Backend prompt üzerinden otomatik belirleyecek
+        columns: columnsString
       });
 
       toast.success('Veri kümesi başarıyla oluşturuldu.', { id: toastId });
@@ -69,9 +89,9 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
         onClick={() => !loading && onClose()}
       />
       
-      <div className="relative w-full max-w-lg bg-zinc-950/90 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden">
+      <div className="relative w-full max-w-lg bg-zinc-950/90 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="relative p-6 border-b border-white/5 flex justify-between items-center">
+        <div className="relative p-6 border-b border-white/5 flex justify-between items-center shrink-0">
           <div className="flex items-center gap-3">
             <FiDatabase className="w-6 h-6 text-zinc-400" />
             <div>
@@ -89,7 +109,7 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
         </div>
 
         {/* Body */}
-        <div className="p-8 space-y-6 relative">
+        <div className="p-8 space-y-6 relative overflow-y-auto custom-scrollbar">
           {loading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-6 animate-in zoom-in-95 duration-500">
               <div className="relative">
@@ -107,14 +127,45 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
             </div>
           ) : (
             <>
+              {/* Dynamic Columns */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest">Sütunlar</label>
+                  <button onClick={handleAddColumn} className="text-[10px] text-emerald-500 hover:text-emerald-400 font-bold uppercase tracking-widest">+ Sütun Ekle</button>
+                </div>
+                {columns.map((col, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <input 
+                      type="text" 
+                      placeholder="Sütun Adı (Örn: Yas)" 
+                      value={col.name} 
+                      onChange={(e) => updateColumn(index, 'name', e.target.value)}
+                      className="flex-1 bg-zinc-900/50 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 outline-none focus:border-zinc-500/50 transition-all font-mono"
+                    />
+                    <input 
+                      type="text" 
+                      placeholder="Veri Tipi (Örn: Sayı, İsim, Email)" 
+                      value={col.type} 
+                      onChange={(e) => updateColumn(index, 'type', e.target.value)}
+                      className="flex-1 bg-zinc-900/50 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 outline-none focus:border-zinc-500/50 transition-all font-mono"
+                    />
+                    {columns.length > 1 && (
+                      <button onClick={() => handleRemoveColumn(index)} className="text-red-500 hover:text-red-400 transition-colors">
+                        <FiX className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
               {/* Prompt Input */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest block">Veri Seti Tanımı</label>
+                <label className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest block">Veri Seti Tanımı (AI Modu İçin)</label>
                 <textarea 
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   placeholder="Örn: 18-65 yaş arası, İstanbul'da yaşayan, teknoloji harcaması yapan kullanıcılar..."
-                  className="w-full h-32 bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 outline-none focus:border-zinc-500/50 focus:ring-1 focus:ring-zinc-500/50 transition-all resize-none placeholder:text-zinc-700"
+                  className="w-full h-24 bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 outline-none focus:border-zinc-500/50 focus:ring-1 focus:ring-zinc-500/50 transition-all resize-none placeholder:text-zinc-700"
                 />
               </div>
 
@@ -126,7 +177,7 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
                     <input 
                       type="number" 
                       min="1"
-                      max="1000"
+                      max="10000"
                       value={rowCount}
                       onChange={(e) => setRowCount(Number(e.target.value))}
                       className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-200 outline-none focus:border-zinc-500/50 focus:ring-1 focus:ring-zinc-500/50 transition-all font-mono"
@@ -144,8 +195,8 @@ export default function SyntheticDataModal({ workspaceId, isOpen, onClose, onSuc
                       onChange={(e) => setMode(Number(e.target.value))}
                       className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-200 outline-none focus:border-zinc-500/50 focus:ring-1 focus:ring-zinc-500/50 transition-all appearance-none cursor-pointer"
                     >
-                      <option value={1} className="bg-zinc-950">Standard (Hızlı)</option>
-                      <option value={2} className="bg-zinc-950">Detailed (Gerçekçi)</option>
+                      <option value={1} className="bg-zinc-950">Standard (Bogus/Hızlı)</option>
+                      <option value={2} className="bg-zinc-950">Detailed (AI/Gerçekçi)</option>
                     </select>
                     <FiSettings className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-600 pointer-events-none" />
                   </div>

@@ -88,6 +88,29 @@ namespace Currere_backend.Controllers
             }
         }
 
+        [HttpPost("inline-complete")]
+        [DisableRateLimiting] // Y-3 Fix: GlobalLimiter'dan muâf tut
+        [EnableRateLimiting("InlineCompleteLimit")] // Özel, daha gevşek limit (30 istek/dk)
+        public async Task<IActionResult> InlineComplete(int workspaceId, [FromBody] InlineCompleteRequestDto request)
+        {
+            if (!await IsWorkspaceOwnerAsync(workspaceId)) return NotFound(new { error = "Çalışma alanı bulunamadı veya erişim yetkiniz yok." });
+
+            try
+            {
+                var completion = await _aiService.GenerateInlineCompletionAsync(request.Code, request.CursorLine, request.CursorCol);
+                
+                return Ok(new
+                {
+                    completion = completion
+                });
+            }
+            catch (Exception)
+            {
+                // Hata patlatmak yerine sessizce boş metin dön, editör çökmesin (Graceful Fallback)
+                return Ok(new { completion = "" });
+            }
+        }
+
         [HttpPost("auto-preprocess")]
         public async Task<IActionResult> AutoPreprocess(int workspaceId, [FromBody] GenerateCodeRequestDto request)
         {
@@ -371,7 +394,8 @@ HATALARI OLAN KOD:
                     });
                 }
 
-                return BadRequest();
+                // Başarılı dönüşüm
+                return Ok(new { message = "Dönüşüm başarılı.", code = currentPyCode });
             }
             catch (FormatException ex)
             {
@@ -411,12 +435,10 @@ HATALARI OLAN KOD:
             if (!await IsWorkspaceOwnerAsync(workspaceId)) 
                 return NotFound(new { error = "Çalışma alanı bulunamadı veya erişim yetkiniz yok." });
 
-            if (string.IsNullOrEmpty(request.HfToken))
-                return BadRequest(new { error = "Hugging Face Access Token bulunamadı. Lütfen ayarlar kısmından giriş yapın." });
-
             try
             {
-                var hubLink = await _hfService.PushToHubAsync(workspaceId, request);
+                var userId = GetUserId();
+                var hubLink = await _hfService.PushToHubAsync(userId, workspaceId, request);
 
                 return Ok(new
                 {

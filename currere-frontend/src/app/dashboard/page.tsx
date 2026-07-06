@@ -4,9 +4,10 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useWorkspaceStore, Workspace } from '@/store/useWorkspaceStore';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
-import { FiAperture, FiLogOut, FiTrash2 } from 'react-icons/fi';
+import { FiAperture, FiLogOut, FiTrash2, FiSettings, FiX, FiZap } from 'react-icons/fi';
 import api from '@/services/api';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 export default function DashboardPage() {
   const { isAuthenticated, token, logout } = useAuthStore();
@@ -24,6 +25,15 @@ export default function DashboardPage() {
   const [newWorkspaceRuntime, setNewWorkspaceRuntime] = useState(1); // 1 = CPU
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [workspaceToDelete, setWorkspaceToDelete] = useState<Workspace | null>(null);
+
+  // Settings State
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [kaggleUsername, setKaggleUsername] = useState('');
+  const [kaggleKey, setKaggleKey] = useState('');
+  const [isKaggleConfigured, setIsKaggleConfigured] = useState(false);
+  const [isHfConfigured, setIsHfConfigured] = useState(false);
+  const [hfTokenInput, setHfTokenInput] = useState('');
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   // Temporary User Profile State (To be replaced with real auth data)
   const userName = "Enes Yel";
@@ -51,6 +61,23 @@ export default function DashboardPage() {
     }
   }, [logout, router]);
 
+  const loadSettings = useCallback(async () => {
+    try {
+      const kaggleRes = await api.get('/user/settings/kaggle');
+      if (kaggleRes.data) {
+        setIsKaggleConfigured(kaggleRes.data.isConfigured);
+        if (kaggleRes.data.username) setKaggleUsername(kaggleRes.data.username);
+      }
+      
+      const hfRes = await api.get('/user/settings/huggingface');
+      if (hfRes.data) {
+        setIsHfConfigured(hfRes.data.isConfigured);
+      }
+    } catch (err) {
+      console.error('Ayarlar yüklenemedi:', err);
+    }
+  }, []);
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
@@ -63,9 +90,31 @@ export default function DashboardPage() {
       } else {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         loadWorkspaces();
+        loadSettings();
       }
     }
-  }, [isAuthenticated, token, router, mounted, loadWorkspaces]);
+  }, [isAuthenticated, token, router, mounted, loadWorkspaces, loadSettings]);
+
+  const handleSaveSettings = async () => {
+    try {
+      setIsSavingSettings(true);
+      if (!isKaggleConfigured && kaggleUsername && kaggleKey) {
+        await api.post('/user/settings/kaggle', { username: kaggleUsername, key: kaggleKey });
+      }
+      if (!isHfConfigured && hfTokenInput) {
+        await api.post('/user/settings/huggingface', { token: hfTokenInput });
+        useAuthStore.getState().setHuggingFaceToken(hfTokenInput);
+      }
+      
+      await loadSettings();
+      setIsSettingsOpen(false);
+      toast.success('Ayarlar başarıyla kaydedildi');
+    } catch {
+      toast.error('Ayarlar kaydedilirken hata oluştu');
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
 
   const handleCreateWorkspace = async () => {
     if (!newWorkspaceTitle.trim()) return;
@@ -144,6 +193,14 @@ export default function DashboardPage() {
             <span className="text-sm font-medium text-zinc-700 hidden sm:inline">{userName}</span>
           </div>
           <div className="h-4 w-px bg-zinc-300"></div>
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="text-zinc-500 hover:text-indigo-600 hover:bg-indigo-50 px-2 py-1.5 rounded-md transition-colors flex items-center gap-2 text-sm"
+            title="Ayarlar & Entegrasyonlar"
+          >
+            <FiSettings className="w-4 h-4" />
+            <span className="hidden sm:inline">Entegrasyonlar</span>
+          </button>
           <button
             onClick={() => {
               logout();
@@ -340,6 +397,76 @@ export default function DashboardPage() {
               >
                 Sil
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Settings / Integrations Modal */}
+      {isSettingsOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-900/40 backdrop-blur-sm px-4">
+          <div className="w-full max-w-sm max-h-[85vh] overflow-y-auto bg-white border border-zinc-200 rounded-2xl p-6 shadow-2xl custom-scrollbar animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-zinc-900 font-bold tracking-wide flex items-center gap-2 text-lg">
+                <FiSettings className="text-zinc-500" />
+                Global Entegrasyonlar
+              </h3>
+              <button onClick={() => setIsSettingsOpen(false)} className="text-zinc-500 hover:text-zinc-800 transition cursor-pointer p-1 hover:bg-zinc-100 rounded-md">
+                <FiX className="w-5 h-5"/>
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+               {isKaggleConfigured ? (
+                 <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                   <p className="text-emerald-700 text-sm font-bold flex items-center gap-2">
+                     <FiZap /> Kaggle Hesabınız Bağlı
+                   </p>
+                   <p className="text-zinc-600 text-xs mt-1">Username: {kaggleUsername}</p>
+                   <button onClick={() => setIsKaggleConfigured(false)} className="text-emerald-600 hover:text-emerald-700 text-xs mt-2 underline font-medium">Farklı bir hesap bağla</button>
+                 </div>
+               ) : (
+                 <>
+                   <div>
+                      <label className="block text-[11px] text-zinc-500 mb-1.5 tracking-wider font-semibold uppercase">KAGGLE USERNAME</label>
+                      <input type="text" value={kaggleUsername} onChange={e => setKaggleUsername(e.target.value)} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900/50 transition-all shadow-sm" placeholder="Kaggle kullanıcı adınız" />
+                   </div>
+                    <div>
+                      <label className="block text-[11px] text-zinc-500 mb-1.5 tracking-wider font-semibold uppercase">KAGGLE API KEY</label>
+                      <input type="password" value={kaggleKey} onChange={e => setKaggleKey(e.target.value)} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900/50 transition-all shadow-sm" placeholder="Kaggle API Key" />
+                   </div>
+                 </>
+               )}
+               <div className="pt-4 border-t border-zinc-100">
+                  <label className="block text-[11px] text-zinc-500 mb-1.5 tracking-wider font-semibold uppercase flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full"></span>
+                    Hugging Face Access Token
+                  </label>
+                  
+                  {isHfConfigured ? (
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                      <p className="text-blue-700 text-sm font-bold flex items-center gap-2">
+                        <FiZap /> Hugging Face Hesabınız Bağlı
+                      </p>
+                      <button onClick={() => setIsHfConfigured(false)} className="text-blue-600 hover:text-blue-700 text-xs mt-2 underline font-medium">Farklı bir hesap bağla</button>
+                    </div>
+                  ) : (
+                    <>
+                      <input 
+                        type="password" 
+                        value={hfTokenInput} 
+                        onChange={e => setHfTokenInput(e.target.value)} 
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900/50 transition-all shadow-sm" 
+                        placeholder="hf_..." 
+                      />
+                      <p className="text-[10px] text-zinc-500 mt-2 leading-relaxed">
+                        Model Hub'a aktarım yapmak için <b className="text-zinc-700">Write</b> yetkili bir token gereklidir.
+                      </p>
+                    </>
+                  )}
+               </div>
+               <button disabled={isSavingSettings} onClick={handleSaveSettings} className="w-full mt-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-white rounded-xl py-3 text-sm font-bold transition-colors disabled:opacity-50 shadow-md">
+                  {isSavingSettings ? 'Kaydediliyor...' : 'AYARLARI KAYDET'}
+               </button>
             </div>
           </div>
         </div>

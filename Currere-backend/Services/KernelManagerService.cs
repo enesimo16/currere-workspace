@@ -80,17 +80,24 @@ namespace Currere_backend.Services
 
             var args = new StringBuilder();
             args.Append("run -i --rm --network none ");
-            args.Append("--memory 512m --cpus 0.5 ");
-            args.Append("--user 1000:1000 --read-only --tmpfs /tmp:rw,noexec,nosuid,size=64m --tmpfs /workspace:rw,noexec,nosuid,size=32m,uid=1000,gid=1000 ");
+            // God-Mode: ML kütüphaneleri için 4GB RAM ve 2 CPU
+            args.Append("--memory 4g --cpus 2.0 ");
+            // tmpfs boyutları artırıldı: ML modelleri geçici dosya yazar
+            args.Append("--user 1000:1000 --read-only --tmpfs /tmp:rw,noexec,nosuid,size=512m --tmpfs /workspace:rw,noexec,nosuid,size=256m,uid=1000,gid=1000 ");
             args.Append("--security-opt no-new-privileges --cap-drop ALL ");
-            args.Append("--pids-limit 50 ");
+            // pids-limit artırıldı: PyTorch multiprocessing dataloader spawn edebilir
+            args.Append("--pids-limit 128 ");
             args.Append("--ipc none ");
             args.Append($"--name currere-kernel-{workspaceId} ");
             args.Append("-w /workspace ");
             args.Append($"-v \"{dockerWorkspaceBind}:/workspace/data:ro\" ");
             args.Append($"-v \"{dockerOutputBind}:/workspace/output:rw\" ");
             args.Append("-e PYTHONUNBUFFERED=1 ");
-            args.Append("currere-sandbox:latest ");
+            // HuggingFace ve Torch cache'lerini /tmp'ye yönlendir (read-only FS uyumu)
+            args.Append("-e HF_HOME=/tmp/huggingface ");
+            args.Append("-e TRANSFORMERS_CACHE=/tmp/huggingface/transformers ");
+            args.Append("-e TORCH_HOME=/tmp/torch ");
+            args.Append("currere-sandbox:god-mode ");
             args.Append("python /app/kernel_repl.py");
 
             _logger.LogWarning("[Kernel] WorkspaceId: {WsId} — yeni kernel başlatılıyor", workspaceId);
@@ -125,17 +132,46 @@ namespace Currere_backend.Services
                     var readyJson = JsonDocument.Parse(readyLine);
                     if (readyJson.RootElement.GetProperty("type").GetString() == "ready")
                     {
-                        _logger.LogWarning("[Kernel] WorkspaceId: {WsId} — kernel HAZIR ✓", workspaceId);
+                        _logger.LogWarning("[Kernel] WorkspaceId: {WsId} — kernel HAZIR \u2713", workspaceId);
                     }
                 }
                 catch
                 {
-                    _logger.LogWarning("[Kernel] WorkspaceId: {WsId} — ready sinyali alındı ama parse edilemedi: {Line}", workspaceId, readyLine);
+                    _logger.LogWarning("[Kernel] WorkspaceId: {WsId} — ready sinyali alindı ama parse edilemedi: {Line}", workspaceId, readyLine);
                 }
             }
             else
             {
-                _logger.LogError("[Kernel] WorkspaceId: {WsId} — 30 saniyede ready sinyali GELMEDİ!", workspaceId);
+                // O-3 Fix: Zombi process öldürülüyor ve exception firlatılıyor.
+                // Eski kod: olu process'i session olarak döndürüyordu → sonraki her çagrıda timeout.
+                _logger.LogError("[Kernel] WorkspaceId: {WsId} — 30 saniyede ready sinyali GELMEDI! Zombi process öldürülüyor.", workspaceId);
+
+                try { process.Kill(entireProcessTree: true); } catch { }
+                try { process.Dispose(); } catch { }
+
+                // Docker container ad calismis olabilir, zorla temizle
+                try
+                {
+                    var cleanupProc = new Process
+                    {
+                        StartInfo = new ProcessStartInfo
+                        {
+                            FileName = "docker",
+                            Arguments = $"rm -f currere-kernel-{workspaceId}",
+                            UseShellExecute = false,
+                            CreateNoWindow = true,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true
+                        }
+                    };
+                    cleanupProc.Start();
+                    cleanupProc.WaitForExit(3000);
+                }
+                catch { }
+
+                throw new InvalidOperationException(
+                    $"[Kernel] WorkspaceId: {workspaceId} — Kernel 30 saniye içinde hazır olmadi. " +
+                    "Docker imajının dogřru kurulduğundan emin olun (currere-sandbox:god-mode).");
             }
 
             var session = new KernelSession
@@ -154,31 +190,39 @@ namespace Currere_backend.Services
         /// </summary>
         public async Task<KernelExecutionResult> ExecuteCellAsync(int workspaceId, string code)
         {
+            // K-3 Fix: Kilit almadan ÖNCE ölü session kontrolü yap.
+            // Eski kod: kilitli scope içinde yeni WaitAsync → çifte kilit → Deadlock.
+            // Yeni davranış: ölü session kilit dışında temizlenir, sağlıklı session üzerinde
+            // TEK bir WaitAsync yapılır. Disposed objeye Release riski ortadan kalktı.
             var session = await GetOrCreateSessionAsync(workspaceId);
 
-            // Aynı anda iki hücre çalışmasını engelle (Notebook hücreleri sıralıdır)
+            if (!session.IsAlive)
+            {
+                _logger.LogWarning("[Kernel] WorkspaceId: {WsId} — process ölü, kilit dışında yeniden başlatılıyor", workspaceId);
+                _sessions.TryRemove(workspaceId, out _);
+                try { session.Dispose(); } catch { /* Dispose hatası kritik değil */ }
+                // Yeni, sağlıklı session al — kilit bu session üzerinde alınacak
+                session = await GetOrCreateSessionAsync(workspaceId);
+            }
+
+            // Tek ve temiz session üzerinde kilit al
             await session.ExecutionLock.WaitAsync();
             try
             {
+                // Kilit alındıktan sonra tekrar kontrol (başka thread aynı anda çökertmiş olabilir)
                 if (!session.IsAlive)
                 {
-                    // Process ölmüşse yeniden başlat
-                    _logger.LogWarning("[Kernel] WorkspaceId: {WsId} — process ölü, yeniden başlatılıyor", workspaceId);
-                    
-                    var oldSession = session;
-                    _sessions.TryRemove(workspaceId, out _);
-                    
-                    // Yeni session al ve kilidini kap (çünkü finally bloğu bu yeni session'ı release edecek)
-                    session = await GetOrCreateSessionAsync(workspaceId);
-                    await session.ExecutionLock.WaitAsync();
-                    
-                    // Eski session'ı dispose et ve kilidini bırak ki bekleyen thread'ler uyansın
-                    // Onlar uyanınca da eski session'ın öldüğünü görüp buraya girecekler.
-                    oldSession.Dispose();
-                    oldSession.ExecutionLock.Release();
+                    return new KernelExecutionResult
+                    {
+                        Success = false,
+                        ErrorType = "KernelError",
+                        Message = "Kernel beklenmedik şekilde çöktü. 'Restart' butonuna basın."
+                    };
                 }
 
                 session.LastActivityAt = DateTime.UtcNow;
+                // D-5 Fix: Reaper koruması — hücre çalışırken IsExecuting=true → Reaper bu session'ı atlayacak
+                session.IsExecuting = true;
 
                 // Kodu base64'e çevir
                 var codeBytes = new UTF8Encoding(false).GetBytes(code);
@@ -186,7 +230,7 @@ namespace Currere_backend.Services
 
                 // JSON komutu oluştur ve stdin'e gönder
                 var command = JsonSerializer.Serialize(new { action = "execute", code = base64Code });
-                
+
                 await session.DockerProcess.StandardInput.WriteLineAsync(command);
                 await session.DockerProcess.StandardInput.FlushAsync();
 
@@ -205,7 +249,6 @@ namespace Currere_backend.Services
                     };
                 }
 
-                // JSON parse
                 try
                 {
                     var json = JsonDocument.Parse(responseLine);
@@ -229,6 +272,8 @@ namespace Currere_backend.Services
             }
             finally
             {
+                // D-5 Fix: Hücre bitti (başarılı, hatalı veya timeout) → Reaper'a izin ver
+                session.IsExecuting = false;
                 session.ExecutionLock.Release();
             }
         }
@@ -306,7 +351,9 @@ namespace Currere_backend.Services
         {
             var now = DateTime.UtcNow;
             return _sessions
-                .Where(kvp => (now - kvp.Value.LastActivityAt) > idleTimeout)
+                .Where(kvp =>
+                    (now - kvp.Value.LastActivityAt) > idleTimeout
+                    && !kvp.Value.IsExecuting) // D-5 Fix: Aktif hücre çalıştıran kernel'lar atlansın
                 .Select(kvp => kvp.Key)
                 .ToList();
         }

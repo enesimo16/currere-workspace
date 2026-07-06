@@ -2,9 +2,10 @@
 
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import api from '@/services/api';
 import axios from 'axios';
+import { useFileCache } from '@/hooks/useFileCache';
 
 import EditorHeader from '@/components/editor/EditorHeader';
 import FileExplorer from '@/components/editor/FileExplorer';
@@ -20,15 +21,24 @@ export default function EditorPage() {
   const [mounted, setMounted] = useState(false);
 
   // States for Execution
-  const [code, setCode] = useState('print("Merhaba TEKNOFEST 2026!")');
-  const [fileCache, setFileCache] = useState<Record<string, string>>({});
+  const [code, setCode] = useState('');
   const [terminalOutput, setTerminalOutput] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
   const [isError, setIsError] = useState(false);
   const [outputImages, setOutputImages] = useState<string[]>([]);
   const [forceVisualTab, setForceVisualTab] = useState(false);
+
+  // localStorage tabanlı kalıcı dosya cache'i
+  const { readCache, writeCache } = useFileCache(activeWorkspace?.id);
+
+  // Y-1 Fix: handleCodeChange stale closure — activeFile.name her
+  // useCallback yeniden oluşturulmadan önce eski değeri tutabilir.
+  // Ref her zaman güncel değeri içerir.
+  const activeFileNameCacheRef = useRef(activeFile.name);
   
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Yükleme kilidi: Tab değiştiğinde false, backend verisi gelince rAF ile true olur
+  const isReadyToSaveRef = useRef(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -52,13 +62,23 @@ export default function EditorPage() {
   useEffect(() => {
     const loadContent = async () => {
       if (!activeWorkspace?.id) return;
-      
-      // Cache'de varsa oradan çek
-      if (fileCache[activeFile.name] !== undefined) {
-        setCode(fileCache[activeFile.name]);
-        return;
+
+      // ─── ADIM 0: Kilit KAPAT — tab değişimi başladı ───
+      // Monaco onChange, gerçek veri render edilmeden önce tetiklenirse
+      // isReadyToSaveRef.current === false olduğu için kayıt engellenir.
+      isReadyToSaveRef.current = false;
+
+      // ─── ADIM 1: localStorage cache'den anında göster ───
+      const cached = readCache(activeFile.name);
+      if (cached !== null) {
+        setCode(cached);
+        // Cache'den gösterdik ama arka planda backend'den de tazeleyelim
+        // (stale-while-revalidate pattern)
+      } else {
+        setCode('');
       }
-      
+
+      // ─── ADIM 2: Backend'den taze veri al ───
       try {
         let contentToSet = '';
         if (activeFile.name === 'main.py') {
@@ -67,14 +87,24 @@ export default function EditorPage() {
           const response = await api.get(`/workspace/${activeWorkspace.id}/file/${activeFile.name}/raw`);
           contentToSet = response.data.content || '';
         }
-        
+
         setCode(contentToSet);
-        setFileCache(prev => ({ ...prev, [activeFile.name]: contentToSet }));
+        // Cache'i taze veriyle güncelle
+        writeCache(activeFile.name, contentToSet);
       } catch (err) {
         console.error('Dosya içeriği alınamadı:', err);
-        const errMsg = '// Dosya içeriği okunamadı veya yüklenemedi.';
-        setCode(errMsg);
-        setFileCache(prev => ({ ...prev, [activeFile.name]: errMsg }));
+        if (cached === null) {
+          // Cache de yok, hata mesajı göster
+          setCode('// Dosya içeriği okunamadı veya yüklenemedi.');
+        }
+        // Cache varsa zaten gösterdik, hatayı sessizce geç
+      } finally {
+        // ─── ADIM SON: Kilit AÇ — bir sonraki render frame'ini bekle ───
+        // requestAnimationFrame, Monaco'nun yeni değeri DOM'a basmasını
+        // garantiler; setTimeout(0)'dan daha güvenilir.
+        requestAnimationFrame(() => {
+          isReadyToSaveRef.current = true;
+        });
       }
     };
 
@@ -84,18 +114,24 @@ export default function EditorPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeWorkspace?.id, activeFile.name, mounted]);
 
-  const handleCodeChange = (newCode: string) => {
+  // Y-1 Fix: ref'i activeFile.name ile güncel tut
+  useEffect(() => {
+    activeFileNameCacheRef.current = activeFile.name;
+  }, [activeFile.name]);
+
+  const handleCodeChange = useCallback((newCode: string) => {
     setCode(newCode);
-    setFileCache(prev => ({ ...prev, [activeFile.name]: newCode }));
-  };
+    // Y-1 Fix: activeFile.name yerine ref kullanılıyor — stale closure riski yok
+    writeCache(activeFileNameCacheRef.current, newCode);
+  }, [writeCache]); // activeFile.name bağımlılığı kalktı
 
   const handleRun = async () => {
     if (!activeWorkspace) return;
     
     setIsExecuting(true);
     setIsError(false);
-    setOutputImages([]);
-    setForceVisualTab(false);
+    setOutputImages([]);       // Önceki grafikleri temizle
+    setForceVisualTab(false);  // Sekme geçişini sıfırla
     setTerminalOutput('--- Yürütme Başladı ---\n\nYürütülüyor...');
 
     // Matplotlib & Styling Interceptor
@@ -117,7 +153,6 @@ except:
       
       if (response.data && response.data.jobId) {
         const jobId = response.data.jobId;
-        // Don't show technical details, just "Yürütülüyor..."
         setTerminalOutput('Yürütülüyor...');
         pollStatus(jobId);
       } else {
@@ -152,18 +187,25 @@ except:
 
             if (isSuccess !== undefined) {
               if (isSuccess) {
-                setTerminalOutput(data.output || data.Output || 'Çalıştırma tamamlandı (Çıktı yok).');
-                // İmaj varsa yakala ve otomatik görsel sekmeye geç
+                const outputText = data.output || data.Output || '';
+                setTerminalOutput(outputText || 'Çalıştırma tamamlandı (Çıktı yok).');
+
+                // Grafik tespiti: images dizisi dolu mu?
                 const imgs = data.images || data.Images || [];
-                if (imgs.length > 0) {
+                if (imgs && imgs.length > 0) {
                   setOutputImages(imgs);
+                  // TerminalOutput artık images değişimine direkt tepki veriyor,
+                  // forceVisualTab ikili güvence olarak tutuluyor
                   setForceVisualTab(true);
                 } else {
                   setOutputImages([]);
+                  setForceVisualTab(false);
                 }
               } else {
                 setIsError(true);
-                setTerminalOutput((data.error || data.Error) + '\n' + (data.errorType || data.ErrorType || ''));
+                const errMsg = data.error || data.Error || 'Bilinmeyen hata';
+                const errType = data.errorType || data.ErrorType || '';
+                setTerminalOutput(errType ? `${errType}\n${errMsg}` : errMsg);
               }
             } else {
               setIsError(statusStr === 'failed');
@@ -230,7 +272,7 @@ except:
                 activeFile.name.endsWith('.csv') ? (
                   <CsvTable csvData={code} fileName={activeFile.name} />
                 ) : (
-                  <CodeEditor workspaceId={activeWorkspace.id} code={code} setCode={handleCodeChange} />
+                  <CodeEditor workspaceId={activeWorkspace.id} code={code} setCode={handleCodeChange} isReadyToSaveRef={isReadyToSaveRef} />
                 )
               }
               rightPanel={<TerminalOutput output={terminalOutput} isError={isError} images={outputImages} forceVisualTab={forceVisualTab} workspaceId={activeWorkspace.id} />}

@@ -78,5 +78,50 @@ namespace Currere_backend.Controllers
 
             return Ok(new { message = "Kaggle ayarları başarıyla kaydedildi." });
         }
+
+        [HttpGet("huggingface")]
+        public async Task<IActionResult> GetHuggingFaceSettings()
+        {
+            var userId = GetUserId();
+            var integration = await _context.UserIntegrations.FirstOrDefaultAsync(i => i.UserId == userId);
+
+            if (integration == null || string.IsNullOrEmpty(integration.HuggingFaceToken))
+            {
+                return Ok(new { isConfigured = false });
+            }
+
+            return Ok(new { isConfigured = true });
+        }
+
+        [HttpPost("huggingface")]
+        public async Task<IActionResult> SaveHuggingFaceSettings([FromBody] HuggingFaceSettingsDto dto)
+        {
+            var userId = GetUserId();
+            var integration = await _context.UserIntegrations.FirstOrDefaultAsync(i => i.UserId == userId);
+
+            if (integration == null)
+            {
+                integration = new UserIntegration
+                {
+                    UserId = userId,
+                    HuggingFaceToken = _encryptionService.Encrypt(dto.Token),
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _context.UserIntegrations.Add(integration);
+            }
+            else
+            {
+                integration.HuggingFaceToken = _encryptionService.Encrypt(dto.Token);
+                integration.UpdatedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Hugging Face ayarları başarıyla kaydedildi." });
+        }
+    }
+
+    public class HuggingFaceSettingsDto
+    {
+        public string Token { get; set; } = string.Empty;
     }
 }

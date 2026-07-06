@@ -37,13 +37,22 @@ export default function TerminalOutput({ output, isError, images = [], forceVisu
     }
   }, [output]);
 
-  // Görsel çıktı varsa otomatik sekme geçişi
+  // Görsel çıktı geldiğinde otomatik sekme geçişi
+  // images dizisi dolduğunda (boştan doluya geçiş) görsel sekmeye geç
   useEffect(() => {
-    if (forceVisualTab && images && images.length > 0) {
-      const t = setTimeout(() => setActiveTab('visual'), 0);
+    if (images && images.length > 0) {
+      const t = setTimeout(() => setActiveTab('visual'), 100);
       return () => clearTimeout(t);
     }
-  }, [forceVisualTab, images]);
+  }, [images]);
+
+  // forceVisualTab prop'u ile de tetiklenebilir (geriye dönük uyumluluk)
+  useEffect(() => {
+    if (forceVisualTab) {
+      const t = setTimeout(() => setActiveTab('visual'), 100);
+      return () => clearTimeout(t);
+    }
+  }, [forceVisualTab]);
 
   const outputLines = output ? output.split('\n') : [];
 

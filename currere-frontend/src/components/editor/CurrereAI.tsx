@@ -89,16 +89,15 @@ export default function CurrereAI() {
     setIsTyping(true);
 
     try {
-      const wsId = activeWorkspace?.id || 0;
+      // K-3 Fix: activeWorkspace?.id tipi string|number — string > 0 her zaman false!
+      // Number() ile güvenli dönüşüm yapılıyor.
+      const wsId = activeWorkspace?.id ? Number(activeWorkspace.id) : 0;
       let fileId = 0;
 
-      if (wsId > 0 && activeFile && activeFile.name !== 'main.py') {
-        try {
-          const fileRes = await api.get(`/workspace/${wsId}/file`);
-          fileId = fileRes.data.find((f: { fileName: string; id: number }) => f.fileName === activeFile.name)?.id || 0;
-        } catch (err) {
-          console.warn('Dosya kimliği alınamadı, genel sohbet moduna geçiliyor.', err);
-        }
+      if (wsId > 0 && activeFile && activeFile.id) {
+        // O-2 Fix: Her mesajda /file API çağrısı çekiliyordu.
+        // activeFile.id zaten store'da mevcut — doğrudan kullan.
+        fileId = Number(activeFile.id);
       }
 
       const aiRes = await api.post(`/workspace/${wsId}/ai/smart-chat`, {

@@ -86,14 +86,22 @@ namespace Currere_backend.Services
                 // ══════════════════════════════════════════════════════════════
                 // ADIM 3: MATPLOTLIB INTERCEPTOR + BASE64
                 // ══════════════════════════════════════════════════════════════
+                // Backend tarafı interceptor: plt/pyplot/fig.show() → savefig() dönüşümü.
+                // runner.py'deki monkey-patch ile ikili koruma sağlanır.
                 const string matplotlibHeader = "import matplotlib\nmatplotlib.use('Agg')\n";
                 if (!code.Contains("matplotlib.use("))
                     code = matplotlibHeader + code;
 
-                // plt.show() varyantlarını yakala (boşluklu, fig.show(), vb.)
+                // plt.show(), pyplot.show(), matplotlib.pyplot.show(), fig.show() varyantlarını yakala
                 code = System.Text.RegularExpressions.Regex.Replace(
                     code,
-                    @"plt\.show\s*\(\s*\)",
+                    @"(?:plt|pyplot|matplotlib\.pyplot)\.show\s*\(\s*\)",
+                    "plt.savefig('/workspace/output/output_plot.png', bbox_inches='tight', dpi=150)\nplt.close()");
+
+                // fig.show() varyantı — Figure nesnesi üzerinden
+                code = System.Text.RegularExpressions.Regex.Replace(
+                    code,
+                    @"(?<![a-zA-Z_])(?:fig|figure|f)\s*\.\s*show\s*\(\s*\)",
                     "plt.savefig('/workspace/output/output_plot.png', bbox_inches='tight', dpi=150)\nplt.close()");
 
                 var codeBytes = new UTF8Encoding(false).GetBytes(code);
@@ -118,30 +126,37 @@ namespace Currere_backend.Services
                 // ADIM 5: DOCKER RUN KOMUTU (Native Process — Docker.DotNet YOK)
                 // ══════════════════════════════════════════════════════════════
                 // docker run --rm --network none
-                //   --memory 512m --cpus 0.5
+                //   --memory 4g --cpus 2.0
                 //   -w /workspace
                 //   -v "workspacePath:/workspace/data:ro"
                 //   -v "outputPath:/workspace/output:rw"
                 //   -e CODE_TO_RUN=base64...
                 //   -e PYTHONPATH=/workspace/site-packages
                 //   -e PYTHONUNBUFFERED=1
-                //   currere-sandbox:latest
+                //   currere-sandbox:god-mode
                 //   python /app/runner.py
 
                 var args = new StringBuilder();
                 args.Append("run --rm --network none ");
-                args.Append("--memory 512m --cpus 0.5 ");
-                args.Append("--user 1000:1000 --read-only --tmpfs /tmp:rw,noexec,nosuid,size=64m --tmpfs /workspace:rw,noexec,nosuid,size=32m,uid=1000,gid=1000 --tmpfs /home/currere/.config:rw,nosuid,noexec,size=64m,uid=1000,gid=1000 --tmpfs /home/currere/.cache:rw,nosuid,noexec,size=64m,uid=1000,gid=1000 ");
+                // God-Mode: ML kütüphaneleri (TF, PyTorch) için en az 2-4GB RAM gerekir
+                args.Append("--memory 4g --cpus 2.0 ");
+                // tmpfs boyutları artırıldı: ML modelleri geçici dosya yazar
+                args.Append("--user 1000:1000 --read-only --tmpfs /tmp:rw,noexec,nosuid,size=512m --tmpfs /workspace:rw,noexec,nosuid,size=256m,uid=1000,gid=1000 --tmpfs /home/currere/.config:rw,nosuid,noexec,size=256m,uid=1000,gid=1000 --tmpfs /home/currere/.cache:rw,nosuid,noexec,size=1g,uid=1000,gid=1000 ");
                 args.Append("--security-opt no-new-privileges --cap-drop ALL ");
-                args.Append("--pids-limit 50 ");
+                // pids-limit artırıldı: PyTorch multiprocessing dataloader spawn edebilir
+                args.Append("--pids-limit 128 ");
                 args.Append("--ipc none ");
                 args.Append("-w /workspace ");
                 args.Append($"-v \"{dockerWorkspaceBind}:/workspace/data:ro\" ");
                 args.Append($"-v \"{dockerOutputBind}:/workspace/output:rw\" ");
                 args.Append($"-e PYTHONUNBUFFERED=1 ");
                 args.Append($"-e PYTHONPATH=/workspace/site-packages ");
+                // HuggingFace ve Torch cache'lerini /tmp'ye yönlendir (read-only FS uyumu)
+                args.Append($"-e HF_HOME=/tmp/huggingface ");
+                args.Append($"-e TRANSFORMERS_CACHE=/tmp/huggingface/transformers ");
+                args.Append($"-e TORCH_HOME=/tmp/torch ");
                 args.Append($"-e CODE_TO_RUN={base64Code} ");
-                args.Append("currere-sandbox:latest ");
+                args.Append("currere-sandbox:god-mode ");
                 args.Append("python /app/runner.py");
 
                 var dockerArgs = args.ToString();
@@ -241,6 +256,21 @@ namespace Currere_backend.Services
                         errorType = isSuccess ? "" : (jsonResult.TryGetProperty("error_type", out var et) ? et.GetString() : "PythonError");
                         _logger.LogWarning("[Adım 8.1] JSON parse OK. isSuccess: {S}", isSuccess);
 
+                        // runner.py v3.0: 'plots' listesini oku
+                        if (jsonResult.TryGetProperty("plots", out var plotsElement) && plotsElement.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var plotPath in plotsElement.EnumerateArray())
+                            {
+                                var plotStr = plotPath.GetString();
+                                if (!string.IsNullOrEmpty(plotStr))
+                                {
+                                    _logger.LogWarning("[Adım 8.1] Runner'dan plot yolu alındı: {Path}", plotStr);
+                                    // Dosyayı artifact klasörüne kopyala (ADIM 9'da base64 yapılacak)
+                                    // Dosya zaten /workspace/output içinde olduğu için ADIM 9 zaten okuyacak
+                                }
+                            }
+                        }
+
                         if (!isSuccess)
                         {
                             _logger.LogError("[Adım 8.1] Python Hatası: {Error}", finalOutput);
@@ -270,7 +300,14 @@ namespace Currere_backend.Services
                 var base64Images = new List<string>();
                 if (Directory.Exists(hostOutputPath))
                 {
-                    foreach (var file in Directory.GetFiles(hostOutputPath))
+                    // Grafikleri öncelikle işle (PNG/JPG), ardından diğer artifact'lar
+                    var allFiles = Directory.GetFiles(hostOutputPath)
+                        .OrderBy(f => {
+                            var ext = Path.GetExtension(f).ToLowerInvariant();
+                            return ext is ".png" or ".jpg" or ".jpeg" or ".svg" ? 0 : 1;
+                        });
+
+                    foreach (var file in allFiles)
                     {
                         var fileName = Path.GetFileName(file);
                         artifactUrls.Add($"/artifacts/{job.JobId}/{fileName}");
@@ -278,17 +315,29 @@ namespace Currere_backend.Services
                         var ext = Path.GetExtension(file).ToLowerInvariant();
                         if (ext is ".png" or ".jpg" or ".jpeg" or ".svg" or ".csv" or ".xlsx" or ".json" or ".txt")
                         {
-                            var bytes = await File.ReadAllBytesAsync(file);
-                            base64Images.Add(Convert.ToBase64String(bytes));
+                            try
+                            {
+                                var bytes = await File.ReadAllBytesAsync(file);
+                                if (ext is ".png" or ".jpg" or ".jpeg" or ".svg")
+                                {
+                                    base64Images.Add(Convert.ToBase64String(bytes));
+                                    _logger.LogWarning("[Adım 9] Grafik base64'e çevrildi: {File} ({Size} bytes)", fileName, bytes.Length);
+                                }
 
-                            // Frontend'in statik fallback URL'si üzerinden erişebilmesi için ana dizine kopyala
-                            var destPath = Path.Combine(hostWorkspacePath, fileName);
-                            File.Copy(file, destPath, true);
+                                // Frontend'in statik fallback URL'si üzerinden erişebilmesi için workspace'e kopyala
+                                var destPath = Path.Combine(hostWorkspacePath, fileName);
+                                File.Copy(file, destPath, true);
+                            }
+                            catch (Exception fileEx)
+                            {
+                                _logger.LogError(fileEx, "[Adım 9] Dosya işlenirken hata: {File}", fileName);
+                            }
                         }
                     }
                 }
 
-                _logger.LogWarning("[Adım 9] ★ TAMAMLANDI. isSuccess: {S}, Süre: {Ms}ms", isSuccess, stopwatch.ElapsedMilliseconds);
+                _logger.LogWarning("[Adım 9] ★ TAMAMLANDI. isSuccess: {S}, Grafik: {ImgCount}, Süre: {Ms}ms",
+                    isSuccess, base64Images.Count, stopwatch.ElapsedMilliseconds);
 
                 return new ExecutionResultDto
                 {

@@ -7,6 +7,11 @@ export const useSync = (workspaceId: number | string | undefined) => {
   const mountedRef = useRef(false);
   const connectingRef = useRef(false);
 
+  // O-2 Fix: Echo loop önleyici bayrak.
+  // Server'dan gelen güncelleme editöre uygulanırken bu ref true yapılır.
+  // CodeEditor.onChange bu bayrağı görünce sendUpdate'i atlar → Ping-Pong döngüsü kırılır.
+  const isRemoteUpdateRef = useRef(false);
+
   const { activeFile } = useWorkspaceStore();
   const activeFileNameRef = useRef(activeFile.name);
 
@@ -50,6 +55,9 @@ export const useSync = (workspaceId: number | string | undefined) => {
 
     connection.on('ReceiveCodeUpdate', (fileName: string, content: string) => {
       if (fileName === activeFileNameRef.current && mountedRef.current) {
+        // O-2 Fix: Dispatching öncesi bayrağı true yap.
+        // CodeEditor.onChange bu isteği görünce sendUpdate'i atlayacak → echo yok.
+        isRemoteUpdateRef.current = true;
         window.dispatchEvent(
           new CustomEvent('editor-sync-update', { detail: content })
         );
@@ -144,5 +152,5 @@ export const useSync = (workspaceId: number | string | undefined) => {
     [workspaceId]
   );
 
-  return { sendUpdate };
+  return { sendUpdate, isRemoteUpdateRef };
 };

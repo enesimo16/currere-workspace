@@ -38,6 +38,13 @@ namespace Currere_backend.Models
                             && !DockerProcess.HasExited 
                             && DockerProcess.StartInfo.RedirectStandardInput;
 
+        /// <summary>
+        /// D-5 Fix: Hücre çalıştırma aktif mi?
+        /// true iken KernelReaper bu session'ı idle sayıp öldüremez.
+        /// ExecuteCellAsync.try başında true, finally'de false yapılır.
+        /// </summary>
+        public bool IsExecuting { get; set; } = false;
+
         public void Dispose()
         {
             try

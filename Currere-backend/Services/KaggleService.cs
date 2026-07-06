@@ -95,38 +95,50 @@ namespace Currere_backend.Services
 
             // zip threshold ayıklama
             var extractedFiles = new List<string>();
-            var extractPath = Path.Combine(workspaceFolderPath, datasetRef.Replace("/", "_")); // Örn: zillow_zecon
+            var extractPath = Path.Combine(workspaceFolderPath, "temp_extract_" + Guid.NewGuid().ToString());
 
             Directory.CreateDirectory(extractPath);
             ZipFile.ExtractToDirectory(tempZipPath, extractPath, overwriteFiles: true);
 
             // Zip içindeki dosyaların yollarını listeye ekleme ve OTOMATİK PROFİLLEME
-            foreach (var file in Directory.GetFiles(extractPath))
+            foreach (var file in Directory.GetFiles(extractPath, "*.*", SearchOption.AllDirectories))
             {
                 var fileName = Path.GetFileName(file);
+                var finalFilePath = Path.Combine(workspaceFolderPath, fileName);
+                
+                // Aynı isimde dosya varsa üzerine yaz
+                if (File.Exists(finalFilePath))
+                    File.Delete(finalFilePath);
+                File.Move(file, finalFilePath);
+
                 extractedFiles.Add(fileName);
 
-                // belirli dataprofilleme
                 var extension = Path.GetExtension(fileName).ToLower();
+                
+                var workspaceFile = new WorkspaceFile
+                {
+                    WorkspaceId = workspaceId,
+                    FileName = fileName,
+                    FilePath = finalFilePath,
+                    IsPermanent = true, // Kaggle'dan indirilenler silinmesin
+                    UploadedAt = DateTime.UtcNow,
+                    ExpiresAt = DateTime.UtcNow.AddYears(10) // Kalıcı olsa bile db kuralı
+                };
+
+                _context.WorkspaceFiles.Add(workspaceFile);
+                await _context.SaveChangesAsync();
+
                 if (extension == ".csv" || extension == ".xlsx" || extension == ".json")
                 {
-                    var workspaceFile = new WorkspaceFile
-                    {
-                        WorkspaceId = workspaceId,
-                        FileName = fileName,
-                        FilePath = file,
-                        // ...
-                    };
-
-                    _context.WorkspaceFiles.Add(workspaceFile);
-                    await _context.SaveChangesAsync(); // kaydedip id olusturma
-
                     // oto profilleme
                     _backgroundJobClient.Enqueue<IDatasetProfilerService>(
                          profiler => profiler.ProfileDatasetAsync(workspaceFile.Id, fileName)
                      );
                 }
             }
+            
+            // Geçici klasörü sil
+            Directory.Delete(extractPath, true);
 
             // zip sil
             File.Delete(tempZipPath);

@@ -103,19 +103,19 @@ const FileItem = ({
         </span>
       )}
 
-      <div className="hidden group-hover:flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
         {!isMain && (
           <button 
             onClick={(e) => { e.stopPropagation(); setRenamingFileId(file.id); setNewName(file.fileName); }}
-            className="p-1 hover:bg-zinc-800 text-zinc-500 hover:text-zinc-200 rounded transition-colors"
-            title="Yeniden Adlandır"
+            className="p-1 hover:bg-zinc-800 text-zinc-500 hover:text-amber-400 rounded transition-colors"
+            title="İsim Değiştir"
           >
             <FiEdit className="w-3.5 h-3.5" />
           </button>
         )}
         <button 
           onClick={(e) => { e.stopPropagation(); handleDownloadFile(fileName); }}
-          className="p-1 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded transition-colors"
+          className="p-1 hover:bg-zinc-800 text-zinc-500 hover:text-blue-400 rounded transition-colors"
           title="İndir"
         >
           <FiDownload className="w-3.5 h-3.5" />
@@ -123,7 +123,7 @@ const FileItem = ({
         {!isMain && (
           <button 
             onClick={(e) => { e.stopPropagation(); handleDeleteRequest(file.fileName); }}
-            className="p-1 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded transition-colors"
+            className="p-1 hover:bg-zinc-800 text-zinc-500 hover:text-red-500 rounded transition-colors"
             title="Sil"
           >
             <FiTrash2 className="w-3.5 h-3.5" />
@@ -183,6 +183,7 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
   const [kaggleUsername, setKaggleUsername] = useState('');
   const [kaggleKey, setKaggleKey] = useState('');
   const [isKaggleConfigured, setIsKaggleConfigured] = useState(false);
+  const [isHfConfigured, setIsHfConfigured] = useState(false);
   const [hfTokenInput, setHfTokenInput] = useState(huggingFaceToken || '');
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [kaggleSearch, setKaggleSearch] = useState('');
@@ -248,6 +249,17 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
         } catch (error) {
           console.error("Kaggle ayarları getirilemedi:", error);
         }
+
+        try {
+          const resHf = await api.get('/user/settings/huggingface');
+          if (resHf.data && resHf.data.isConfigured) {
+            setIsHfConfigured(true);
+          } else {
+            setIsHfConfigured(false);
+          }
+        } catch (error) {
+          console.error("HF ayarları getirilemedi:", error);
+        }
       };
       fetchKaggleSettings();
     }
@@ -269,22 +281,8 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
       setIsUploading(true);
       const res = await api.post(`/workspace/${workspaceId}/file/create`, { fileName: fullName });
       
-      // Jupyter Notebook iskeleti başlatma
-      if (fullName.endsWith('.ipynb')) {
-        const skeleton = JSON.stringify({
-          cells: [{ cell_type: "markdown", source: ["# Yeni Notebook\nKod yazmaya hazır!"] }],
-          metadata: {},
-          nbformat: 4,
-          nbformat_minor: 5
-        });
-        
-        const blob = new Blob([skeleton], { type: 'text/plain' });
-        const formData = new FormData();
-        formData.append('file', blob, fullName);
-        await api.put(`/workspace/${workspaceId}/file/${fullName}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-      }
+      // Artık backend (FileService.cs) .ipynb dosyalarını otomatik olarak notebook JSON iskeleti ile başlatıyor.
+
 
       await fetchFiles();
       const newFile = { 
@@ -328,11 +326,17 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
   const handleSaveSettings = async () => {
     try {
       setIsSavingSettings(true);
-      // Kaggle ayarları backend'e
-      await api.post('/user/settings/kaggle', { username: kaggleUsername, key: kaggleKey });
+      // Kaggle ayarları backend'e (Eğer form açıksa ve bilgiler girilmişse)
+      if (!isKaggleConfigured && kaggleUsername && kaggleKey) {
+        await api.post('/user/settings/kaggle', { username: kaggleUsername, key: kaggleKey });
+      }
       
-      // HF Token Zustand (ve dolayısıyla localStorage)
-      setHuggingFaceToken(hfTokenInput);
+      // HF Token ayarları backend'e
+      if (!isHfConfigured && hfTokenInput) {
+        await api.post('/user/settings/huggingface', { token: hfTokenInput });
+        // Zustand store da güncellenebilir eğer gerekiyorsa
+        setHuggingFaceToken(hfTokenInput);
+      }
       
       setIsSettingsOpen(false);
       toast.success('Ayarlar kaydedildi');
@@ -408,10 +412,10 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
       await fetchFiles();
       await fetchSnapshots();
 
-      // En sağlıklı yöntem tüm state'i temizleyip yeniden yüklemek (Dosya ağacı vb. için)
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      // O-3 Fix: window.location.reload() yerine store/state reset.
+      // activeFile main.py'ye döndürülüyor; parent'ta useEffect tetiklenir → içerik yenilenir.
+      setActiveFile({ id: null, name: 'main.py', type: 'code' });
+      addOpenFile({ id: null, name: 'main.py', type: 'code' });
     } catch (error: any) {
       const serverError = error.response?.data?.error || 'Geri yükleme başarısız.';
       toast.error(serverError, { id: toastId });
@@ -442,7 +446,7 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
       await api.post(`/workspace/${workspaceId}/Kaggle/download`, { datasetRef });
       toast.success('Veri seti başarıyla çalışma alanına eklendi.', { id: toastId });
       await fetchFiles();
-      setActiveTab('files');
+      setKaggleOpen(false); // K-1 Fix: setActiveTab tanımsızdı, panel kapanıyor
     } catch (error: any) {
       const serverError = error.response?.data?.error || 'İndirme başarısız oldu.';
       toast.error(serverError, { id: toastId });
@@ -494,9 +498,13 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
       let fileContent = '';
 
       if (typeof window !== 'undefined' && (window as any).monaco) {
-        const models = (window as any).monaco.editor.getModels();
-        if (models && models.length > 0) {
-          fileContent = models[0].getValue();
+        // Y-4 Fix: getModels()[0] her zaman ilk modeli döndürür (aktif olanı değil).
+        // Aktif editörden model al; yoksa ilk modele düş.
+        const monacoEditors = (window as any).monaco.editor.getEditors?.() ?? [];
+        const activeEditor = monacoEditors.find?.((e: any) => e.hasTextFocus?.()) ?? monacoEditors[0];
+        const activeModel = activeEditor?.getModel() ?? (window as any).monaco.editor.getModels()?.[0];
+        if (activeModel) {
+          fileContent = activeModel.getValue();
         }
       }
 
@@ -698,13 +706,6 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
             )}
       </div>
 
-      <div className="mt-auto p-3 border-t border-zinc-800/50 flex justify-center md:justify-start bg-[#0c0c0e] relative z-10">
-        <button onClick={() => setIsSettingsOpen(true)} className="flex items-center gap-2 text-zinc-400 hover:text-zinc-100 transition-colors w-full p-2 rounded-lg hover:bg-zinc-800/50 border border-transparent hover:border-zinc-700 shadow-sm">
-          <FiSettings className="w-4 h-4 shrink-0" />
-          <span className="hidden md:block text-[11px] font-bold tracking-widest uppercase">Ayarlar</span>
-        </button>
-      </div>
-
       {/* Delete Confirmation Modal */}
       {fileToDelete && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-zinc-950/40 backdrop-blur-sm px-4 animate-in fade-in duration-300">
@@ -728,56 +729,11 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
         </div>
       )}
 
-      {isSettingsOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/40 backdrop-blur-sm px-4">
-          <div className="w-full max-w-sm max-h-[85vh] overflow-y-auto bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-2xl custom-scrollbar">
-            <div className="flex justify-between items-center mb-5">
-              <h3 className="text-zinc-100 font-bold tracking-wide flex items-center gap-2 text-lg">
-                <FiSettings className="text-zinc-500" />
-                Entegrasyonlar
-              </h3>
-              <button onClick={() => setIsSettingsOpen(false)} className="text-zinc-500 hover:text-zinc-300 transition cursor-pointer p-1 hover:bg-zinc-800 rounded-md">
-                <FiX className="w-5 h-5"/>
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-               <div>
-                  <label className="block text-[11px] text-zinc-500 mb-1.5 tracking-wider font-semibold uppercase">KAGGLE USERNAME</label>
-                  <input type="text" value={kaggleUsername} onChange={e => setKaggleUsername(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 transition-all shadow-sm" placeholder="Kaggle kullanıcı adınız" />
-               </div>
-                <div>
-                  <label className="block text-[11px] text-zinc-500 mb-1.5 tracking-wider font-semibold uppercase">KAGGLE API KEY</label>
-                  <input type="password" value={kaggleKey} onChange={e => setKaggleKey(e.target.value)} className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 transition-all shadow-sm" placeholder={isKaggleConfigured ? "•••••••••••• (Kayıtlı)" : "Kaggle API Key"} />
-               </div>
-               <div className="pt-4 border-t border-zinc-800">
-                  <label className="block text-[11px] text-zinc-400 mb-1.5 tracking-wider font-semibold uppercase flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-zinc-500 rounded-full"></span>
-                    Hugging Face Access Token
-                  </label>
-                  <input 
-                    type="password" 
-                    value={hfTokenInput} 
-                    onChange={e => setHfTokenInput(e.target.value)} 
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2.5 text-sm text-zinc-100 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 transition-all shadow-sm" 
-                    placeholder="hf_..." 
-                  />
-                  <p className="text-[10px] text-zinc-500 mt-2 leading-relaxed">
-                    Model Hub'a aktarım yapmak için <b className="text-zinc-300">Write</b> yetkili bir token gereklidir.
-                  </p>
-               </div>
-               <button disabled={isSavingSettings} onClick={handleSaveSettings} className="w-full mt-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-100 rounded-xl py-3 text-sm font-bold transition-colors disabled:opacity-50 shadow-md">
-                  {isSavingSettings ? 'Kaydediliyor...' : 'AYARLARI KAYDET'}
-               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Snapshot Naming Modal */}
       {isSnapModalOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-zinc-950/40 backdrop-blur-sm px-4 animate-in fade-in duration-300">
-          <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-950/70 backdrop-blur-sm px-4 animate-in fade-in duration-300">
+          <div className="absolute inset-0" onClick={() => setIsSnapModalOpen(false)}></div>
+          <div className="relative w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
             <h3 className="text-zinc-100 font-bold mb-2 flex items-center gap-2 text-lg">
               <FiArchive className="text-zinc-300" /> Yedek İsmi
             </h3>
@@ -887,8 +843,9 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
       )}
 
       {isHistoryOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-zinc-950/60 backdrop-blur-md px-4 animate-in fade-in duration-300">
-           <div className="w-full max-w-xl bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-zinc-950/70 backdrop-blur-md px-4 animate-in fade-in duration-300">
+           <div className="absolute inset-0" onClick={() => setHistoryOpen(false)}></div>
+           <div className="relative w-full max-w-xl bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
               <div className="p-5 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50">
                  <h3 className="text-zinc-100 font-bold flex items-center gap-2">
                    <FiArchive className="text-zinc-300" />
@@ -947,7 +904,8 @@ export default function FileExplorer({ workspaceId }: FileExplorerProps) {
         <SyntheticDataModal 
           isOpen={isSyntheticOpen} 
           onClose={() => setSyntheticOpen(false)} 
-          workspaceId={workspaceId} 
+          workspaceId={workspaceId}
+          onSuccess={fetchFiles} // K-2 Fix: onSuccess prop eksikti → TypeScript hatası
         />
       )}
     </>

@@ -21,7 +21,10 @@ Console.OutputEncoding = Encoding.UTF8;
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .WriteTo.Console()
-    .WriteTo.File("logs/currere-log-.txt", rollingInterval: RollingInterval.Day) // Her g?n yeni txt
+    .WriteTo.File(
+        "logs/currere-log-.txt",
+        rollingInterval: RollingInterval.Day,
+        encoding: System.Text.Encoding.UTF8) // D-2 Fix: Türkçe karakter bozukluğu önlendi
     .CreateLogger();
 
 try
@@ -152,6 +155,22 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
                 });
         });
 
+        // Y-3 Fix: inline-complete için ayrı gevşek politika
+        // GlobalLimiter'dan [DisableRateLimiting] ile muâf tutuldu, sadece bu limit geçerli
+        options.AddPolicy("InlineCompleteLimit", httpContext =>
+        {
+            var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            return RateLimitPartition.GetFixedWindowLimiter(
+                $"InlineComplete-{ip}",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 30,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0,
+                    AutoReplenishment = true
+                });
+        });
+
         options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
         {
             // ═══ TEST BYPASS — Doğru secret gelirse rate limit tamamen devre dışı ═══
@@ -218,12 +237,12 @@ builder.Services.AddScoped<ICodeExecutionService, CodeExecutionService>();
                     });
             }
 
-            // Genel — dakikada 60 istek
+            // Genel — dakikada 1000 istek (Geliştirme ortamı için genişletildi)
             return RateLimitPartition.GetFixedWindowLimiter(
                 ip,
                 _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 60, Window = TimeSpan.FromMinutes(1),
+                    PermitLimit = 1000, Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0, AutoReplenishment = true,
                     QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst
                 });

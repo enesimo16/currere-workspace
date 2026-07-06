@@ -61,14 +61,21 @@ namespace Currere_backend.Services
                 await file.CopyToAsync(stream);
             }
 
-            // 4 hours expried
+            // 4 hours expried — geçici veri dosyaları için
+            // Kaynak kod dosyaları kalıcı olduğu için ExpiresAt uzak geleceğe set edilir
+            var uploadExtCheck = Path.GetExtension(sanitizedFileName).ToLowerInvariant();
+            var isUploadPermanent = uploadExtCheck is ".py" or ".ipynb" or ".js" or ".ts" or ".jsx" or ".tsx"
+                                                         or ".cs" or ".java" or ".cpp" or ".c" or ".h"
+                                                         or ".md" or ".rst" or ".sql" or ".r" or ".rb";
+
             var workspaceFile = new WorkspaceFile
             {
                 WorkspaceId = workspaceId,
                 FileName = sanitizedFileName,       // 8 hanesiz original name
                 FilePath = fullPhysicalPath,    // fiziksel yol
                 UploadedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddHours(4), // user expire date görecek
+                ExpiresAt = isUploadPermanent ? DateTime.UtcNow.AddYears(100) : DateTime.UtcNow.AddHours(4),
+                IsPermanent = isUploadPermanent,
                 ProfileJson = null // Profil henüz yok, arka planda dolacak!
             };
 
@@ -78,7 +85,8 @@ namespace Currere_backend.Services
             // await _aiContextService.ExtractAndSaveMetadataAsync(fullPhysicalPath, file.FileName);
             // bunla birlikte metadata baglam olusturacagiz
 
-            // Dosyayı veritabanına hemen kaydediyoruz ki Id'si oluşsun ve arka plan işçisi dosyayı bulabilsin
+            // D-4 Fix: Tek isPermanent hesaplaması (isUploadPermanent). 
+            // isPermanentFile değişkeni hiç kullanılmayan dead code'ıdı — silindi.
             _context.WorkspaceFiles.Add(workspaceFile);
             await _context.SaveChangesAsync();
 
@@ -108,7 +116,19 @@ namespace Currere_backend.Services
             if (workspace == null)
                 throw new Exception("Çalışma alanı bulunamadı veya yetkiniz yok.");
 
-            var files = await _context.WorkspaceFiles
+            // K-6 Fix: GET endpoint'i saf (pure) olmalı — DB'ye hiç yazmamalı.
+            // Eski kod: her GET'te eksik dosyaları Add()+SaveChangesAsync() ile DB'ye ekliyor.
+            // Bu, eş zamanlı okumalar sırasında PK çakışmasına ve N+1 INSERT yüküne yol açıyordu.
+            //
+            // Yeni davranış: DB'deki kayıtlar ve diskteki fiziksel dosyalar IN-MEMORY birleştirilir.
+            // Diskte olup DB'de olmayan dosyalar DTO olarak oluşturulur ve eklenir — DB dokunulmaz.
+            // DB senkronizasyonu artık yalnızca açık bir POST /sync-files çağrısıyla yapılmalıdır.
+
+            var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var workspaceFolderPath = Path.GetFullPath(Path.Combine(webRootPath, "workspaces", workspaceId.ToString()));
+
+            // 1. DB'den kayıtlı dosyaları çek
+            var dbFiles = await _context.WorkspaceFiles
                 .Where(f => f.WorkspaceId == workspaceId && f.ExpiresAt > DateTime.UtcNow)
                 .OrderByDescending(f => f.UploadedAt)
                 .Select(f => new WorkspaceFileDto
@@ -120,8 +140,51 @@ namespace Currere_backend.Services
                 })
                 .ToListAsync();
 
-            return files;
+            // 2. Diskteki dosyaları in-memory olarak ekle (DB'ye yazmadan)
+            if (Directory.Exists(workspaceFolderPath))
+            {
+                var dbFilePaths = await _context.WorkspaceFiles
+                    .Where(f => f.WorkspaceId == workspaceId)
+                    .Select(f => f.FilePath)
+                    .ToListAsync();
+
+                var physicalFiles = Directory.GetFiles(workspaceFolderPath);
+                foreach (var pFile in physicalFiles)
+                {
+                    var pFileName = Path.GetFileName(pFile);
+
+                    // Gizli/temp dosyaları atla
+                    if (pFileName.StartsWith("_") || pFileName.StartsWith(".") ||
+                        pFileName.StartsWith("temp_") || pFileName.StartsWith("snapshot_") ||
+                        pFileName == "main.py")
+                        continue;
+
+                    // DB'de yoksa in-memory DTO ekle
+                    if (!dbFilePaths.Any(fp => string.Equals(fp, pFile, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        var displayName = System.Text.RegularExpressions.Regex.IsMatch(pFileName, @"^[0-9a-fA-F]{8}_")
+                            ? pFileName.Substring(9)
+                            : pFileName;
+
+                        if (!dbFiles.Any(f => string.Equals(f.FileName, displayName, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            dbFiles.Add(new WorkspaceFileDto
+                            {
+                                Id = 0, // DB'de kayıtlı değil
+                                FileName = displayName,
+                                UploadedAt = File.GetCreationTimeUtc(pFile),
+                                ExpiresAt = DateTime.UtcNow.AddYears(10)
+                            });
+                        }
+                    }
+                }
+            }
+
+            return dbFiles.OrderByDescending(f => f.UploadedAt).ToList();
         }
+
+
+
 
         public async Task<string> GetFileContentAsync(int workspaceId, int userId, string fileName)
         {
@@ -203,8 +266,19 @@ namespace Currere_backend.Services
 
             PathSanitizer.ValidatePathWithinBoundary(fullPhysicalPath, workspaceFolderPath);
 
-            // Create empty file
-            await System.IO.File.WriteAllTextAsync(fullPhysicalPath, "");
+            // Create empty file or notebook skeleton
+            string initialContent = "";
+            if (sanitizedFileName.EndsWith(".ipynb", StringComparison.OrdinalIgnoreCase))
+            {
+                initialContent = "{\"cells\": [{\"cell_type\": \"code\", \"execution_count\": null, \"metadata\": {}, \"outputs\": [], \"source\": []}], \"metadata\": {}, \"nbformat\": 4, \"nbformat_minor\": 5}";
+            }
+            await System.IO.File.WriteAllTextAsync(fullPhysicalPath, initialContent);
+
+            // IsPermanent tespiti: kaynak kod dosyaları kalıcıdır, geçici veri dosyaları değil
+            var newFileExt = Path.GetExtension(sanitizedFileName).ToLowerInvariant();
+            var isNewFilePermanent = newFileExt is ".py" or ".ipynb" or ".js" or ".ts" or ".jsx" or ".tsx"
+                                                        or ".cs" or ".java" or ".cpp" or ".c" or ".h"
+                                                        or ".md" or ".rst" or ".sql" or ".r" or ".rb";
 
             var workspaceFile = new WorkspaceFile
             {
@@ -212,10 +286,11 @@ namespace Currere_backend.Services
                 FileName = sanitizedFileName,
                 FilePath = fullPhysicalPath,
                 UploadedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddHours(24), // Empty files might last slightly longer, or same 4h. Let's do 4.
+                // Kalıcı dosyalar için 100 yıl → pratikte asla silinmez
+                ExpiresAt = isNewFilePermanent ? DateTime.UtcNow.AddYears(100) : DateTime.UtcNow.AddHours(4),
+                IsPermanent = isNewFilePermanent,
                 ProfileJson = null
             };
-            workspaceFile.ExpiresAt = DateTime.UtcNow.AddHours(4);
 
             _context.WorkspaceFiles.Add(workspaceFile);
             await _context.SaveChangesAsync();
@@ -225,7 +300,9 @@ namespace Currere_backend.Services
                 FileId = workspaceFile.Id,
                 FileName = workspaceFile.FileName,
                 ExpiresAt = workspaceFile.ExpiresAt,
-                Message = "Dosya başarıyla oluşturuldu."
+                Message = isNewFilePermanent
+                    ? "Dosya başarıyla oluşturuldu. (Kalıcı — otomatik silinmez)"
+                    : "Dosya başarıyla oluşturuldu. (4 saat sonra otomatik silinir)"
             };
         }
         
