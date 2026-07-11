@@ -21,6 +21,12 @@ Currere-backend/appsettings.Development.json
 *.cert
 *.key
 
+# Telemetry config holds a private key — keep only the *.example.json template
+telemetry.config.json
+
+# Local agent/editor tooling
+.claude/
+
 # 3. .NET CORE & C# (BİLEŞENLER)
 [Bb]in/
 [Oo]bj/
